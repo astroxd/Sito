@@ -1,7 +1,7 @@
 <div class="anime-card">
   <div class="anime-card-image">
     <a href="">
-      <img src="{{ anime().coverImage.large }}" alt="{{ anime().title }}" />
+      <img src="{{ anime().coverImage?.large }}" alt="{{ anime().title }}" />
       <div class="anime-card-image-overlay episodes">
         {{
           (anime().status === 'FINISHED'

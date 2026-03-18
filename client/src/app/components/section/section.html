@@ -3,10 +3,10 @@
     <div class="col">
       <div class="section-header">
         <div class="section-title">
-          <h4>{{ title() }}</h4>
+          <h4>{{ sectionName() }}</h4>
         </div>
         <div class="section-button-all">
-          <a href="">
+          <a [routerLink]="link()">
             View All
             <fa-icon [icon]="faLongArrowAltRight" />
           </a>
@@ -15,19 +15,11 @@
     </div>
   </div>
   <div class="row">
-    @if (anime$ | async) {
-      <!-- {{anime$ | json}} -->
-      <!-- prettier-ignore -->
-      @for (anime of (anime$ | async); track anime.id) {
+    <!-- prettier-ignore -->
+    @for (anime of (animes() ); track anime.id) {
       <div class="col-lg-4 col-md-6 col-sm-6">
         <app-anime-card [anime]="anime" />
       </div>
     }
-    }
-    <!-- @for (anime of animes; track anime.id) {
-      <div class="col-lg-4 col-md-6 col-sm-6">
-        <app-anime-card [anime]="anime" />
-      </div>
-    } -->
   </div>
 </div>

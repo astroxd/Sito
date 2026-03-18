@@ -1,10 +1,21 @@
 <a href="">
-  <div class="side-anime-card anime-card-image" [style]="`backgroundImage: url(${anime.image})`">
-    <div class="anime-card-image-overlay episodes"></div>
+  <div
+    class="side-anime-card anime-card-image"
+    [style]="`backgroundImage: url(${anime().coverImage?.extraLarge})`"
+  >
+    <div class="anime-card-image-overlay episodes">
+      {{
+        (anime().status === 'FINISHED'
+          ? (anime().episodes ?? '?')
+          : (anime().nextAiringEpisode?.episode ?? '?')) +
+          ' / ' +
+          (anime().episodes ?? '?')
+      }}
+    </div>
     <div class="anime-card-image-overlay side-anime-card-image-overlay-view">
       <fa-icon [icon]="faEye"></fa-icon>
-      {{ anime.popularity }}
+      {{ anime().popularity }}
     </div>
-    <h5>{{ anime.title }}</h5>
+    <h5>{{ anime().title.english ?? anime().title.romaji ?? 'No Title' }}</h5>
   </div>
 </a>

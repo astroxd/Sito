@@ -9,9 +9,11 @@ export interface Anime {
     episode?: Number;
   };
   popularity: Number;
-  coverImage: {
-    large: String;
+  coverImage?: {
+    large?: String;
+    extraLarge?: String;
   };
+  bannerImage?: String;
   genres: [];
   status: String;
 }

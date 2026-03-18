@@ -12,7 +12,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  /* background: linear-gradient(0deg, rgb(0 0 0 / 0.7), rgb(0 0 0 / 0)); */
+  background: linear-gradient(0deg, rgb(0 0 0 / 0.7), rgb(0 0 0 / 0));
 }
 
 .side-anime-card:hover h5 {
