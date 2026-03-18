@@ -1,0 +1,52 @@
+<header>
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <div class="header-logo">
+          <a href="#"><img src="../../assets/images/logo.png" alt="logo" /></a>
+        </div>
+      </div>
+      <div class="col-8">
+        <div class="header-center">
+          <div>
+            <ul class="navbar-nav">
+              <li class="nav-item">
+                <a class="nav-link nav-active" routerLink="/">HomePage</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" routerLink="/">HomePage</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" routerLink="/search">Searh</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="header-right">
+          <div class="search-bar">
+            <form action="">
+              <input type="text" class="search-bar-input" placeholder="Search..." />
+              <button type="submit" class="search-bar-button">
+                <fa-icon [icon]="faSearch" />
+              </button>
+            </form>
+          </div>
+          <div class="profile">
+            <fa-icon [icon]="faUserCircle" class="avatar" />
+            <div class="dropdown-menu profile-menu show">
+              <ul>
+                <li class="dropdown-menu-item profile-menu-item">
+                  <a href="">Log in</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div class="menu"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+<div>BreadCrumb</div>

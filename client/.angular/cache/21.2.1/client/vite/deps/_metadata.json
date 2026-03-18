@@ -1,34 +1,79 @@
 {
-  "hash": "afaafc65",
-  "configHash": "f2d58df2",
-  "lockfileHash": "4636cb07",
-  "browserHash": "c4c7a696",
+  "hash": "6dd71991",
+  "configHash": "19245f11",
+  "lockfileHash": "8fa4b5fd",
+  "browserHash": "b25b94db",
   "optimized": {
     "@angular/core": {
       "src": "../../../../../../node_modules/@angular/core/fesm2022/core.mjs",
       "file": "@angular_core.js",
-      "fileHash": "f3b60662",
+      "fileHash": "1458492f",
       "needsInterop": false
     },
     "@angular/platform-browser": {
       "src": "../../../../../../node_modules/@angular/platform-browser/fesm2022/platform-browser.mjs",
       "file": "@angular_platform-browser.js",
-      "fileHash": "eb343683",
+      "fileHash": "5cfb1532",
       "needsInterop": false
     },
     "@angular/router": {
       "src": "../../../../../../node_modules/@angular/router/fesm2022/router.mjs",
       "file": "@angular_router.js",
-      "fileHash": "4a4c5774",
+      "fileHash": "1b14707c",
+      "needsInterop": false
+    },
+    "@fortawesome/angular-fontawesome": {
+      "src": "../../../../../../node_modules/@fortawesome/angular-fontawesome/fesm2022/angular-fontawesome.mjs",
+      "file": "@fortawesome_angular-fontawesome.js",
+      "fileHash": "1865f06c",
+      "needsInterop": false
+    },
+    "@fortawesome/free-solid-svg-icons": {
+      "src": "../../../../../../node_modules/@fortawesome/free-solid-svg-icons/index.mjs",
+      "file": "@fortawesome_free-solid-svg-icons.js",
+      "fileHash": "5f19cff0",
+      "needsInterop": false
+    },
+    "@angular/common/http": {
+      "src": "../../../../../../node_modules/@angular/common/fesm2022/http.mjs",
+      "file": "@angular_common_http.js",
+      "fileHash": "c1c4912c",
+      "needsInterop": false
+    },
+    "@angular/common": {
+      "src": "../../../../../../node_modules/@angular/common/fesm2022/common.mjs",
+      "file": "@angular_common.js",
+      "fileHash": "f1fd3838",
+      "needsInterop": false
+    },
+    "rxjs": {
+      "src": "../../../../../../node_modules/rxjs/dist/esm5/index.js",
+      "file": "rxjs.js",
+      "fileHash": "5425ecdc",
       "needsInterop": false
     }
   },
   "chunks": {
-    "chunk-WE5632T4": {
-      "file": "chunk-WE5632T4.js"
+    "chunk-A3AR6EML": {
+      "file": "chunk-A3AR6EML.js"
     },
-    "chunk-YDP4JH5S": {
-      "file": "chunk-YDP4JH5S.js"
+    "chunk-PYGZ2OYH": {
+      "file": "chunk-PYGZ2OYH.js"
+    },
+    "chunk-CDFFCNPB": {
+      "file": "chunk-CDFFCNPB.js"
+    },
+    "chunk-S3TTGUJY": {
+      "file": "chunk-S3TTGUJY.js"
+    },
+    "chunk-QF7TIFAG": {
+      "file": "chunk-QF7TIFAG.js"
+    },
+    "chunk-RSS3ODKE": {
+      "file": "chunk-RSS3ODKE.js"
+    },
+    "chunk-GOMI4DH3": {
+      "file": "chunk-GOMI4DH3.js"
     }
   }
 }

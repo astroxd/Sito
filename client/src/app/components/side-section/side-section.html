@@ -1,0 +1,16 @@
+<div style="margin-bottom: 50px">
+  <div class="section-header">
+    <div class="section-title">
+      <h5>{{ title() }}</h5>
+    </div>
+    <div class="section-button-all">
+      <a href="">
+        View All
+        <fa-icon [icon]="faLongArrowAltRight" />
+      </a>
+    </div>
+  </div>
+  @for (anime of animes; track $index) {
+    <app-side-anime-card />
+  }
+</div>

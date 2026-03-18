@@ -1,1 +1,147 @@
 /* You can add global styles to this file, and also import other style files */
+
+:root {
+  --bg-primary: rgba(11, 12, 42, 1);
+  --bg-secondary: rgba(7, 7, 32, 1);
+  --bg-ternary: rgba(37, 36, 64, 1);
+
+  --text-primary: rgba(255, 255, 255, 1);
+  --text-secondary: rgba(183, 183, 183, 1);
+
+  --main-font: 'Mulish', sans-serif;
+  --main-font-weight: 400;
+  --header-font: 'Oswald', sans-serif;
+
+  --active: rgb(229, 54, 55);
+
+  --grey: rgba(61, 61, 61, 1);
+  --light-grey: rgba(255, 255, 255, 0.2);
+}
+
+/** || GENERAL STYLES */
+
+*,
+*::after,
+*::before {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  background-color: var(--bg-primary) !important;
+  font-family: var(--main-font) !important;
+  font-weight: var(--main-font-weight) !important;
+}
+
+a {
+  text-decoration: none;
+  color: var(--text-primary);
+}
+a:hover,
+a:visited {
+  color: var(--text-primary);
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+h1 {
+  font-size: 70px;
+}
+
+h2 {
+  font-size: 36px;
+}
+
+h3 {
+  font-size: 30px;
+}
+
+h4 {
+  font-size: 24px;
+}
+
+h5 {
+  font-size: 18px;
+}
+
+h6 {
+  font-size: 16px;
+}
+
+p {
+  font-size: 15px;
+  color: var(--grey);
+  line-height: 25px;
+  margin: 0 0 15px 0;
+}
+
+ol,
+ul {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+select:focus,
+textarea:focus {
+  outline: none;
+}
+
+input[type='search'] {
+  outline-offset: 0;
+}
+
+.primary-btn {
+  font-size: 13px;
+  color: var(--text-primary);
+  background-color: var(--active);
+  font-weight: 700;
+  border: none;
+  border-radius: 2px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  display: inline-block;
+  padding: 12px 30px;
+}
+
+.primary-btn:focus {
+  border: none;
+  box-shadow: none;
+}
+
+.tag {
+  background-color: var(--light-grey);
+  color: var(--text-primary);
+  padding: 8px 16px;
+  border-radius: 4px;
+}
+
+.tag:not(.no-hover):hover {
+  background-color: white;
+  color: black;
+}
+
+/** Loader and Page Loader  */
+.loading {
+  width: 100%;
+  text-align: center;
+  color: var(--text-primary);
+}
+.page-loader {
+  height: 80vmin;
+  display: flex;
+  align-items: center;
+  z-index: 9999;
+  background-color: var(--bg-primary);
+}
