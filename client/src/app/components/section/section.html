@@ -15,8 +15,7 @@
     </div>
   </div>
   <div class="row">
-    <!-- prettier-ignore -->
-    @for (anime of (animes() ); track anime.id) {
+    @for (anime of animes(); track anime.id) {
       <div class="col-lg-4 col-md-6 col-sm-6">
         <app-anime-card [anime]="anime" />
       </div>

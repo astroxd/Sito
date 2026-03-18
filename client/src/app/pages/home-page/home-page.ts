@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { SideSection } from '../../components/side-section/side-section';
 import { TrendingNow } from './components/trending-now/trending-now';
 import { PopularThisSeason } from './components/popular-this-season/popular-this-season';
 import { NextSeason } from './components/next-season/next-season';
