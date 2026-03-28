@@ -1,0 +1,52 @@
+<div class="select">
+  <div class="select-button" (click)="showMenu.set(!showMenu())">
+    <div>
+      <div class="select-button-content">
+        @if (selectedOptions().length > 0) {
+          <span class="tag">
+            {{ selectedOptions()[0]?.showName ?? 'Error No Name' }}
+          </span>
+        } @else {
+          <span class="title">{{ menuTitle() }}</span>
+        }
+        @if (selectedOptions().length > 1) {
+          <span class="tag">{{ `+${selectedOptions().length - 1}` }}</span>
+        }
+      </div>
+      <fa-icon [icon]="faChevronDown" />
+    </div>
+  </div>
+  <div class="select-menu" [class]="showMenu() ? 'show' : ''">
+    <ul>
+      @for (option of options(); track $index) {
+        <li
+          [className]="this.selectedOptions().some((object) => object?.name === option.name) ? 'selected' : ''"
+          key="{idx}"
+          (click)="addToSelection(option)"
+        >
+          {{ option.showName }}
+        </li>
+      }
+      <!-- {options.map((option, idx) => {
+						return (
+							<li
+								className={`${
+									selectedOptions.some((object) => object?.name === option.name)
+										? 'selected'
+										: ''
+								}`}
+								key={idx}
+								onClick={() => {
+									addToSelection(option)
+									if (!multiple) {
+										setShowMenu(false)
+									}
+								}}
+							>
+								{option.showName}
+							</li>
+						)
+					})} -->
+    </ul>
+  </div>
+</div>

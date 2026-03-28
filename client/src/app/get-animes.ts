@@ -151,4 +151,43 @@ export class GetAnimes {
     };
     return this.FetchAnime(query);
   }
+
+  SearchAnime(options: any) {
+    let loading = true;
+    let query = {
+      query: `
+    	query($page: Int, $perPage: Int, $search: String, $genre_in: [String], $seasonYear: Int, $season: MediaSeason, $format_in: [MediaFormat], $status_in: [MediaStatus], $sort: [MediaSort]){
+            Page(page: $page, perPage: $perPage){
+    			pageInfo{
+    				total
+    				perPage
+    				lastPage
+    				hasNextPage
+    			}
+                media (type: ANIME, search: $search, genre_in: $genre_in, seasonYear: $seasonYear, season: $season, format_in: $format_in, status_in: $status_in, sort: $sort){
+                    id
+                    title{
+                        english
+                        romaji
+                    }
+                    episodes
+                    nextAiringEpisode{
+                        episode
+                    }
+                    popularity
+                    coverImage{
+                        large
+                    }
+                    genres
+    				status
+                }
+            }
+        }
+
+    `,
+      variables: { page: 1, perPage: 12, sort: options.sortOptions, ...options.options },
+    };
+    console.log(query);
+    return this.FetchAnime(query);
+  }
 }

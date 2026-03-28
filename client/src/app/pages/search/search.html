@@ -1,1 +1,5 @@
-<p>search works!</p>
+<section class="search-page">
+  <app-search-bar [(searchOptions)]="searchOptions" />
+  <app-search-results [anime]="anime | async" />
+  <!-- {{ anime() | json }} -->
+</section>
