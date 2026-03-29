@@ -1,7 +1,5 @@
 import { SearchOption } from '../searchTypes';
 
-type OptionType = 'genre' | 'year' | 'format' | 'status';
-
 export const genreOptions: SearchOption[] = [
   { name: 'Action', showName: 'Action' },
   { name: 'Adventure', showName: 'Adventure' },

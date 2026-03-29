@@ -1,7 +1,9 @@
 import { Component, effect, inject, model, signal, untracked } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { form, FormField } from '@angular/forms/signals';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faSearch, faTags, faTimes } from '@fortawesome/free-solid-svg-icons';
-import { form, FormField } from '@angular/forms/signals';
+
 import { SelectMenu } from '../../../../components/select-menu/select-menu';
 import {
   genreOptions,
@@ -14,17 +16,26 @@ import {
   getStatus,
   sortOptions,
 } from '../searchOptions';
-
-import { ActivatedRoute, Router } from '@angular/router';
 import { SearchOption, SearchOptions } from '../../searchTypes';
-import { JsonPipe } from '@angular/common';
 
 @Component({
   selector: 'app-search-bar',
-  imports: [FontAwesomeModule, FormField, SelectMenu, JsonPipe],
+  imports: [FontAwesomeModule, FormField, SelectMenu],
   templateUrl: './search-bar.html',
   styleUrls: ['./search-bar.css', '../../../../components/section/section.css'],
 })
+
+//* Brief description
+//* When the page loads the signals load their values from the URL
+//* The user can search in 2 different ways
+//*    + the user update the dropdown menus
+//*    + the user submits the form
+//* in both cases the searchOption object is updated and it is sent to
+//* the search parent to search the animes
+//* it also resets the page and sort values to their default (1, POPULARITY_DESC)
+//*
+//* meanwhile the URL is updated through the @updateParams function
+//* it's important to note that the updated URL doesn't change the signals
 export class SearchBar {
   private activatedRoute = inject(ActivatedRoute);
   private router = inject(Router);
@@ -49,19 +60,11 @@ export class SearchBar {
   searchForm = form(this.searchModel);
 
   onSubmit(event: Event) {
-    console.log('Onsubmi');
     event.preventDefault();
-    // this.searchOptions.update((options) => {
-    //   if (this.searchModel().search.length <= 0) {
-    //     delete options['search'];
-    //     return { ...options };
-    //   }
-    //   return {
-    //     ...options,
-    //     search: this.searchModel().search,
-    //   };
-    // });
-    // console.log(this.searchOptions());
+    //* If the searchbar is empty and the searchOption object has no search member
+    //* OR
+    //* If the searchbar has content and is equal to the searcOption value
+    //* DON'T search
     if (
       (this.searchModel().search.length <= 0 && !this.searchOptions().search) ||
       this.searchModel().search === this.searchOptions().search
@@ -97,17 +100,10 @@ export class SearchBar {
       }
     }
 
+    this.updateQueryParams();
     this.page.set(1);
     this.sort.set(sortOptions[0].name);
     this.searchOptions.set(searchOptions);
-
-    // let searchOptions = {
-    //   sortOptions: 'POPULARITY_DESC',
-    //   options: this.options(),
-    // };
-
-    // this.searchOptions.set(searchOptions);
-    this.updateQueryParams();
   }
 
   updateQueryParams() {
@@ -122,14 +118,18 @@ export class SearchBar {
         .join(','),
       status: this.status()[0]?.name ?? '',
     };
+
     //* remove empty values, prevent url like query=&genres=&year=
     for (const [key, param] of Object.entries(params)) {
       if ((param as any).length <= 0) {
         delete params[key];
       }
     }
+    console.log('update params');
     this.router.navigate([], {
       queryParams: params,
+      queryParamsHandling: 'replace',
+      onSameUrlNavigation: 'reload',
     });
   }
 

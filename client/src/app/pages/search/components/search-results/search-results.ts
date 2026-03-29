@@ -1,13 +1,12 @@
 import { Component, effect, input, model, signal } from '@angular/core';
-import { AsyncPipe, JsonPipe } from '@angular/common';
+import { form, FormField } from '@angular/forms/signals';
 
 import { sortOptions } from '../searchOptions';
 import { AnimeCard } from '../../../../components/anime-card/anime-card';
-import { form, FormField } from '@angular/forms/signals';
 
 @Component({
   selector: 'app-search-results',
-  imports: [AsyncPipe, AnimeCard, JsonPipe, FormField],
+  imports: [AnimeCard, FormField],
   templateUrl: './search-results.html',
   styleUrls: ['./search-results.css', '../../../../components/section/section.css'],
 })

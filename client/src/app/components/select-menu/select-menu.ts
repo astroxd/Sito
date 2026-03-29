@@ -1,6 +1,7 @@
 import { Component, input, model, signal } from '@angular/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
+
 @Component({
   selector: 'app-select-menu',
   imports: [FontAwesomeModule],
@@ -18,22 +19,20 @@ export class SelectMenu {
   faChevronDown = faChevronDown;
 
   protected addToSelection = (object: any) => {
-    console.log('ADDDDD');
     if (!this.multiple()) {
       this.showMenu.set(false);
     }
     let filteredResult;
 
     if (this.multiple()) {
-      if ((this.selectedOptions() as any[]).some((option) => option.name === object.name)) {
+      if (this.selectedOptions().some((option) => option.name === object.name)) {
         this.removeFromSelection(object);
       } else {
-        filteredResult = [...(this.selectedOptions() as any[]), object];
+        filteredResult = [...this.selectedOptions(), object];
         this.selectedOptions.set(filteredResult);
       }
     } else {
-      //* if in single selection the clicked element is the same as before prevent update
-      if (object.name === (this.selectedOptions()[0] as any)?.name) {
+      if (object.name === this.selectedOptions()[0]?.name) {
         this.removeFromSelection(object);
         return;
       }
@@ -44,8 +43,6 @@ export class SelectMenu {
   };
 
   protected removeFromSelection = (object: any) => {
-    // if (object === undefined) return;
-
     if (!this.multiple()) {
       this.selectedOptions.set([]);
     } else {

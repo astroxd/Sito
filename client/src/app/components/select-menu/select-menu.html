@@ -21,32 +21,11 @@
       @for (option of options(); track $index) {
         <li
           [className]="this.selectedOptions().some((object) => object?.name === option.name) ? 'selected' : ''"
-          key="{idx}"
           (click)="addToSelection(option)"
         >
           {{ option.showName }}
         </li>
       }
-      <!-- {options.map((option, idx) => {
-						return (
-							<li
-								className={`${
-									selectedOptions.some((object) => object?.name === option.name)
-										? 'selected'
-										: ''
-								}`}
-								key={idx}
-								onClick={() => {
-									addToSelection(option)
-									if (!multiple) {
-										setShowMenu(false)
-									}
-								}}
-							>
-								{option.showName}
-							</li>
-						)
-					})} -->
     </ul>
   </div>
 </div>
