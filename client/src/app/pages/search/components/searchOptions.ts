@@ -1,4 +1,8 @@
-export const genreOptions = [
+import { SearchOption } from '../searchTypes';
+
+type OptionType = 'genre' | 'year' | 'format' | 'status';
+
+export const genreOptions: SearchOption[] = [
   { name: 'Action', showName: 'Action' },
   { name: 'Adventure', showName: 'Adventure' },
   { name: 'Comedy', showName: 'Comedy' },
@@ -20,7 +24,7 @@ export const genreOptions = [
   { name: 'Hentai', showName: 'Hentai' },
 ];
 
-const generateYearOptions = () => {
+const generateYearOptions = (): SearchOption[] => {
   const date = new Date();
 
   const LAST_YEAR = date.getFullYear();
@@ -34,7 +38,7 @@ const generateYearOptions = () => {
 
 export const yearOptions = generateYearOptions();
 
-export const formatOptions = [
+export const formatOptions: SearchOption[] = [
   { name: 'TV', showName: 'TV' },
   { name: 'TV_SHORT', showName: 'TV Short' },
   { name: 'MOVIE', showName: 'Movie' },
@@ -44,14 +48,14 @@ export const formatOptions = [
   { name: 'MUSIC', showName: 'Music' },
 ];
 
-export const statusOptions = [
+export const statusOptions: SearchOption[] = [
   { name: 'RELEASING', showName: 'Airing' },
   { name: 'NOT_YET_RELEASED', showName: 'Not Yet Aired' },
   { name: 'FINISHED', showName: 'Finished' },
   { name: 'CANCELLED', showName: 'Cancelled' },
 ];
 
-export const sortOptions = [
+export const sortOptions: SearchOption[] = [
   { name: 'POPULARITY_DESC', showName: 'Popularity' },
   { name: 'TITLE_ENGLISH', showName: 'Title' },
   { name: 'SCORE_DESC', showName: 'Score' },
@@ -59,12 +63,12 @@ export const sortOptions = [
   { name: 'ID_DESC', showName: 'Date' },
 ];
 
-const toList = (string: string, typeList: any) => {
-  let list: any = [];
+const toList = (string: string, typeList: SearchOption[]) => {
+  let list: SearchOption[] = [];
 
   if (string) {
     string.split(',').map((item) => {
-      let object = typeList.find((listItem: any) => listItem.name === item);
+      let object = typeList.find((listItem) => listItem.name === item);
       if (object === undefined) return;
       list.push(object);
     });
@@ -77,10 +81,12 @@ export const getGenres = (string: string) => {
 };
 
 export const getYear = (string: string) => {
-  if (!string) return [];
+  let optionYear: SearchOption[] = [];
+  if (!string) return optionYear;
 
   let year = string.split(',')[0]; //* if &year=2020,2021 takes firs year (2020)
-  return [{ name: year, showName: year }];
+  optionYear.push({ name: year, showName: year });
+  return optionYear;
 };
 
 export const getFormats = (string: string) => {
@@ -88,9 +94,9 @@ export const getFormats = (string: string) => {
 };
 
 export const getStatus = (string: string) => {
-  if (!string) return [];
+  let status: SearchOption[] = [];
+  if (!string) return status;
 
-  let status = [];
   if (string) {
     const statusString = string.split(',')[0];
     let object = statusOptions.find((listItem) => listItem.name === statusString);

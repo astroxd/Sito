@@ -3,9 +3,10 @@ import { SearchBar } from './components/search-bar/search-bar';
 import { SearchResults } from './components/search-results/search-results';
 import { GetAnimes } from '../../get-animes';
 import { sortOptions } from './components/searchOptions';
-import { toSignal } from '@angular/core/rxjs-interop';
 
 import { AsyncPipe, JsonPipe } from '@angular/common';
+import { QueryOptions, SearchOption, SearchOptions } from './searchTypes';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-search',
@@ -14,15 +15,38 @@ import { AsyncPipe, JsonPipe } from '@angular/common';
   styleUrl: './search.css',
 })
 export class Search {
-  sortOptions = sortOptions;
   private animeService = inject(GetAnimes);
-  searchOptions = signal({ sortOptions: this.sortOptions[0].name });
+  private router = inject(Router);
+  private activatedRoute = inject(ActivatedRoute);
+  private routeSnapshot = this.activatedRoute.snapshot;
+
+  sortOptions = sortOptions;
+
+  options = signal<SearchOptions>({});
+  sortOption = signal(this.routeSnapshot.queryParamMap.get('sort') ?? sortOptions[0].name);
+  page = signal(Number(this.routeSnapshot.queryParamMap.get('page') ?? 1));
+
+  queryOptions = computed<QueryOptions>(() => {
+    return { sort: this.sortOption(), page: this.page(), options: this.options() };
+  });
+
+  // signal<QueryOptions>({
+  //   sort: this.sortOptions[0].name,
+  //   page: 1,
+  //   options: this.options(),
+  // });
   anime: any;
 
   constructor() {
     effect(() => {
-      console.log(this.searchOptions());
-      this.anime = this.animeService.SearchAnime(this.searchOptions());
+      this.router.navigate([], {
+        queryParams: { sort: this.sortOption(), page: this.page() },
+        queryParamsHandling: 'merge',
+      });
+      console.log(this.queryOptions());
+
+      this.anime = this.animeService.SearchAnime(this.queryOptions());
     });
+    effect(() => {});
   }
 }

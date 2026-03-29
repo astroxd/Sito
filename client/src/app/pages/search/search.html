@@ -1,5 +1,9 @@
 <section class="search-page">
-  <app-search-bar [(searchOptions)]="searchOptions" />
-  <app-search-results [anime]="anime | async" />
-  <!-- {{ anime() | json }} -->
+  <app-search-bar [(searchOptions)]="options" [(sort)]="sortOption" [(page)]="page" />
+  <app-search-results
+    [anime]="anime | async"
+    [query]="queryOptions().options.search"
+    [(sort)]="sortOption"
+    [(page)]="page"
+  />
 </section>

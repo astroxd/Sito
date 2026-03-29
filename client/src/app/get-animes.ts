@@ -3,6 +3,7 @@ import { Anime } from './models/Anime';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable, tap } from 'rxjs';
 import { getCurrentSeason, getNextSeason } from './helpers/animeSeasons';
+import { QueryOptions } from './pages/search/searchTypes';
 
 @Injectable({
   providedIn: 'root',
@@ -152,7 +153,7 @@ export class GetAnimes {
     return this.FetchAnime(query);
   }
 
-  SearchAnime(options: any) {
+  SearchAnime({ page, sort, options }: QueryOptions) {
     let loading = true;
     let query = {
       query: `
@@ -185,7 +186,7 @@ export class GetAnimes {
         }
 
     `,
-      variables: { page: 1, perPage: 12, sort: options.sortOptions, ...options.options },
+      variables: { page: page, perPage: 12, sort: sort, ...options },
     };
     console.log(query);
     return this.FetchAnime(query);

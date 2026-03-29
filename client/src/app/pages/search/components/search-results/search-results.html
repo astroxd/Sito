@@ -8,10 +8,19 @@
           </div>
           <div class="order-by">
             <span>Order by:</span>
-            <select name="sort"></select>
+            <select [formField]="sortForm">
+              @for (sort of sortOptions; track $index) {
+                <option [value]="sort.name">
+                  {{ sort.showName }}
+                </option>
+              }
+            </select>
           </div>
-          <span class="search-query"> Search for &quot;{{ 'ciao' }}&quot; </span>
-          <div class="inline-pagination"></div>
+          <span class="search-query"> Search for &quot;{{ query() }}&quot; </span>
+          {{ page() }}
+          <div class="inline-pagination">
+            <button (click)="updatePage()">+ page</button>
+          </div>
         </div>
       </div>
     </div>
