@@ -1,5 +1,10 @@
 <section class="search-page">
-  <app-search-bar [(searchOptions)]="options" [(sort)]="sortOption" [(page)]="page" />
+  <app-search-bar
+    [(searchOptions)]="options"
+    [(sort)]="sortOption"
+    [(page)]="page"
+    [(queryParamOptions)]="paramOptions"
+  />
   <app-search-results
     [anime]="anime | async"
     [query]="queryOptions().options.search"

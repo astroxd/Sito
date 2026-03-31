@@ -23,24 +23,31 @@ export class Search {
 
   sortOptions = sortOptions;
 
-  options = signal<SearchOptions>({});
+  options = signal<SearchOptions | null>(null);
   sortOption = signal(this.routeSnapshot.queryParamMap.get('sort') ?? sortOptions[0].name);
   page = signal(Number(this.routeSnapshot.queryParamMap.get('page') ?? 1));
 
   queryOptions = computed<QueryOptions>(() => {
-    return { sort: this.sortOption(), page: this.page(), options: this.options() };
+    return { sort: this.sortOption(), page: this.page(), options: this.options() ?? {} };
   });
+
+  paramOptions = signal({});
+  queryParamOptions = computed(() => {
+    return { ...this.paramOptions(), sort: this.sortOption(), page: this.page() };
+  });
+
   anime: any;
 
   constructor() {
     effect(() => {
       this.router.navigate([], {
-        queryParams: { sort: this.sortOption(), page: this.page() },
-        queryParamsHandling: 'merge',
+        queryParams: this.queryParamOptions(),
       });
-
-      console.log(this.queryOptions());
-      this.anime = this.animeService.SearchAnime(this.queryOptions());
+    });
+    effect(() => {
+      if (this.options() !== null) {
+        this.anime = this.animeService.SearchAnime(this.queryOptions());
+      }
     });
   }
 }

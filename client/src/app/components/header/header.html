@@ -34,8 +34,13 @@
       <div class="col">
         <div class="header-right">
           <div class="search-bar">
-            <form action="">
-              <input type="text" class="search-bar-input" placeholder="Search..." />
+            <form (submit)="search($event)">
+              <input
+                type="text"
+                class="search-bar-input"
+                placeholder="Search..."
+                [formField]="searchForm"
+              />
               <button type="submit" class="search-bar-button">
                 <fa-icon [icon]="faSearch" />
               </button>

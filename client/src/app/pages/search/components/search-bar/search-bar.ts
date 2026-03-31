@@ -1,5 +1,5 @@
-import { Component, effect, inject, model, signal, untracked } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, effect, inject, model, OnInit, signal, untracked } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { form, FormField } from '@angular/forms/signals';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faSearch, faTags, faTimes } from '@fortawesome/free-solid-svg-icons';
@@ -34,11 +34,11 @@ import { SearchOption, SearchOptions } from '../../searchTypes';
 //* the search parent to search the animes
 //* it also resets the page and sort values to their default (1, POPULARITY_DESC)
 //*
-//* meanwhile the URL is updated through the @updateParams function
+//* meanwhile the URL is updated through the @updateQueryParams function
+//* which sends the queryParams to the search parent who updates the URL
 //* it's important to note that the updated URL doesn't change the signals
-export class SearchBar {
+export class SearchBar implements OnInit {
   private activatedRoute = inject(ActivatedRoute);
-  private router = inject(Router);
   private routeSnapshot = this.activatedRoute.snapshot;
 
   faSearch = faSearch;
@@ -50,9 +50,10 @@ export class SearchBar {
   formatOptions = formatOptions;
   statusOptions = statusOptions;
 
-  searchOptions = model<SearchOptions>({});
+  searchOptions = model<SearchOptions | null>({});
   page = model<number>(1);
   sort = model<string>(sortOptions[0].name);
+  queryParamOptions = model({});
 
   searchModel = signal({
     search: this.activatedRoute.snapshot.queryParamMap.get('query') ?? '',
@@ -66,8 +67,8 @@ export class SearchBar {
     //* If the searchbar has content and is equal to the searcOption value
     //* DON'T search
     if (
-      (this.searchModel().search.length <= 0 && !this.searchOptions().search) ||
-      this.searchModel().search === this.searchOptions().search
+      (this.searchModel().search.length <= 0 && !this.searchOptions()?.search) ||
+      this.searchModel().search === this.searchOptions()?.search
     )
       return;
     this.search();
@@ -85,6 +86,20 @@ export class SearchBar {
     });
   }
 
+  ngOnInit(): void {
+    this.activatedRoute.queryParams.subscribe((param) => {
+      const searchParamFromHeader = param['query'];
+      if (searchParamFromHeader === undefined) return;
+      if (searchParamFromHeader !== this.searchModel().search) {
+        this.searchForm().value.set({ search: searchParamFromHeader });
+        this.genres.set([]);
+        this.year.set([]);
+        this.formats.set([]);
+        this.status.set([]);
+        //* The signals update trigger the @search() function
+      }
+    });
+  }
   search() {
     let searchOptions: SearchOptions = {
       search: untracked(this.searchModel).search,
@@ -101,8 +116,7 @@ export class SearchBar {
     }
 
     this.updateQueryParams();
-    this.page.set(1);
-    this.sort.set(sortOptions[0].name);
+
     this.searchOptions.set(searchOptions);
   }
 
@@ -125,12 +139,10 @@ export class SearchBar {
         delete params[key];
       }
     }
-    console.log('update params');
-    this.router.navigate([], {
-      queryParams: params,
-      queryParamsHandling: 'replace',
-      onSameUrlNavigation: 'reload',
-    });
+
+    this.page.set(1);
+    this.sort.set(sortOptions[0].name);
+    this.queryParamOptions.set(params);
   }
 
   deleteGenre(genre: SearchOption) {
