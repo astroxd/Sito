@@ -22,11 +22,11 @@ export class Header {
     e.preventDefault();
 
     const query = this.searchForm().value();
+    if (query.length <= 0) return;
     this.searchForm().value.set('');
 
     this.router.navigate(['/search'], {
       queryParams: { query: query },
-      onSameUrlNavigation: 'reload',
     });
   }
 }

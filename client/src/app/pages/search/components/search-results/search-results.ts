@@ -16,16 +16,9 @@ export class SearchResults {
   anime = input.required<[] | null>();
   query = input<string | undefined>('');
   page = model<number>(1);
-  sort = model<string>(sortOptions[0].name);
 
-  sortModel = signal(this.sort());
+  sortModel = model<string>(sortOptions[0].name);
   sortForm = form(this.sortModel);
-
-  constructor() {
-    effect(() => {
-      this.sort.set(this.sortForm().value());
-    });
-  }
 
   updatePage() {
     this.page.update((page) => page + 1);
