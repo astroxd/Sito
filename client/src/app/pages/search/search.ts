@@ -49,5 +49,15 @@ export class Search {
         this.anime = this.animeService.SearchAnime(this.queryOptions());
       }
     });
+
+    //TODO this fixes routerLink, find better solution
+    this.activatedRoute.queryParams.subscribe((param) => {
+      if (param['sort'] === undefined) {
+        // console.log('search param: ' + param);
+        this.router.navigate([], {
+          queryParams: this.queryParamOptions(),
+        });
+      }
+    });
   }
 }

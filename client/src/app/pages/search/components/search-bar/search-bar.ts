@@ -80,9 +80,11 @@ export class SearchBar implements OnInit {
   formats = signal(getFormats(this.routeSnapshot.queryParamMap.get('formats') || ''));
   status = signal(getStatus(this.routeSnapshot.queryParamMap.get('status') || ''));
 
+  private firstRender = true;
   constructor() {
     effect(() => {
       this.search();
+      this.firstRender = false;
     });
   }
 
@@ -114,7 +116,7 @@ export class SearchBar implements OnInit {
         delete searchOptions[key as keyof SearchOptions];
       }
     }
-
+    console.log('search');
     this.updateQueryParams();
 
     this.searchOptions.set(searchOptions);
@@ -140,8 +142,10 @@ export class SearchBar implements OnInit {
       }
     }
 
-    this.page.set(1);
-    this.sort.set(sortOptions[0].name);
+    if (!this.firstRender) {
+      this.page.set(1);
+      this.sort.set(sortOptions[0].name);
+    }
     this.queryParamOptions.set(params);
   }
 

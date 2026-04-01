@@ -15,7 +15,7 @@ export class GetAnimes {
 
   FetchAnime(query: Object) {
     return this.http.post<any>(this.url, query).pipe(
-      tap(({ data: { Page } }) => console.log(Page.media)),
+      tap(({ data: { Page } }) => console.log(Page)),
       map(
         ({
           data: {
@@ -162,6 +162,7 @@ export class GetAnimes {
     			pageInfo{
     				total
     				perPage
+            currentPage
     				lastPage
     				hasNextPage
     			}
