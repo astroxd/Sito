@@ -90,6 +90,16 @@ export class SearchBar implements OnInit {
 
   ngOnInit(): void {
     this.activatedRoute.queryParams.subscribe((param) => {
+      if (param['sort'] === undefined) {
+        console.log('test');
+        this.searchForm().value.set({ search: '' });
+        this.genres.set([]);
+        this.year.set([]);
+        this.formats.set([]);
+        this.status.set([]);
+        return;
+      }
+
       const searchParamFromHeader = param['query'];
       if (searchParamFromHeader === undefined) return;
       if (searchParamFromHeader !== this.searchModel().search) {

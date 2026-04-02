@@ -26,7 +26,7 @@ export class Header {
     this.searchForm().value.set('');
 
     this.router.navigate(['/search'], {
-      queryParams: { query: query },
+      queryParams: { query: query, sort: 'POPULARITY_DESC', page: 1 },
     });
   }
 }

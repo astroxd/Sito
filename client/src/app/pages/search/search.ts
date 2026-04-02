@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, Signal, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -47,16 +47,6 @@ export class Search {
     effect(() => {
       if (this.options() !== null) {
         this.anime = this.animeService.SearchAnime(this.queryOptions());
-      }
-    });
-
-    //TODO this fixes routerLink, find better solution
-    this.activatedRoute.queryParams.subscribe((param) => {
-      if (param['sort'] === undefined) {
-        // console.log('search param: ' + param);
-        this.router.navigate([], {
-          queryParams: this.queryParamOptions(),
-        });
       }
     });
   }
