@@ -22,7 +22,7 @@ import { SearchOption, SearchOptions } from '../../searchTypes';
   selector: 'app-search-bar',
   imports: [FontAwesomeModule, FormField, SelectMenu],
   templateUrl: './search-bar.html',
-  styleUrls: ['./search-bar.css', '../../../../components/section/section.css'],
+  styleUrl: './search-bar.css',
 })
 
 //* Brief description

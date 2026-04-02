@@ -10,7 +10,7 @@ import { RouterLink } from '@angular/router';
   imports: [FontAwesomeModule, AnimeCard, RouterLink],
   templateUrl: './section.html',
   styleUrl: './section.css',
-  encapsulation: ViewEncapsulation.None,
+  // encapsulation: ViewEncapsulation.None,
 })
 export class Section {
   faLongArrowAltRight = faLongArrowAltRight;
