@@ -3,29 +3,30 @@
     <div>
       <div class="select-button-content">
         @if (selectedOptions().length > 0) {
-          <span class="tag">
-            {{ selectedOptions()[0]?.showName ?? 'Error No Name' }}
-          </span>
+        <span class="tag">
+          {{ selectedOptions()[0]?.showName ?? 'Error No Name' }}
+        </span>
         } @else {
-          <span class="title">{{ menuTitle() }}</span>
-        }
-        @if (selectedOptions().length > 1) {
-          <span class="tag">{{ `+${selectedOptions().length - 1}` }}</span>
+        <span class="title">{{ menuTitle() }}</span>
+        } @if (selectedOptions().length > 1) {
+        <span class="tag">{{ `+${selectedOptions().length - 1}` }}</span>
         }
       </div>
-      <fa-icon [icon]="faChevronDown" />
+      <!-- <fa-icon [icon]="faChevronDown" /> -->
     </div>
   </div>
   <div class="select-menu" [class]="showMenu() ? 'show' : ''">
     <ul>
       @for (option of options(); track $index) {
-        <li
-          [className]="this.selectedOptions().some((object) => object?.name === option.name) ? 'selected' : ''"
-          (click)="addToSelection(option)"
-        >
-          {{ option.showName }}
-        </li>
+      <li (click)="addToSelection(option)">{{ option.showName }}</li>
       }
+      <!-- <li
+        [className]="this.selectedOptions().some((object) => object?.name === option.name) ? 'selected' : ''"
+        (click)="addToSelection(option)"
+      >
+        {{ option.showName }}
+      </li>
+      } -->
     </ul>
   </div>
 </div>

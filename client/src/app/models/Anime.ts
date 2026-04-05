@@ -1,19 +1,19 @@
 export interface Anime {
-  id: Number;
+  id: number;
   title: {
-    english?: String;
-    romaji?: String;
+    english?: string;
+    romaji?: string;
   };
-  episodes?: Number;
+  episodes?: number;
   nextAiringEpisode?: {
-    episode?: Number;
+    episode: number;
   };
-  popularity: Number;
+  popularity: number;
   coverImage?: {
-    large?: String;
-    extraLarge?: String;
+    large?: string;
+    extraLarge?: string;
   };
-  bannerImage?: String;
+  bannerImage?: string;
   genres: [];
-  status: String;
+  status: string;
 }

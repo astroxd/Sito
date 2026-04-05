@@ -6,11 +6,11 @@
     <div class="section-button-all">
       <a href="">
         View All
-        <fa-icon [icon]="faLongArrowAltRight" />
+        <!-- <fa-icon [icon]="faLongArrowAltRight" /> -->
       </a>
     </div>
   </div>
   @for (anime of animes(); track $index) {
-    <app-side-anime-card [anime]="anime" />
+  <app-side-anime-card [anime]="anime" />
   }
 </div>

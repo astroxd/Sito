@@ -1,6 +1,6 @@
 <div style="margin-bottom: 50px">
-  <div class="row">
-    <div class="col">
+  <ion-row>
+    <ion-col>
       <div class="section-header">
         <div class="section-title">
           <h4>{{ sectionName() }}</h4>
@@ -8,17 +8,18 @@
         <div class="section-button-all">
           <a [routerLink]="link()">
             View All
-            <fa-icon [icon]="faLongArrowAltRight" />
+            <!-- <fa-icon [icon]="faLongArrowAltRight" /> -->
+            <ion-icon name="arrowForwardOutline" />
           </a>
         </div>
       </div>
-    </div>
-  </div>
-  <div class="row">
+    </ion-col>
+  </ion-row>
+  <ion-row>
     @for (anime of animes(); track anime.id) {
-      <div class="col-lg-4 col-md-6 col-sm-6">
-        <app-anime-card [anime]="anime" />
-      </div>
+    <ion-col size-xs="6" size-lg="4">
+      <app-anime-card [anime]="anime" />
+    </ion-col>
     }
-  </div>
+  </ion-row>
 </div>

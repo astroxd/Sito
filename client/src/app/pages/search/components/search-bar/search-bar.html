@@ -1,89 +1,94 @@
 <section class="search-bar" style="margin-top: 40px; margin-bottom: 60px">
-  <div class="container">
-    <div class="row">
-      <div class="col">
-        <div class="section-title">
-          <h2>
-            Search Your Ani
-            <span>me</span>
-          </h2>
-        </div>
+  <ion-row>
+    <ion-col>
+      <div class="section-title">
+        <h2>
+          Search Your Ani
+          <span>me</span>
+        </h2>
       </div>
-    </div>
-    <div class="row">
-      <div class="col">
-        <div class="search-menu">
-          <form class="search-bar-container" (submit)="onSubmit($event)">
-            <input type="search" placeholder="Search..." [formField]="searchForm.search" />
-            <button class="search-bar-icon" type="submit">
-              <fa-icon [icon]="faSearch" />
-            </button>
-          </form>
-          <div class="search-advanced">
-            <div class="row">
-              <div class="col-lg-3 col-md-3 col-sm-12">
-                <app-select-menu
-                  menuTitle="Genres"
-                  [options]="genreOptions"
-                  [multiple]="true"
-                  [(selectedOptions)]="genres"
-                />
+    </ion-col>
+  </ion-row>
+  <div class="search-menu">
+    <ion-row>
+      <ion-col>
+        <form class="search-bar-container" (submit)="onSubmit($event)">
+          <input type="search" placeholder="Search..." />
+          <button class="search-bar-icon" type="submit">
+            <ion-icon name="search-outline"></ion-icon>
+          </button>
+        </form>
+      </ion-col>
+    </ion-row>
+
+    <div class="search-advanced">
+      <ion-row>
+        <ion-col size-md="3" size-sm="12">
+          <app-select-menu
+            menuTitle="Genres"
+            [options]="genreOptions"
+            [multiple]="true"
+            [(selectedOptions)]="genres"
+          />
+        </ion-col>
+        <ion-col size-md="3" size-sm="12">
+          <app-select-menu
+            menuTitle="Year"
+            [options]="yearOptions"
+            [(selectedOptions)]="year"
+          />
+        </ion-col>
+        <ion-col size-md="3" size-sm="12">
+          <app-select-menu
+            menuTitle="Format"
+            [options]="formatOptions"
+            [multiple]="true"
+            [(selectedOptions)]="formats"
+          />
+        </ion-col>
+        <ion-col size-md="3" size-sm="12">
+          <app-select-menu
+            menuTitle="Status"
+            [options]="statusOptions"
+            [(selectedOptions)]="status"
+          />
+        </ion-col>
+      </ion-row>
+
+      <div class="tags-menu">
+        <ion-row>
+          <ion-col>
+            <div class="tags-list">
+              @for (genre of genres(); track $index) {
+              <div class="tag no-hover" (click)="deleteGenre(genre)">
+                <span>{{ genre.showName }}</span>
+                <ion-icon name="close-outline"></ion-icon>
               </div>
-              <div class="col-lg-3 col-md-3 col-sm-12">
-                <app-select-menu
-                  menuTitle="Year"
-                  [options]="yearOptions"
-                  [(selectedOptions)]="year"
-                />
+              } @for (year of year(); track $index) {
+              <div class="tag no-hover" (click)="deleteYear(year)">
+                <span>{{ year.showName }}</span>
+                <ion-icon name="close-outline"></ion-icon>
               </div>
-              <div class="col-lg-3 col-md-3 col-sm-12">
-                <app-select-menu
-                  menuTitle="Format"
-                  [options]="formatOptions"
-                  [multiple]="true"
-                  [(selectedOptions)]="formats"
-                />
+              } @for (format of formats(); track $index) {
+              <div class="tag no-hover" (click)="deleteFormat(format)">
+                <span>{{ format.showName }}</span>
+                <ion-icon name="close-outline"></ion-icon>
               </div>
-              <div class="col-lg-3 col-md-3 col-sm-12">
-                <app-select-menu
-                  menuTitle="Status"
-                  [options]="statusOptions"
-                  [(selectedOptions)]="status"
-                />
+              } @for (status of status(); track $index) {
+              <div class="tag no-hover" (click)="deleteStatus(status)">
+                <span>{{ status.showName }}</span>
+                <ion-icon name="close-outline"></ion-icon>
               </div>
+              }
             </div>
-            <div class="tags-menu">
-              <fa-icon [icon]="faTags" />
-              <div class="tags-list">
-                @for (genre of genres(); track $index) {
-                  <div class="tag no-hover" (click)="deleteGenre(genre)">
-                    <span>{{ genre.showName }}</span>
-                    <fa-icon [icon]="faTimes" />
-                  </div>
-                }
-                @for (year of year(); track $index) {
-                  <div class="tag no-hover" (click)="deleteYear(year)">
-                    <span>{{ year.showName }}</span>
-                    <fa-icon [icon]="faTimes" />
-                  </div>
-                }
-                @for (format of formats(); track $index) {
-                  <div class="tag no-hover" (click)="deleteFormat(format)">
-                    <span>{{ format.showName }}</span>
-                    <fa-icon [icon]="faTimes" />
-                  </div>
-                }
-                @for (status of status(); track $index) {
-                  <div class="tag no-hover" (click)="deleteStatus(status)">
-                    <span>{{ status.showName }}</span>
-                    <fa-icon [icon]="faTimes" />
-                  </div>
-                }
-              </div>
-            </div>
-          </div>
-        </div>
+          </ion-col>
+        </ion-row>
       </div>
     </div>
   </div>
+  <!-- </div> -->
+  <!-- </div> -->
+  <!-- </div> -->
+  <!-- </ion-col> -->
+  <!-- </ion-row> -->
 </section>

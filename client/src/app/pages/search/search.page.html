@@ -1,0 +1,29 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Search</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Search</ion-title>
+    </ion-toolbar>
+  </ion-header>
+  <!-- <section class="search-page"> -->
+  <ion-grid>
+    <app-search-bar
+      [(searchOptions)]="options"
+      [(sort)]="sortOption"
+      [(page)]="page"
+      [(queryParamOptions)]="paramOptions"
+    />
+    <app-search-results
+      [anime]="anime | async"
+      [query]="queryOptions().options.search"
+      [(sortModel)]="sortOption"
+      [(page)]="page"
+    />
+  </ion-grid>
+  <!-- </section> -->
+</ion-content>

@@ -1,41 +1,36 @@
-<section class="search-result" style="margin-top: '40px'; margin-bottom: '60px;'">
-  <div class="container">
-    <div class="row">
-      <div class="col">
-        <div class="section-header">
-          <div class="section-title">
-            <h4>Results</h4>
-          </div>
-          <div class="order-by">
-            <span>Order by:</span>
-            <select [formField]="sortForm">
-              @for (sort of sortOptions; track $index) {
-                <option [value]="sort.name">
-                  {{ sort.showName }}
-                </option>
-              }
-            </select>
-          </div>
-          <span class="search-query"> Search for &quot;{{ query() }}&quot; </span>
-          {{ page() }}
-          <div class="inline-pagination">
-            <button (click)="updatePage()">+ page</button>
-          </div>
+<section class="search-result" style="margin-top: 40px; margin-bottom: 60px">
+  <ion-row>
+    <ion-col>
+      <div class="section-header">
+        <div class="section-title">
+          <h4>Results</h4>
+        </div>
+        <div class="order-by">
+          <span>Order by:</span>
+          <select>
+            @for (sort of sortOptions; track $index) {
+            <option [value]="sort.name">{{ sort.showName }}</option>
+            }
+          </select>
+        </div>
+        <span class="search-query"> Search for &quot;{{ query() }}&quot; </span>
+        {{ page() }}
+        <div class="inline-pagination">
+          <button (click)="updatePage()">+ page</button>
         </div>
       </div>
+    </ion-col>
+  </ion-row>
+  <ion-row style="margin-top: 20px">
+    @if (anime() && $any(anime())?.length > 0) { @for (a of anime(); track
+    $index) {
+    <ion-col size-xl="3" size-lg="4" size-sm="6">
+      <app-anime-card [anime]="a" />
+    </ion-col>
+    } } @else {
+    <div style="width: 100%; text-align: center; color: var(--text-secondary)">
+      No Results
     </div>
-    <div class="row" style="margin-top: '20px'">
-      @if (anime() && $any(anime())?.length > 0) {
-        @for (a of anime(); track $index) {
-          <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
-            <app-anime-card [anime]="a" />
-          </div>
-        }
-      } @else {
-        <div style="width: '100%'; text-align: 'center'; color: 'var(--text-secondary)'">
-          No Results
-        </div>
-      }
-    </div>
-  </div>
+    }
+  </ion-row>
 </section>

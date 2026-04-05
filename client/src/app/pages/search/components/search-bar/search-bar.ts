@@ -1,8 +1,16 @@
-import { Component, effect, inject, model, OnInit, signal, untracked } from '@angular/core';
+import {
+  Component,
+  effect,
+  inject,
+  model,
+  OnInit,
+  signal,
+  untracked,
+} from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { form, FormField } from '@angular/forms/signals';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faSearch, faTags, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { IonRow, IonCol, IonIcon } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { searchOutline, closeOutline } from 'ionicons/icons';
 
 import { SelectMenu } from '../../../../components/select-menu/select-menu';
 import {
@@ -15,14 +23,14 @@ import {
   getFormats,
   getStatus,
   sortOptions,
-} from '../searchOptions';
+} from '../../searchOptions';
 import { SearchOption, SearchOptions } from '../../searchTypes';
 
 @Component({
   selector: 'app-search-bar',
-  imports: [FontAwesomeModule, FormField, SelectMenu],
+  imports: [SelectMenu, IonRow, IonCol, IonIcon],
   templateUrl: './search-bar.html',
-  styleUrl: './search-bar.css',
+  styleUrl: './search-bar.scss',
 })
 
 //* Brief description
@@ -41,10 +49,6 @@ export class SearchBar implements OnInit {
   private activatedRoute = inject(ActivatedRoute);
   private routeSnapshot = this.activatedRoute.snapshot;
 
-  faSearch = faSearch;
-  faTags = faTags;
-  faTimes = faTimes;
-
   genreOptions = genreOptions;
   yearOptions = yearOptions;
   formatOptions = formatOptions;
@@ -58,7 +62,7 @@ export class SearchBar implements OnInit {
   searchModel = signal({
     search: this.activatedRoute.snapshot.queryParamMap.get('query') ?? '',
   });
-  searchForm = form(this.searchModel);
+  // searchForm = form(this.searchModel);
 
   onSubmit(event: Event) {
     event.preventDefault();
@@ -67,7 +71,8 @@ export class SearchBar implements OnInit {
     //* If the searchbar has content and is equal to the searcOption value
     //* DON'T search
     if (
-      (this.searchModel().search.length <= 0 && !this.searchOptions()?.search) ||
+      (this.searchModel().search.length <= 0 &&
+        !this.searchOptions()?.search) ||
       this.searchModel().search === this.searchOptions()?.search
     )
       return;
@@ -75,13 +80,21 @@ export class SearchBar implements OnInit {
   }
 
   //* On page load
-  genres = signal(getGenres(this.routeSnapshot.queryParamMap.get('genres') || ''));
+  genres = signal(
+    getGenres(this.routeSnapshot.queryParamMap.get('genres') || ''),
+  );
   year = signal(getYear(this.routeSnapshot.queryParamMap.get('year') || ''));
-  formats = signal(getFormats(this.routeSnapshot.queryParamMap.get('formats') || ''));
-  status = signal(getStatus(this.routeSnapshot.queryParamMap.get('status') || ''));
+  formats = signal(
+    getFormats(this.routeSnapshot.queryParamMap.get('formats') || ''),
+  );
+  status = signal(
+    getStatus(this.routeSnapshot.queryParamMap.get('status') || ''),
+  );
 
   private firstRender = true;
   constructor() {
+    addIcons({ searchOutline, closeOutline });
+
     effect(() => {
       this.search();
       this.firstRender = false;
@@ -92,7 +105,7 @@ export class SearchBar implements OnInit {
     this.activatedRoute.queryParams.subscribe((param) => {
       if (param['sort'] === undefined) {
         console.log('test');
-        this.searchForm().value.set({ search: '' });
+        // this.searchForm().value.set({ search: '' });
         this.genres.set([]);
         this.year.set([]);
         this.formats.set([]);
@@ -103,7 +116,7 @@ export class SearchBar implements OnInit {
       const searchParamFromHeader = param['query'];
       if (searchParamFromHeader === undefined) return;
       if (searchParamFromHeader !== this.searchModel().search) {
-        this.searchForm().value.set({ search: searchParamFromHeader });
+        // this.searchForm().value.set({ search: searchParamFromHeader });
         this.genres.set([]);
         this.year.set([]);
         this.formats.set([]);
@@ -160,15 +173,21 @@ export class SearchBar implements OnInit {
   }
 
   deleteGenre(genre: SearchOption) {
-    this.genres.set(this.genres().filter((_genre) => _genre.name !== genre.name));
+    this.genres.set(
+      this.genres().filter((_genre) => _genre.name !== genre.name),
+    );
   }
   deleteYear(year: SearchOption) {
     this.year.set(this.year().filter((_year) => _year.name !== year.name));
   }
   deleteFormat(format: SearchOption) {
-    this.formats.set(this.formats().filter((_format) => _format.name !== format.name));
+    this.formats.set(
+      this.formats().filter((_format) => _format.name !== format.name),
+    );
   }
   deleteStatus(status: SearchOption) {
-    this.status.set(this.status().filter((_status) => _status.name !== status.name));
+    this.status.set(
+      this.status().filter((_status) => _status.name !== status.name),
+    );
   }
 }

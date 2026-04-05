@@ -1,18 +1,16 @@
 import { Component, input, ViewEncapsulation } from '@angular/core';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faEye } from '@fortawesome/free-solid-svg-icons';
 import { Anime } from '../../models/Anime';
+import { getEpisodes } from 'src/app/helpers/formattedAnimeDetails';
 @Component({
   selector: 'app-anime-card',
-  imports: [FontAwesomeModule],
+  imports: [],
   templateUrl: './anime-card.html',
-  styleUrl: './anime-card.css',
+  styleUrl: './anime-card.scss',
   encapsulation: ViewEncapsulation.None,
 })
 export class AnimeCard {
-  faEye = faEye;
   anime = input.required<Anime>();
-
+  getEpisodes = getEpisodes;
   constructor() {
     // console.log(this.anime());
   }

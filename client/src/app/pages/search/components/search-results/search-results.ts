@@ -1,14 +1,17 @@
-import { Component, effect, input, model, signal } from '@angular/core';
-import { form, FormField } from '@angular/forms/signals';
+import { Component, input, model } from '@angular/core';
 
-import { sortOptions } from '../searchOptions';
+import { sortOptions } from '../../searchOptions';
 import { AnimeCard } from '../../../../components/anime-card/anime-card';
+import { IonRow, IonCol } from '@ionic/angular/standalone';
 
 @Component({
   selector: 'app-search-results',
-  imports: [AnimeCard, FormField],
+  imports: [AnimeCard, IonRow, IonCol],
   templateUrl: './search-results.html',
-  styleUrls: ['./search-results.css', '../../../../components/section/section.css'],
+  styleUrls: [
+    './search-results.scss',
+    '../../../../components/section/section.scss',
+  ],
 })
 export class SearchResults {
   sortOptions = sortOptions;
@@ -18,7 +21,7 @@ export class SearchResults {
   page = model<number>(1);
 
   sortModel = model<string>(sortOptions[0].name);
-  sortForm = form(this.sortModel);
+  // sortForm = form(this.sortModel);
 
   updatePage() {
     this.page.update((page) => page + 1);
