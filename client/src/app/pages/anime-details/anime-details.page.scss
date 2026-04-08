@@ -1,0 +1,22 @@
+.anime-details {
+  padding-bottom: 100px;
+  padding-top: 40px;
+}
+
+/** TAGS */
+.anime-details-tags {
+  margin-bottom: 50px;
+}
+.anime-details-tags .tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/** SIDEBAR */
+.anime-details-sidebar .side-anime-card:hover .title {
+  text-decoration: none;
+}
+.anime-details-sidebar .side-anime-card .episode-number {
+  color: var(--active);
+}

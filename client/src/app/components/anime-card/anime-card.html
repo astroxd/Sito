@@ -1,6 +1,6 @@
 <div class="anime-card">
   <div class="anime-card-image">
-    <a href="">
+    <a [routerLink]="['/anime', anime().id]">
       <img src="{{ anime().coverImage?.large }}" alt="{{ anime().title }}" />
       <div class="anime-card-image-overlay episodes">
         {{ getEpisodes(anime().status,
@@ -21,7 +21,8 @@
       } }
     </ul>
     <h5>
-      <a href="">
+      <!-- <a> -->
+      <a [routerLink]="['/anime', anime().id]">
         {{ anime().title.english ?? anime().title.romaji ?? 'No Title' }}
       </a>
     </h5>

@@ -4,7 +4,6 @@ import { HttpClient } from '@angular/common/http';
 import { map, Observable, tap } from 'rxjs';
 import { getCurrentSeason, getNextSeason } from '../helpers/animeSeasons';
 import { QueryOptions } from '../pages/search/searchTypes';
-// import { QueryOptions } from './pages/search/searchTypes';
 
 @Injectable({
   providedIn: 'root',
@@ -143,6 +142,7 @@ export class GetAnimes {
               coverImage{
                 extraLarge
               }
+              bannerImage
               genres
               status
             }

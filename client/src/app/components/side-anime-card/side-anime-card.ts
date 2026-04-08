@@ -1,5 +1,7 @@
 import { Component, input } from '@angular/core';
+
 import { Anime } from '../../models/Anime';
+import { getEpisodes } from 'src/app/helpers/formattedAnimeDetails';
 
 @Component({
   selector: 'app-side-anime-card',
@@ -9,4 +11,5 @@ import { Anime } from '../../models/Anime';
 })
 export class SideAnimeCard {
   anime = input.required<Anime>();
+  getEpisodes = getEpisodes;
 }

@@ -1,0 +1,160 @@
+.anime-details-content {
+  margin-bottom: 65px;
+}
+.anime-details-img {
+  position: relative;
+
+  /** Works when it breaks in single columns */
+  margin-bottom: 40px;
+}
+
+.anime-details-img img {
+  width: 100%;
+  max-height: 440px;
+  border-radius: 5px;
+}
+
+.anime-details-img .comments {
+  background-color: var(--grey);
+  left: 10px;
+  bottom: 10px;
+}
+
+.anime-details-img .view {
+  background-color: var(--grey);
+  left: unset;
+  right: 10px;
+  bottom: 10px;
+}
+
+.anime-details-title {
+  margin-bottom: 20px;
+}
+.anime-details-title h3 {
+  margin-bottom: 13px;
+}
+
+.anime-details-title span {
+  font-size: 15px;
+  color: var(--text-secondary);
+  display: block;
+}
+
+.anime-details-description .description {
+  position: relative;
+  z-index: 1;
+}
+
+.anime-details-description .description p {
+  color: var(--text-secondary);
+  font-size: 18px;
+  line-height: 24px;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  line-clamp: 3;
+  -webkit-line-clamp: 3;
+}
+
+.anime-details-description .description p.show {
+  display: block;
+}
+
+.description-show-more {
+  color: white;
+  position: absolute;
+  width: 100%;
+  bottom: 0;
+  text-align: center;
+  cursor: pointer;
+  opacity: 0;
+}
+
+/* Uncomment to hide Show Less button */
+/* .description-show-more.hide {
+	display: none;
+} */
+
+.anime-details-description .description:hover > .description-show-more {
+  transition:
+    opacity 0.2s ease-in,
+    background-image 0.2s ease-in;
+  opacity: 1;
+  background-image: linear-gradient(
+    0deg,
+    rgb(11, 12, 42) 30%,
+    rgba(11, 12, 42, 0.4)
+  );
+}
+
+.anime-details-info ul {
+  margin-bottom: 20px;
+}
+.anime-details-info ul li {
+  font-size: 15px;
+  line-height: 30px;
+  position: relative;
+  padding-left: 18px;
+}
+
+.anime-details-info ul li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 12px;
+  height: 6px;
+  width: 6px;
+  background-color: var(--text-secondary);
+}
+
+.anime-details-info ul li span {
+  color: var(--text-secondary);
+  width: 90px;
+  display: inline-block;
+  line-height: inherit;
+}
+.anime-details-info ul li p {
+  display: inline-block;
+  line-height: inherit;
+  font-size: 15px;
+  color: white;
+  margin: 0;
+  padding: 0;
+}
+
+.anime-details-buttons {
+  display: flex;
+}
+
+.anime-details-buttons button {
+  border-radius: 4px;
+  padding: 8px 10px;
+}
+.anime-details-buttons > button {
+  margin-right: 11px;
+}
+.anime-details-buttons .favorite svg {
+  font-size: 24px;
+  vertical-align: middle;
+}
+
+/** Medium devices (tablets, less than 992px) */
+@media (max-width: 991.98px) {
+  .anime-details-img {
+    padding-top: 10px;
+    width: 400px;
+    margin: 0 auto;
+    margin-bottom: 30px;
+  }
+
+  .anime-details-img img {
+    max-height: 600px;
+  }
+}
+
+/** Small devices (landscape phones, less than 768px) */
+@media (max-width: 767.98px) {
+  .anime-details-img img {
+    max-height: 500px;
+  }
+}
