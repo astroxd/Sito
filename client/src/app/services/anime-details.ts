@@ -133,7 +133,7 @@ export class AnimeDetails {
     ) as Observable<AnimeRecommendation>;
   }
 
-  GetAnimeCharacters(animeId: string) {
+  GetAnimeCharacters(animeId: string, page = 1) {
     const query = {
       query: `
         query($id: Int, $pageNumber: Int){
@@ -170,12 +170,18 @@ export class AnimeDetails {
 			}
 
     `,
-      variables: { id: animeId },
+      variables: { id: animeId, pageNumber: page },
     };
 
     return this.http.post<any>(this.url, query).pipe(
       tap(({ data }) => console.log(data)),
-      map(({ data: { Media } }) => Media.characters?.edges),
+      map(({ data: { Media } }) => Media.characters),
     );
+  }
+
+  GetAnimeEpisodes(MALAnimeId: number, page = 1) {
+    const query = `https://api.jikan.moe/v4/anime/${MALAnimeId}/videos/episodes?page=${page}`;
+
+    return this.http.get<any>(query).pipe(tap((data) => console.log(data)));
   }
 }

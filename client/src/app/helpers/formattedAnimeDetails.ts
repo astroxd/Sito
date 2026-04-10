@@ -1,4 +1,5 @@
 import { Anime } from '../models/Anime';
+import { AnimeCharacter } from '../models/AnimeDetails';
 
 export function getDateAired(startDate: any, endDate: any) {
   const options: any = {
@@ -42,7 +43,7 @@ export function getStatus(status: string) {
   }
 }
 
-export function getCharacterName(name: any) {
+export function getCharacterName(name: AnimeCharacter['name']) {
   const { first, middle, last } = name;
   let fullName = first ?? '';
 

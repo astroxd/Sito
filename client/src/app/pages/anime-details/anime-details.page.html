@@ -19,9 +19,9 @@
 
   <section class="anime-details">
     <ion-grid>
-      <app-anime-description [details]="(details$ | async)" />
-      <!-- <ion-router-outlet ></ion-router-outlet> -->
-      <router-outlet />
+      <app-anime-description [details]="details$ | async" />
+      <!-- <ion-router-outlet></ion-router-outlet> -->
+      <router-outlet [routerOutletData]="{id: animeId }" />
     </ion-grid>
   </section>
 </ion-content>

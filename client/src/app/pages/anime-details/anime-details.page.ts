@@ -44,12 +44,13 @@ export class AnimeDetailsPage implements OnInit {
   AnimeDetailsService = inject(AnimeDetails);
 
   details$: any;
+  animeId: string | null;
 
   constructor() {
-    const animeId = this.route.snapshot.paramMap.get('id');
+    this.animeId = this.route.snapshot.paramMap.get('id');
 
-    if (animeId) {
-      this.details$ = this.AnimeDetailsService.GetAnimeDetails(animeId);
+    if (this.animeId) {
+      this.details$ = this.AnimeDetailsService.GetAnimeDetails(this.animeId);
     }
   }
 

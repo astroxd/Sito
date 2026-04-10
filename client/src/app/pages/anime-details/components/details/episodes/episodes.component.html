@@ -1,3 +1,41 @@
-<p>
-  episodes works!
-</p>
+@if (!isFullPage) {
+  <div class="anime-details-sidebar episodes">
+    <div class="section-header">
+      <div class="section-title">
+        <h5>Episodes</h5>
+      </div>
+
+      <div class="section-button-all">
+        <a routerLink="episodes">View All</a>
+      </div>
+    </div>
+
+    @for (episode of episodes().slice(0, 3); track $index) {
+      <app-side-episode-card [episode]="episode" />
+    }
+  </div>
+} @else {
+  <div class="anime-details-sidebar episodes">
+    <ion-row>
+      <ion-col>
+        <div class="section-header">
+          <div class="section-title">
+            <h4>Episodes</h4>
+          </div>
+        </div>
+      </ion-col>
+    </ion-row>
+
+    <ion-row>
+      @for (episode of episodes(); track $index) {
+        <ion-col size-lg="4" size-md="6">
+          <app-side-episode-card [episode]="episode" />
+        </ion-col>
+      }
+    </ion-row>
+
+    <ion-infinite-scroll (ionInfinite)="loadMore($event)">
+      <ion-infinite-scroll-content></ion-infinite-scroll-content>
+    </ion-infinite-scroll>
+  </div>
+}

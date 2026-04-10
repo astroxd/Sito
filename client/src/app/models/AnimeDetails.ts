@@ -64,3 +64,60 @@ export interface AnimeRecommendation {
     episode: number;
   } | null;
 }
+
+export interface AnimeCharacter {
+  image: {
+    large: string;
+  };
+  name: {
+    first: string;
+    middle?: string;
+    last: string;
+  };
+  role: string;
+  voiceActors: [
+    {
+      image: {
+        large: string;
+      };
+      languageV2: string;
+
+      name: {
+        full: string;
+      };
+    },
+  ];
+}
+
+export interface AnimeCharacterApiRes {
+  edges: [
+    {
+      node: { image: AnimeCharacter['image']; name: AnimeCharacter['name'] };
+      role: AnimeCharacter['role'];
+      voiceActors: AnimeCharacter['voiceActors'];
+    },
+  ];
+  pageInfo: {
+    hasNextPage: boolean;
+  };
+}
+
+export interface AnimeEpisode {
+  mal_id: number;
+  episode: string;
+  title: string;
+  url: string;
+  images: {
+    jpg: {
+      image_url: string;
+    };
+  };
+}
+
+export interface AnimeEpisodeApiRes {
+  pagination: {
+    has_next_page: boolean;
+    last_visible_page: number;
+  };
+  data: [AnimeEpisode];
+}

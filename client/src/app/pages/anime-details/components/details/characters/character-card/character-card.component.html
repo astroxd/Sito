@@ -3,17 +3,14 @@
     <ion-row>
       <ion-col>
         <div class="character-card-left">
-          <img
-            [src]="character().node.image.large"
-            [alt]="character().node.name.first"
-          />
+          <img [src]="character().image.large" [alt]="character().name.first" />
 
           <div class="description">
             <div class="content">
               <!-- <FontAwesomeIcon icon={faCaretRight} /> -->
               <div>
                 <div class="role">{{ character().role }}</div>
-                <div class="name">{{ character().name }}</div>
+                <div class="name">{{ getCharacterName(character().name) }}</div>
               </div>
             </div>
           </div>
@@ -25,19 +22,21 @@
             <div class="content">
               <div>
                 <div class="name">
-                  {{ character().voiceActors[0]?.name?.full }}
+                  {{ character().voiceActors[0]?.name?.full ?? "" }}
                 </div>
                 <div class="role">
-                  {{ character().voiceActors[0]?.languageV2 }}
+                  {{ character().voiceActors[0]?.languageV2 ?? "" }}
                 </div>
               </div>
               <!-- <FontAwesomeIcon icon={faCaretLeft} /> -->
             </div>
           </div>
-          <img
-            [src]="character().voiceActors[0]?.image?.large"
-            [alt]="character().voiceActors[0]?.name?.full"
-          />
+          @if (character().voiceActors.length > 0) {
+            <img
+              [src]="character().voiceActors[0].image.large"
+              [alt]="character().voiceActors[0].name.full"
+            />
+          }
         </div>
       </ion-col>
     </ion-row>

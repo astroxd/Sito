@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { TabsPage } from './tabs.page';
 import { AnimeDetailsPage } from '../pages/anime-details/anime-details.page';
 import { Details } from '../pages/anime-details/components/details/details.component';
+import { Characters } from '../pages/anime-details/components/details/characters/characters.component';
 
 export const routes: Routes = [
   {
@@ -41,6 +42,14 @@ export const routes: Routes = [
                 (m) => m.Characters,
               ),
           },
+          {
+            path: 'episodes',
+            loadComponent: () =>
+              import('../pages/anime-details/components/details/episodes/episodes.component').then(
+                (m) => m.Episodes,
+              ),
+          },
+
         ],
         // loadComponent: () =>
         //   import('../pages/anime-details/anime-details.page').then(

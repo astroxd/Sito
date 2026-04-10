@@ -12,11 +12,3 @@
   flex-wrap: wrap;
   gap: 0.5rem;
 }
-
-/** SIDEBAR */
-.anime-details-sidebar .side-anime-card:hover .title {
-  text-decoration: none;
-}
-.anime-details-sidebar .side-anime-card .episode-number {
-  color: var(--active);
-}
