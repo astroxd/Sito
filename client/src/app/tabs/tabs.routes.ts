@@ -1,8 +1,6 @@
 import { Routes } from '@angular/router';
 import { TabsPage } from './tabs.page';
 import { AnimeDetailsPage } from '../pages/anime-details/anime-details.page';
-import { Details } from '../pages/anime-details/components/details/details.component';
-import { Characters } from '../pages/anime-details/components/details/characters/characters.component';
 
 export const routes: Routes = [
   {
@@ -20,9 +18,17 @@ export const routes: Routes = [
           import('../pages/search/search.page').then((m) => m.SearchPage),
       },
       {
-        path: 'tab3',
+        path: 'profile',
         loadComponent: () =>
-          import('../tab3/tab3.page').then((m) => m.Tab3Page),
+          import('../pages/profile/profile.page').then((m) => m.ProfilePage),
+        // children: [
+        //   {
+        //     path: '',
+        //   },
+        //   {
+        //     path: 'statistics',
+        //   },
+        // ],
       },
       {
         path: 'anime/:id',
@@ -49,13 +55,9 @@ export const routes: Routes = [
                 (m) => m.Episodes,
               ),
           },
-
         ],
-        // loadComponent: () =>
-        //   import('../pages/anime-details/anime-details.page').then(
-        //     (m) => m.AnimeDetailsPage,
-        //   ),
       },
+
       {
         path: '',
         redirectTo: '/home',

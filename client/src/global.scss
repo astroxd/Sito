@@ -160,6 +160,10 @@ input[type="search"] {
   box-shadow: none;
 }
 
+.primary-btn:hover {
+  background-color: rgb(214, 49, 49);
+}
+
 .tag {
   background-color: var(--light-grey);
   color: var(--text-primary);

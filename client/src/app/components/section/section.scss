@@ -1,6 +1,7 @@
 .section-header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 30px;
 }
 
@@ -17,7 +18,7 @@
 }
 .section-title h4::after,
 .section-title h5::after {
-  content: '';
+  content: "";
   background: var(--active);
   position: absolute;
   left: 0;
