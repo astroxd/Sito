@@ -7,11 +7,8 @@ import {
   IonTitle,
   IonToolbar,
   IonGrid,
-  IonCol,
-  IonRow,
-  IonRouterLinkWithHref,
 } from '@ionic/angular/standalone';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-profile',
@@ -26,16 +23,10 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
     CommonModule,
     FormsModule,
     IonGrid,
-    IonCol,
-    IonRow,
-    IonRouterLinkWithHref,
-    RouterLink,
-    RouterLinkActive,
+    RouterOutlet,
   ],
 })
 export class ProfilePage implements OnInit {
-  public bannerImage =
-    'https://s4.anilist.co/file/anilistcdn/media/anime/banner/16498-8jpFCOcDmneX.jpg';
   constructor() {}
 
   ngOnInit() {}

@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { TabsPage } from './tabs.page';
 import { AnimeDetailsPage } from '../pages/anime-details/anime-details.page';
+import { ProfilePage } from '../pages/profile/profile.page';
 
 export const routes: Routes = [
   {
@@ -21,14 +22,22 @@ export const routes: Routes = [
         path: 'profile',
         loadComponent: () =>
           import('../pages/profile/profile.page').then((m) => m.ProfilePage),
-        // children: [
-        //   {
-        //     path: '',
-        //   },
-        //   {
-        //     path: 'statistics',
-        //   },
-        // ],
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('../pages/profile/components/overview/overview.component').then(
+                (m) => m.OverviewComponent,
+              ),
+          },
+          {
+            path: 'statistics',
+            loadComponent: () =>
+              import('../pages/profile/components/statistics/statistics.component').then(
+                (m) => m.StatisticsComponent,
+              ),
+          },
+        ],
       },
       {
         path: 'anime/:id',

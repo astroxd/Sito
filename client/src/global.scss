@@ -203,3 +203,10 @@ ion-row {
 ion-grid ion-row > * {
   padding-inline: calc(1.5rem * 0.5);
 }
+
+.widget {
+  background-color: var(--bg-ternary);
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+}

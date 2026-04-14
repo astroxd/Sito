@@ -9,6 +9,7 @@ import {
   IonicRouteStrategy,
   provideIonicAngular,
 } from '@ionic/angular/standalone';
+import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
 import { routes } from './app/app.routes';
 import { AppComponent } from './app/app.component';
@@ -20,5 +21,6 @@ bootstrapApplication(AppComponent, {
     provideIonicAngular(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
     provideHttpClient(),
+    provideCharts(withDefaultRegisterables()),
   ],
 });

@@ -1,0 +1,27 @@
+<div class="profile-banner" [style]="`background-image: url(${bannerImage})`">
+  <div class="profile-info">
+    <img
+      src="https://static.vecteezy.com/system/resources/thumbnails/032/176/191/small/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg"
+      alt=""
+    />
+    <div>
+      <h4 class="profile-name">a_str0</h4>
+      <span class="profile-subtitle">Sensei</span>
+    </div>
+  </div>
+</div>
+<div class="profile-navigation">
+  <a
+    routerLink="/profile"
+    routerLinkActive="active"
+    [routerLinkActiveOptions]="{ exact: true }"
+    class="primary-btn profile-navigation-button"
+    >Overview</a
+  >
+  <a
+    routerLink="/profile/statistics"
+    routerLinkActive="active"
+    class="primary-btn profile-navigation-button"
+    >Statistics</a
+  >
+</div>
