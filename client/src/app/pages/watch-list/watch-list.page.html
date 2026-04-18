@@ -1,0 +1,18 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>WatchList</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">WatchList</ion-title>
+    </ion-toolbar>
+  </ion-header>
+  <ion-grid>
+    <app-section-with-search sectionTitle="watching" [animes]="[]" />
+    <app-section-with-search sectionTitle="completed" [animes]="[]" />
+    <app-section-with-search sectionTitle="dropped" [animes]="[]" />
+  </ion-grid>
+</ion-content>

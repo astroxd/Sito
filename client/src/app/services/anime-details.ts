@@ -66,7 +66,7 @@ export class AnimeDetails {
       variables: { id: animeId },
     };
     return this.http.post<any>(this.url, query).pipe(
-      tap(({ data }) => console.log(data.Media)),
+      // tap(({ data }) => console.log(data.Media)),
       map(({ data: { Media } }) => Media),
     ) as Observable<AnimeDetail>;
   }
@@ -88,7 +88,7 @@ export class AnimeDetails {
     };
 
     return this.http.post<any>(this.url, query).pipe(
-      tap(({ data }) => console.log(data)),
+      // tap(({ data }) => console.log(data)),
       map(({ data: { Media } }) => Media.tags),
     ) as Observable<AnimeTag>;
   }
@@ -128,7 +128,7 @@ export class AnimeDetails {
     };
 
     return this.http.post<any>(this.url, query).pipe(
-      tap(({ data }) => console.log(data)),
+      // tap(({ data }) => console.log(data)),
       map(({ data: { Media } }) => Media.recommendations?.edges),
     ) as Observable<AnimeRecommendation>;
   }
@@ -174,7 +174,7 @@ export class AnimeDetails {
     };
 
     return this.http.post<any>(this.url, query).pipe(
-      tap(({ data }) => console.log(data)),
+      // tap(({ data }) => console.log(data)),
       map(({ data: { Media } }) => Media.characters),
     );
   }
@@ -182,6 +182,7 @@ export class AnimeDetails {
   GetAnimeEpisodes(MALAnimeId: number, page = 1) {
     const query = `https://api.jikan.moe/v4/anime/${MALAnimeId}/videos/episodes?page=${page}`;
 
-    return this.http.get<any>(query).pipe(tap((data) => console.log(data)));
+    return this.http.get<any>(query);
+    // .pipe(tap((data) => console.log(data)));
   }
 }

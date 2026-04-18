@@ -1,0 +1,32 @@
+<div class="add-to-watchlist">
+  <button
+    class="primary-btn text"
+    [class]="animeList() ? 'selected' : ''"
+    (click)="showWatchlistMenu = !showWatchlistMenu"
+  >
+    {{ animeStatus() }}
+  </button>
+  <button
+    class="primary-btn icon"
+    [class]="animeList() ? 'selected' : ''"
+    (click)="showWatchlistMenu = !showWatchlistMenu"
+  >
+    <!-- <FontAwesomeIcon icon={faChevronDown} /> -->
+    a
+  </button>
+  <div class="dropdown-menu" [class]="showWatchlistMenu ? 'show' : ''">
+    <ul>
+      <li class="dropdown-menu-item no-hover">Set as:</li>
+      @for (list of userLists; track list.status) {
+        @let isInList = list.status === animeList();
+        <li
+          class="dropdown-menu-item"
+          [class]="isInList ? 'selected' : ''"
+          (click)="handleList(list.status, isInList)"
+        >
+          {{ list.name }}
+        </li>
+      }
+    </ul>
+  </div>
+</div>

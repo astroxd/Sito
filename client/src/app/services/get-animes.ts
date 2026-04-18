@@ -15,7 +15,7 @@ export class GetAnimes {
 
   FetchAnime(query: Object) {
     return this.http.post<any>(this.url, query).pipe(
-      tap(({ data: { Page } }) => console.log(Page)),
+      // tap(({ data: { Page } }) => console.log(Page)),
       map(
         ({
           data: {
@@ -190,7 +190,6 @@ export class GetAnimes {
     `,
       variables: { page: page, perPage: 12, sort: sort, ...options },
     };
-    console.log(query);
     return this.FetchAnime(query);
   }
 }

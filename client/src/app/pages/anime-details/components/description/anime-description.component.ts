@@ -1,4 +1,12 @@
-import { Component, computed, input, OnInit, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { IonRow, IonCol } from '@ionic/angular/standalone';
 
 import { AnimeDetail } from 'src/app/models/AnimeDetails';
@@ -7,12 +15,13 @@ import {
   getStatus,
   getAiringEpisode,
 } from 'src/app/helpers/formattedAnimeDetails';
+import { AddToWatchlistButtonComponent } from './components/add-to-watchlist-button/add-to-watchlist-button.component';
 
 @Component({
   selector: 'app-anime-description',
   templateUrl: './anime-description.component.html',
   styleUrls: ['./anime-description.component.scss'],
-  imports: [IonRow, IonCol],
+  imports: [IonRow, IonCol, AddToWatchlistButtonComponent],
 })
 export class AnimeDescription implements OnInit {
   public details = input<AnimeDetail | null>(null);
@@ -49,7 +58,6 @@ export class AnimeDescription implements OnInit {
   ngOnInit() {}
 
   setShowDescription(show: boolean) {
-    console.log(show);
     this.showDescription = show;
   }
 }

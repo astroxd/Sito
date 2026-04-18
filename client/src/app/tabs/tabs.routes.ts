@@ -66,6 +66,13 @@ export const routes: Routes = [
           },
         ],
       },
+      {
+        path: 'watchlist',
+        loadComponent: () =>
+          import('../pages/watch-list/watch-list.page').then(
+            (m) => m.WatchListPage,
+          ),
+      },
 
       {
         path: '',

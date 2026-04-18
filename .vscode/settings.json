@@ -1,0 +1,17 @@
+{
+  "sqltools.connections": [
+    {
+      "previewLimit": 50,
+      "driver": "SQLite",
+      "name": "test ",
+      "database": "\"\\\\wsl.localhost\\Ubuntu\\home\\andre\\sqlite\\sqlite-autoconf-3530000\\db\\test.db\""
+    },
+    {
+      "previewLimit": 50,
+      "driver": "SQLite",
+      "name": "sito",
+      "database": "${workspaceFolder:Sito}/server/test.db"
+    }
+  ],
+  "sqltools.useNodeRuntime": true
+}

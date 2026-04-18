@@ -1,0 +1,104 @@
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  OnInit,
+  signal,
+} from '@angular/core';
+import { finalize } from 'rxjs';
+import { APIService } from 'src/app/services/apiservice';
+import { AuthService } from 'src/app/services/auth-service';
+
+@Component({
+  selector: 'app-add-to-watchlist-button',
+  templateUrl: './add-to-watchlist-button.component.html',
+  styleUrls: [
+    './add-to-watchlist-button.component.scss',
+    '../../../../../../styles/dropdown.scss',
+  ],
+})
+export class AddToWatchlistButtonComponent implements OnInit {
+  apiService = inject(APIService);
+  authService = inject(AuthService);
+
+  animeId = input.required<number | undefined>();
+
+  animeList = signal<number | null>(null);
+
+  readonly userLists = [
+    { status: 1, name: 'Watching' },
+    { status: 2, name: 'Completed' },
+    { status: 3, name: 'Dropped' },
+  ];
+
+  animeStatus = computed(() => {
+    switch (this.animeList()) {
+      case 1:
+      case 2:
+      case 3:
+        const idx = (this.animeList() as number) - 1;
+        return this.userLists[idx].name;
+      default:
+        return 'Add To Watchlist';
+    }
+  });
+
+  showWatchlistMenu = false;
+
+  constructor() {
+    effect(() => {
+      this.getAnimeStatus();
+    });
+  }
+
+  ngOnInit() {}
+
+  getAnimeStatus() {
+    if (this.animeId()) {
+      this.apiService
+        .get(`list/${this.authService.user()?.id}/entrie/${this.animeId()}`)
+        .subscribe((res: any) => {
+          this.animeList.set(res?.entrie?.status ?? null);
+        });
+    }
+  }
+
+  addToList(listId: number) {
+    this.apiService
+      .post(`list/${this.authService.user()?.id}/entrie`, {
+        animeId: this.animeId(),
+        status: listId,
+      })
+      .pipe(finalize(() => this.getAnimeStatus()))
+      .subscribe();
+  }
+
+  removeFromList() {
+    this.apiService
+      .delete(`list/${this.authService.user()?.id}/entrie/${this.animeId()}`)
+      .pipe(finalize(() => this.getAnimeStatus()))
+      .subscribe();
+  }
+
+  updateStatusList(listId: number) {
+    this.apiService
+      .patch(`list/${this.authService.user()?.id}/entrie`, {
+        animeId: this.animeId(),
+        status: listId,
+      })
+      .pipe(finalize(() => this.getAnimeStatus()))
+      .subscribe();
+  }
+
+  handleList(listId: number, isInList: boolean) {
+    if (isInList) {
+      this.removeFromList();
+    } else if (this.animeList() && this.animeList() !== listId) {
+      this.updateStatusList(listId);
+    } else {
+      this.addToList(listId);
+    }
+  }
+}
