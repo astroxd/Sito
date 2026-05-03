@@ -10,6 +10,13 @@
   --ion-grid-column-padding-sm: calc(1.5rem * 0.5);
   --ion-grid-column-padding-xl: calc(1.5rem * 0.5);
   --ion-grid-column-padding-xs: calc(1.5rem * 0.5);
+
+  --ion-color-primary: #e53636;
+  --ion-color-primary-rgb: 229, 54, 54;
+  --ion-color-primary-contrast: #000000;
+  --ion-color-primary-contrast-rgb: 0, 0, 0;
+  --ion-color-primary-shade: #ca3030;
+  --ion-color-primary-tint: #e84a4a;
 }
 
 ion-grid {

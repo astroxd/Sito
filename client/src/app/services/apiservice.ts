@@ -10,8 +10,8 @@ export class APIService {
 
   private baseURL = 'http://localhost:3001/';
 
-  get(route: string): Observable<any> {
-    return this.http.get(`${this.baseURL}${route}`);
+  get<T>(route: string): Observable<T> {
+    return this.http.get<T>(`${this.baseURL}${route}`);
   }
   post(route: string, body: any): Observable<any> {
     return this.http.post(`${this.baseURL}${route}`, body);

@@ -9,7 +9,7 @@
 }
 
 .side-anime-card::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(0deg, rgb(0 0 0 / 0.7), rgb(0 0 0 / 0));
@@ -26,9 +26,9 @@
 }
 .side-anime-card h5 {
   /** ellipsis when title is longer than 3 lines  */
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
+  // display: -webkit-box;
+  // overflow: hidden;
+  // -webkit-box-orient: vertical;
   line-clamp: 3;
   -webkit-line-clamp: 3;
 

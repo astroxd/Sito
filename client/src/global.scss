@@ -210,3 +210,11 @@ ion-grid ion-row > * {
   border-radius: 12px;
   margin-bottom: 2rem;
 }
+
+.ellipsis {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+}

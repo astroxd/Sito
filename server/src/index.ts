@@ -1,6 +1,8 @@
 import express from "express";
 import Database, { RunResult, SqliteError } from "better-sqlite3";
 import cors from "cors";
+import { stat } from "node:fs";
+import { off } from "node:cluster";
 
 const app = express();
 
@@ -15,8 +17,9 @@ app.use(
 
 const db = new Database("test.db");
 db.pragma("journal_mode = WAL");
+db.pragma("foreign_keys = ON");
 
-app.get("/", async (req, res) => {
+app.get("/", (req, res) => {
   res.send("Hello World!");
 
   const stmt = db.prepare("SELECT * FROM User");
@@ -28,7 +31,7 @@ app.get("/", async (req, res) => {
   // console.log(rows);
 });
 
-app.get("/user/:userId", async (req, res) => {
+app.get("/user/:userId", (req, res) => {
   const userId = req.params.userId;
 
   const stmt = db.prepare(
@@ -87,6 +90,10 @@ app.post("/list/:userId/entrie", (req, res) => {
         )
         .run(userId, status, animeId);
       console.log("Private Anime: ", res);
+
+      db.prepare(
+        "INSERT INTO 'Watched Episodes'(user_id, anime_id) VALUES(?,?)",
+      ).run(userId, animeId);
     })();
     res.send({ message: "Added" });
     return;
@@ -96,7 +103,7 @@ app.post("/list/:userId/entrie", (req, res) => {
   res.send({ error: "Error on add" });
 });
 
-app.patch("/list/:userId/entrie", async (req, res) => {
+app.patch("/list/:userId/entrie", (req, res) => {
   const { userId } = req.params;
   const { animeId, status } = req.body;
 
@@ -119,9 +126,17 @@ app.delete("/list/:userId/entrie/:animeId", (req, res) => {
   const { userId, animeId } = req.params;
 
   try {
-    const stmt = db
-      .prepare("DELETE FROM 'Private Anime' WHERE user_id = ? AND anime_id = ?")
-      .run(userId, animeId);
+    db.transaction(() => {
+      const stmt = db
+        .prepare(
+          "DELETE FROM 'Private Anime' WHERE user_id = ? AND anime_id = ?",
+        )
+        .run(userId, animeId);
+
+      db.prepare(
+        "DELETE FROM 'Watched Episodes' WHERE user_id = ? AND anime_id = ?",
+      ).run(userId, animeId);
+    })();
 
     res.send({ message: "Deleted" });
     return;
@@ -129,6 +144,50 @@ app.delete("/list/:userId/entrie/:animeId", (req, res) => {
     console.log(error);
   }
   res.send({ error: "Error on delete" });
+});
+
+app.get("/lists/:userId/:status", (req, res) => {
+  const { userId, status } = req.params;
+  if (!userId || !status) {
+    res.send({ error: "Error missing params" });
+    return;
+  }
+
+  const list = db
+    .prepare(
+      `SELECT * FROM 'Private Anime' p
+    INNER JOIN Anime ON Anime.anime_id = p.anime_id
+    INNER JOIN 'Watched Episodes' w ON w.anime_id = p.anime_id 
+    WHERE p.user_id = ? AND p.status = ?`,
+    )
+    .all(userId, status);
+  // console.log(list);
+
+  res.send({ data: list });
+});
+app.get("/lists/:userId/:status/:page", (req, res) => {
+  const { userId, status, page } = req.params;
+  if (!userId || !status || !page) {
+    res.send({ error: "Error missing params" });
+    return;
+  }
+
+  const perPage = 10;
+  const offset = (parseInt(page) - 1) * perPage;
+
+  const list = db
+    .prepare(
+      `SELECT * FROM 'Private Anime' p
+    INNER JOIN Anime ON Anime.anime_id = p.anime_id
+    INNER JOIN 'Watched Episodes' w ON w.anime_id = p.anime_id 
+    WHERE p.user_id = ? AND p.status = ?
+    LIMIT ? 
+    OFFSET ?`,
+    )
+    .all(userId, status, perPage, offset);
+  console.log(list);
+
+  res.send({ data: list, page: page });
 });
 
 app.listen(3001, () => {

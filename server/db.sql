@@ -30,3 +30,19 @@ CREATE TABLE `Anime`(
     `anime_avg_episode_duration` BIGINT NOT NULL,
     PRIMARY KEY(`anime_id`)
 );
+
+CREATE TABLE `Watched Episodes`(
+    `user_id` BIGINT UNSIGNED NOT NULL,
+    `anime_id` BIGINT UNSIGNED NOT NULL,
+    `last_episode_watched` BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    PRIMARY KEY(`user_id`, `anime_id`)
+    CONSTRAINT fk_user
+        FOREIGN KEY (`user_id`) REFERENCES `User`(`user_id`) ON DELETE CASCADE
+    CONSTRAINT fk_anime
+        FOREIGN KEY (`anime_id`) REFERENCES `Anime`(`anime_id`) ON DELETE CASCADE
+);
+
+SELECT * FROM 'Private Anime' p
+    INNER JOIN Anime ON Anime.anime_id = p.anime_id
+    INNER JOIN 'Watched Episodes' w ON w.anime_id = p.anime_id 
+    WHERE p.user_id = 1 AND p.status = ?

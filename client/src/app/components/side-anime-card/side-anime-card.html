@@ -11,6 +11,8 @@
       <!-- <fa-icon [icon]="faEye"></fa-icon> -->
       {{ anime().popularity.toLocaleString('en-US') }}
     </div>
-    <h5>{{ anime().title.english ?? anime().title.romaji ?? 'No Title' }}</h5>
+    <h5 class="ellipsis">
+      {{ anime().title.english ?? anime().title.romaji ?? 'No Title' }}
+    </h5>
   </div>
 </a>

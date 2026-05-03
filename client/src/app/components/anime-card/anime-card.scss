@@ -82,11 +82,11 @@
 
 .anime-card-text h5 {
   /** ellipsis when title is longer than 2 lines  */
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  line-clamp: 2;
-  -webkit-line-clamp: 2;
+  // display: -webkit-box;
+  // overflow: hidden;
+  // -webkit-box-orient: vertical;
+  // line-clamp: 2;
+  // -webkit-line-clamp: 2;
   font-size: 18px;
 }
 .anime-card-text h5 a {
