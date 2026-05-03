@@ -1,2 +1,22 @@
 // For information on how to create your own theme, please refer to:
 // https://ionicframework.com/docs/theming/
+// ion-col {
+//   --ion-grid-column-padding: calc(1.5rem * 0.5);
+// }
+:root {
+  --ion-grid-column-padding: calc(1.5rem * 0.5);
+  --ion-grid-column-padding-lg: calc(1.5rem * 0.5);
+  --ion-grid-column-padding-md: calc(1.5rem * 0.5);
+  --ion-grid-column-padding-sm: calc(1.5rem * 0.5);
+  --ion-grid-column-padding-xl: calc(1.5rem * 0.5);
+  --ion-grid-column-padding-xs: calc(1.5rem * 0.5);
+}
+
+ion-grid {
+  --ion-grid-padding: 0px;
+  --ion-grid-column-padding: 4px; // note: 8 / 2 = 4 (px)
+
+  ion-row {
+    margin: calc(-1 * var(--ion-grid-column-padding));
+  }
+}

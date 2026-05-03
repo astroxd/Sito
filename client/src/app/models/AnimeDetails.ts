@@ -1,3 +1,9 @@
+export type StatusType =
+  | 'RELEASING'
+  | 'NOT_YET_RELEASED'
+  | 'FINISHED'
+  | 'CANCELLED';
+
 export interface AnimeDetail {
   id: number;
   idMal: number;
@@ -25,7 +31,7 @@ export interface AnimeDetail {
     month: number;
     day: number;
   };
-  status: string;
+  status: StatusType;
   genres: string[];
   averageScore?: number;
   popularity: number;
@@ -38,6 +44,7 @@ export interface AnimeDetail {
   episodes?: number;
   nextAiringEpisode: {
     airingAt?: number;
+    episode?: number;
   } | null;
 }
 

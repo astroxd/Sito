@@ -1,8 +1,7 @@
 import express from "express";
-import Database from "better-sqlite3";
+import Database, { RunResult, SqliteError } from "better-sqlite3";
 import cors from "cors";
 
-import { execute, fetchAll, fetchFirst } from "./sql";
 const app = express();
 
 app.use(express.json());
@@ -23,7 +22,7 @@ app.get("/", async (req, res) => {
   const stmt = db.prepare("SELECT * FROM User");
   const user = stmt.get();
 
-  console.log(user);
+  console.log("USER: ", user);
 
   // const rows = await fetchAll(db, "SELECT * FROM User");
   // console.log(rows);
@@ -37,69 +36,100 @@ app.get("/user/:userId", async (req, res) => {
   );
   const user = stmt.get(userId);
 
-  console.log(user);
+  console.log("Get User: ", user);
   res.send({ user: user });
-  // const row = await fetchFirst(
-  //   db,
-  //   "SELECT user_id, username, email FROM User WHERE user_id = ?",
-  //   [userId],
-  // );
-  // console.log(row);
-  // res.send({ user: row });
 });
 
-// app.get("/list/:userId/entrie/:animeId", async (req, res) => {
-//   const { userId, animeId } = req.params;
+app.get("/list/:userId/entrie/:animeId", (req, res) => {
+  const { userId, animeId } = req.params;
 
-//   const row = await fetchFirst(
-//     db,
-//     "SELECT * FROM 'Private Anime' WHERE user_id = ? AND anime_id = ?",
-//     [userId, animeId],
-//   );
-//   console.log(row);
-//   if (row === undefined) {
-//     res.send({ entrie: null });
-//   } else {
-//     res.send({ entrie: row });
-//   }
-// });
+  const stmt = db.prepare(
+    "SELECT * FROM 'Private Anime' WHERE user_id = ? AND anime_id = ?",
+  );
+  const row = stmt.get(userId, animeId);
 
-// app.post("/list/:userId/entrie", async (req, res) => {
-//   const { userId } = req.params;
-//   const { animeId, status } = req.body;
+  console.log("ROW: ", row);
+  if (row === undefined) {
+    res.send({ entrie: null });
+  } else {
+    res.send({ entrie: row });
+  }
+});
 
-//   const query = await execute(
-//     db,
-//     "INSERT INTO 'Private Anime'(user_id,status,anime_id,added_on) VALUES(?,?,?, datetime('now'))",
-//     [userId, status, animeId],
-//   );
+app.post("/list/:userId/entrie", (req, res) => {
+  const { userId } = req.params;
+  const { animeId, status, animeDetails } = req.body;
+  if (!animeId || !status || !animeDetails) {
+    res.send({ error: "Error on add" });
+    return;
+  }
+  const { id, idMal, title, coverImage, episodes, duration } = animeDetails;
+  console.log(episodes);
+  try {
+    db.transaction(() => {
+      const animeUpsert = db
+        .prepare(
+          `INSERT INTO Anime (anime_id, anime_mal_id, anime_title, anime_cover, anime_episodes, anime_avg_episode_duration) VALUES(?, ?, ?, ?, ?, ?)
+      ON CONFLICT (anime_id)
+      DO UPDATE SET anime_title = @title, anime_cover = @cover, anime_episodes = @episodes, anime_avg_episode_duration = @duration`,
+        )
+        .run(id, idMal, title, coverImage, episodes, duration, {
+          title: title,
+          cover: coverImage,
+          episodes: episodes,
+          duration: duration,
+        });
+      console.log("Anime Upsert: ", animeUpsert);
 
-//   res.send({ message: "Added" });
-// });
+      const res = db
+        .prepare(
+          "INSERT INTO 'Private Anime'(user_id,status,anime_id,added_on) VALUES(?,?,?, datetime('now'))",
+        )
+        .run(userId, status, animeId);
+      console.log("Private Anime: ", res);
+    })();
+    res.send({ message: "Added" });
+    return;
+  } catch (error) {
+    console.log(error);
+  }
+  res.send({ error: "Error on add" });
+});
 
-// app.patch("/list/:userId/entrie", async (req, res) => {
-//   const { userId } = req.params;
-//   const { animeId, status } = req.body;
+app.patch("/list/:userId/entrie", async (req, res) => {
+  const { userId } = req.params;
+  const { animeId, status } = req.body;
 
-//   const query = await execute(
-//     db,
-//     "UPDATE 'Private Anime' SET status = ? WHERE user_id = ? AND anime_id = ?",
-//     [status, userId, animeId],
-//   );
-//   console.log("path", query);
-//   res.send({ message: "Updated" });
-// });
+  try {
+    const stmt = db
+      .prepare(
+        "UPDATE 'Private Anime' SET status = ? WHERE user_id = ? AND anime_id = ?",
+      )
+      .run(status, userId, animeId);
 
-// app.delete("/list/:userId/entrie/:animeId", async (req, res) => {
-//   const { userId, animeId } = req.params;
-//   const query = await execute(
-//     db,
-//     "DELETE FROM 'Private Anime' WHERE user_id = ? AND anime_id = ?",
-//     [userId, animeId],
-//   );
+    res.send({ message: "Updated" });
+    return;
+  } catch (error) {
+    console.log(error);
+  }
+  res.send({ error: "Error on update" });
+});
 
-//   res.send({ message: "Deleted" });
-// });
+app.delete("/list/:userId/entrie/:animeId", (req, res) => {
+  const { userId, animeId } = req.params;
+
+  try {
+    const stmt = db
+      .prepare("DELETE FROM 'Private Anime' WHERE user_id = ? AND anime_id = ?")
+      .run(userId, animeId);
+
+    res.send({ message: "Deleted" });
+    return;
+  } catch (error) {
+    console.log(error);
+  }
+  res.send({ error: "Error on delete" });
+});
 
 app.listen(3001, () => {
   console.log("Server is running on port 3001");

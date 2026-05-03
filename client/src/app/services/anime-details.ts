@@ -51,13 +51,14 @@ export class AnimeDetails {
                 popularity
                 duration
                 coverImage{
-                    extraLarge
-                    large
+                  extraLarge
+                  large
                 }
                 favourites
                 episodes
                 nextAiringEpisode{
-                    airingAt 
+                  episode
+                  airingAt
                 }
             }
         }

@@ -8,6 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { finalize } from 'rxjs';
+import { AnimeDetail } from 'src/app/models/AnimeDetails';
 import { APIService } from 'src/app/services/apiservice';
 import { AuthService } from 'src/app/services/auth-service';
 
@@ -23,7 +24,8 @@ export class AddToWatchlistButtonComponent implements OnInit {
   apiService = inject(APIService);
   authService = inject(AuthService);
 
-  animeId = input.required<number | undefined>();
+  animeDetails = input.required<AnimeDetail | undefined>();
+  animeId = computed(() => this.animeDetails()?.id);
 
   animeList = signal<number | null>(null);
 
@@ -56,7 +58,7 @@ export class AddToWatchlistButtonComponent implements OnInit {
   ngOnInit() {}
 
   getAnimeStatus() {
-    if (this.animeId()) {
+    if (this.animeId() && this.authService.user()) {
       this.apiService
         .get(`list/${this.authService.user()?.id}/entrie/${this.animeId()}`)
         .subscribe((res: any) => {
@@ -66,13 +68,36 @@ export class AddToWatchlistButtonComponent implements OnInit {
   }
 
   addToList(listId: number) {
+    const {
+      id,
+      idMal,
+      title,
+      coverImage,
+      episodes,
+      nextAiringEpisode,
+      duration,
+      status,
+    } = this.animeDetails()!;
+
     this.apiService
       .post(`list/${this.authService.user()?.id}/entrie`, {
         animeId: this.animeId(),
         status: listId,
+        animeDetails: {
+          id,
+          idMal,
+          title: title.romaji ?? title.english ?? title.native ?? 'NO TITLE',
+          coverImage: coverImage.extraLarge ?? coverImage.large,
+          episodes:
+            nextAiringEpisode?.episode ??
+            (status === 'FINISHED' && !nextAiringEpisode ? episodes : 0),
+          duration: duration ?? 0,
+        },
       })
       .pipe(finalize(() => this.getAnimeStatus()))
-      .subscribe();
+      .subscribe((res) => {
+        console.log(res);
+      });
   }
 
   removeFromList() {

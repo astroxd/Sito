@@ -20,3 +20,13 @@ CREATE TABLE `Private Anime`(
 INSERT INTO User VALUES(1,"a@a.com",'123', 'a_str0', datetime('now'), '', '');
 
 SELECT * FROM User;
+
+CREATE TABLE `Anime`(
+    `anime_id` BIGINT UNSIGNED NOT NULL,
+    `anime_mal_id` BIGINT UNIQUE NOT NULL,
+    `anime_title` VARCHAR(255) NOT NULL,
+    `anime_cover` VARCHAR(255) NOT NULL,
+    `anime_episodes` BIGINT NOT NULL,
+    `anime_avg_episode_duration` BIGINT NOT NULL,
+    PRIMARY KEY(`anime_id`)
+);

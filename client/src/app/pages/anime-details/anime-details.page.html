@@ -20,7 +20,9 @@
   <section class="anime-details">
     <ion-grid>
       <app-anime-description [details]="details$ | async" />
-      <!-- <ion-router-outlet></ion-router-outlet> -->
+      <!-- <div class="sub-route-container">
+        <ion-router-outlet></ion-router-outlet>
+      </div> -->
       <router-outlet [routerOutletData]="{id: animeId }" />
     </ion-grid>
   </section>

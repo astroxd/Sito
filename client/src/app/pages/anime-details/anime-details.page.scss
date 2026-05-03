@@ -12,3 +12,13 @@
   flex-wrap: wrap;
   gap: 0.5rem;
 }
+
+.sub-route-container ion-router-outlet > .ion-page {
+  position: relative !important;
+  contain: none !important;
+  overflow: visible !important;
+}
+
+.sub-route-container ion-router-outlet {
+  position: relative !important;
+}

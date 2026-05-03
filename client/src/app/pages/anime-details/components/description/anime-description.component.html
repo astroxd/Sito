@@ -116,7 +116,9 @@
             </ion-row>
           </div>
           <div class="anime-details-buttons">
-            <app-add-to-watchlist-button [animeId]="details()?.id" />
+            <app-add-to-watchlist-button
+              [animeDetails]="details() ?? undefined"
+            />
             <!-- <FavoriteButton
 								animeId={id}
 								coverImage={coverImage}
