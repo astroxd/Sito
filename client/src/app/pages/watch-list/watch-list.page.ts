@@ -7,10 +7,9 @@ import {
   IonTitle,
   IonToolbar,
   IonGrid,
-  IonRow,
-  IonCol,
 } from '@ionic/angular/standalone';
-import { SectionWithSearchComponent } from 'src/app/components/section-with-search/section-with-search.component';
+
+import { ListComponent } from './components/list/list.component';
 
 @Component({
   selector: 'app-watch-list',
@@ -25,7 +24,7 @@ import { SectionWithSearchComponent } from 'src/app/components/section-with-sear
     CommonModule,
     FormsModule,
     IonGrid,
-    SectionWithSearchComponent,
+    ListComponent,
   ],
 })
 export class WatchListPage implements OnInit {

@@ -1,0 +1,88 @@
+import {
+  Component,
+  effect,
+  inject,
+  input,
+  OnInit,
+  signal,
+} from '@angular/core';
+import { debounceTime, Subject, tap } from 'rxjs';
+import { ListedAnime, ListedAnimeApiRes } from 'src/app/models/Anime';
+
+import { APIService } from 'src/app/services/apiservice';
+import { AuthService } from 'src/app/services/auth-service';
+import { IonRow, IonCol } from '@ionic/angular/standalone';
+import { AnimeCard } from 'src/app/components/anime-card/anime-card';
+
+@Component({
+  selector: 'app-list',
+  templateUrl: './list.component.html',
+  styleUrls: ['./list.component.scss'],
+  imports: [IonRow, IonCol, AnimeCard],
+})
+export class ListComponent implements OnInit {
+  private authService = inject(AuthService);
+  private apiService = inject(APIService);
+
+  public readonly name = input.required<string>();
+  public readonly status = input.required<number>();
+
+  public listedAnimes = signal<ListedAnime[]>([]);
+  public listedAnimesInfo = signal<ListedAnimeApiRes>({
+    message: '',
+    data: [],
+    page: 0,
+    perPage: 0,
+    hasNextPage: false,
+  });
+
+  private searchSubject = new Subject<string>();
+
+  constructor() {
+    effect(() => {
+      if (this.authService.user()) {
+        this.searchAnimes();
+      }
+    });
+
+    this.searchSubject.pipe(debounceTime(300)).subscribe((query) => {
+      this.searchAnimes(query);
+    });
+  }
+
+  ngOnInit() {}
+
+  // loadAnimes(page: number = 1) {
+  //   this.apiService
+  //     .get<ListedAnimeApiRes>(
+  //       `lists/${this.authService.user()?.id}/${this.status()}/${page}`,
+  //     )
+  //     .pipe(tap((val) => console.log(val)))
+  //     .subscribe((res) => {
+  //       this.listedAnimes.set([...this.listedAnimes(), ...res.data]);
+  //       this.listedAnimesInfo.set(res);
+  //     });
+  // }
+
+  onSearch(event: Event) {
+    const query = (event.target as HTMLInputElement).value;
+    this.searchSubject.next(query);
+  }
+
+  searchAnimes(query: string = '', page: number = 1) {
+    console.log(query);
+    this.apiService
+      .get<ListedAnimeApiRes>(
+        `lists/${this.authService.user()?.id}/${this.status()}?q=${query}&page=${page}`,
+      )
+      .pipe(tap((val) => console.log(val)))
+      .subscribe((res) => {
+        if (page === 1) {
+          this.listedAnimes.set([...res.data]);
+        } else {
+          this.listedAnimes.set([...this.listedAnimes(), ...res.data]);
+        }
+        this.listedAnimesInfo.set(res);
+      });
+  }
+}

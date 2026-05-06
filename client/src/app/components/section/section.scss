@@ -47,19 +47,3 @@
   margin-left: 10px;
   font-size: 18px;
 }
-
-/** || SECTION WITH SEARCH **/
-.section-search input {
-  color: white;
-  background-color: var(--bg-ternary);
-  border-color: transparent;
-  padding: 4px 10px;
-  border-radius: 50px;
-  border-radius: 5px;
-}
-
-.no-results {
-  width: 100%;
-  text-align: center;
-  color: var(--text-secondary);
-}

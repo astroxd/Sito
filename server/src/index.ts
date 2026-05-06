@@ -1,8 +1,6 @@
 import express from "express";
 import Database, { RunResult, SqliteError } from "better-sqlite3";
 import cors from "cors";
-import { stat } from "node:fs";
-import { off } from "node:cluster";
 
 const app = express();
 
@@ -146,7 +144,12 @@ app.delete("/list/:userId/entrie/:animeId", (req, res) => {
   res.send({ error: "Error on delete" });
 });
 
-app.get("/lists/:userId/:status", (req, res) => {
+app.get("/lists/:userId/:status", (req, res, next) => {
+  if (req.query) {
+    next();
+    return;
+  }
+
   const { userId, status } = req.params;
   if (!userId || !status) {
     res.send({ error: "Error missing params" });
@@ -172,22 +175,61 @@ app.get("/lists/:userId/:status/:page", (req, res) => {
     return;
   }
 
-  const perPage = 10;
+  const perPage = 3;
   const offset = (parseInt(page) - 1) * perPage;
 
-  const list = db
+  const list: any = db
     .prepare(
-      `SELECT * FROM 'Private Anime' p
+      `SELECT *, COUNT(*) OVER() AS length FROM 'Private Anime' p
     INNER JOIN Anime ON Anime.anime_id = p.anime_id
-    INNER JOIN 'Watched Episodes' w ON w.anime_id = p.anime_id 
+    INNER JOIN 'Watched Episodes' w ON w.anime_id = p.anime_id
     WHERE p.user_id = ? AND p.status = ?
-    LIMIT ? 
+    LIMIT ?
     OFFSET ?`,
     )
     .all(userId, status, perPage, offset);
   console.log(list);
 
-  res.send({ data: list, page: page });
+  let hasNextPage = false;
+
+  if (list.length > 0) {
+    hasNextPage = list[0]["length"] > parseInt(page) * perPage;
+  }
+
+  res.send({ data: list, page: parseInt(page), perPage: perPage, hasNextPage });
+});
+
+app.get("/lists/:userId/:status", (req, res) => {
+  const { userId, status } = req.params;
+  if (!userId || !status) {
+    res.send({ error: "Error missing params" });
+    return;
+  }
+  const { q, page } = req.query;
+  const p = parseInt((page as string) ?? 1);
+  console.log("query ", q, page);
+  const perPage = 3;
+  const offset = (p - 1) * perPage;
+
+  const list: any = db
+    .prepare(
+      `SELECT *, COUNT(*) OVER() AS length FROM 'Private Anime' p
+    INNER JOIN Anime ON Anime.anime_id = p.anime_id
+    INNER JOIN 'Watched Episodes' w ON w.anime_id = p.anime_id 
+    WHERE p.user_id = ? AND p.status = ? AND Anime.anime_title COLLATE UTF8_GENERAL_CI LIKE @query
+    LIMIT ? 
+    OFFSET ?`,
+    )
+    .all(userId, status, perPage, offset, { query: String(q) + "%" });
+  console.log(list);
+
+  let hasNextPage = false;
+
+  if (list.length > 0) {
+    hasNextPage = list[0]["length"] > p * perPage;
+  }
+
+  res.send({ data: list, page: p, perPage: perPage, hasNextPage });
 });
 
 app.listen(3001, () => {

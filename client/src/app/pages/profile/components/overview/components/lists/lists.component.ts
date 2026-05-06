@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { ListedAnime, ListedAnimeApiRes } from 'src/app/models/Anime';
 import { APIService } from 'src/app/services/apiservice';
 import { AuthService } from 'src/app/services/auth-service';
-import { IonProgressBar, IonButton } from '@ionic/angular/standalone';
+import { IonProgressBar } from '@ionic/angular/standalone';
 
 @Component({
   selector: 'app-profile-lists',
@@ -21,11 +21,10 @@ export class ListsComponent implements OnInit {
 
   constructor() {
     effect(() => {
-      console.log(this.status);
       if (this.authService.user()) {
         this.apiService
           .get<ListedAnimeApiRes>(
-            `lists/${this.authService.user()?.id}/${this.status()}`,
+            `lists/${this.authService.user()?.id}/${this.status()}/1`,
           )
           .subscribe(({ data }) => {
             this.listedAnimes.set(data);

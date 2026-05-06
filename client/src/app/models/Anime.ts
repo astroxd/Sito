@@ -34,4 +34,7 @@ export interface ListedAnime {
 export interface ListedAnimeApiRes {
   message: string;
   data: ListedAnime[];
+  page: number;
+  perPage: number;
+  hasNextPage: boolean;
 }

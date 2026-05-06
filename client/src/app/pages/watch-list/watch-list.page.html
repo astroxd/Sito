@@ -4,15 +4,15 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
+<ion-content class="ion-padding">
   <ion-header collapse="condense">
     <ion-toolbar>
       <ion-title size="large">WatchList</ion-title>
     </ion-toolbar>
   </ion-header>
   <ion-grid>
-    <app-section-with-search sectionTitle="watching" [animes]="[]" />
-    <app-section-with-search sectionTitle="completed" [animes]="[]" />
-    <app-section-with-search sectionTitle="dropped" [animes]="[]" />
+    <app-list [status]="1" name="Watching" />
+    <app-list [status]="2" name="Completed" />
+    <app-list [status]="3" name="Dropped" />
   </ion-grid>
 </ion-content>
