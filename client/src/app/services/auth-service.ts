@@ -26,6 +26,17 @@ export class AuthService {
       .subscribe(({ user: { user_id: id, username, email } }) => {
         this.user.set({ id, username, email });
       });
+  }
+  private userId = 1;
+  public changeUser() {
+    this.userId++;
+    if (this.userId > 2) this.userId = 1;
+    this.http
+      .get<any>(`http://localhost:3001/user/${this.userId}`)
+      .pipe(tap((data) => console.log(data)))
+      .subscribe(({ user: { user_id: id, username, email } }) => {
+        this.user.set({ id, username, email });
+      });
 
     // const observable = new Observable<User>((sub) => {
     //   setTimeout(() => {

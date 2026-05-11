@@ -18,6 +18,7 @@ CREATE TABLE `Private Anime`(
 );
 
 INSERT INTO User VALUES(1,"a@a.com",'123', 'a_str0', datetime('now'), '', '');
+INSERT INTO User VALUES(2,"b@b.com",'123', 'bro', datetime('now'), '', '');
 
 SELECT * FROM User;
 
@@ -45,4 +46,74 @@ CREATE TABLE `Watched Episodes`(
 SELECT * FROM 'Private Anime' p
     INNER JOIN Anime ON Anime.anime_id = p.anime_id
     INNER JOIN 'Watched Episodes' w ON w.anime_id = p.anime_id 
-    WHERE p.user_id = 1 AND p.status = ?
+    WHERE p.user_id = 1 AND p.status = ?;
+
+CREATE TABLE `Shared List`(
+`shared_list_id` BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+`shared_list_name` VARCHAR(255) NOT NULL,
+`message` VARCHAR(255) NULL
+);
+
+CREATE TABLE `Shared List User`(
+    `shared_list_id` BIGINT UNSIGNED NOT NULL,
+    `user_id` BIGINT UNSIGNED NOT NULL,
+    `role` SMALLINT UNSIGNED NOT NULL,
+    PRIMARY KEY(`shared_list_id`, `user_id`)
+
+    CONSTRAINT fk_user
+        FOREIGN KEY (`user_id`) REFERENCES `User`(`user_id`) ON DELETE CASCADE
+    CONSTRAINT fk_shared_list
+        FOREIGN KEY (`shared_list_id`) REFERENCES `Shared List`(`shared_list_id`) ON DELETE CASCADE
+);
+
+CREATE TABLE `Shared List Anime`(
+    `shared_list_id` BIGINT UNSIGNED NOT NULL,
+    `anime_id` BIGINT UNSIGNED NOT NULL,
+    `added_on` TIMESTAMP NOT NULL,
+    `last_activity_at` TIMESTAMP NOT NULL,
+    PRIMARY KEY(`shared_list_id`, `anime_id`)
+
+    CONSTRAINT fk_shared_list
+        FOREIGN KEY (`shared_list_id`) REFERENCES `Shared List`(`shared_list_id`) ON DELETE CASCADE
+
+    CONSTRAINT fk_anime
+        FOREIGN KEY (`anime_id`) REFERENCES `Anime`(`anime_id`) ON DELETE CASCADE
+    
+);
+
+CREATE TABLE `Shared List Progress`(
+    `shared_list_id` BIGINT UNSIGNED NOT NULL,
+    `user_id` BIGINT UNSIGNED NOT NULL,
+    `anime_id` BIGINT UNSIGNED NOT NULL,
+    `current_episode` BIGINT UNSIGNED NOT NULL,
+    `updated_at` TIMESTAMP NOT NULL,
+    PRIMARY KEY(
+        `shared_list_id`,
+        `user_id`,
+        `anime_id`
+    )
+    CONSTRAINT fk_shared_list
+        FOREIGN KEY (`shared_list_id`) REFERENCES `Shared List`(`shared_list_id`) ON DELETE CASCADE
+ 
+    CONSTRAINT fk_user
+        FOREIGN KEY (`user_id`) REFERENCES `User`(`user_id`) ON DELETE CASCADE
+    
+    CONSTRAINT fk_anime
+        FOREIGN KEY (`anime_id`) REFERENCES `Anime`(`anime_id`) ON DELETE CASCADE
+);
+
+INSERT INTO `Shared List` VALUES (1, "Test Condivisa", "message");
+INSERT INTO `Shared List` VALUES (2, "Test 2", '');
+INSERT INTO `Shared List User` VALUES (1, 1, 0);
+INSERT INTO `Shared List User` VALUES (2, 1, 0);
+INSERT INTO `Shared List User` VALUES (1, 2, 0);
+
+
+INSERT INTO `Shared List Anime` VALUES(1, 21, datetime('now'), datetime('now'));
+INSERT INTO `Shared List Anime` VALUES(1, 20, datetime('now'), datetime('now'));
+INSERT INTO `Shared List Progress` VALUES(1, 1, 21, 40, datetime('now'));
+
+INSERT INTO `Shared List Progress` VALUES(1, 2, 21, 400, datetime('now'));
+INSERT INTO `Shared List Progress` VALUES(1, 1, 20, 300, datetime('now'));
+INSERT INTO `Shared List Progress` VALUES(2, 1, 20, 300, datetime('now'));
+DELETE FROM `Shared List Progress` WHERE user_id = 1 AND shared_list_id = 2;

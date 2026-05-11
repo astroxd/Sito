@@ -12,43 +12,46 @@
     </div>
   </div>
   <div class="content">
-    <div class="widget">
-      <span class="widget-title">Maratona</span>
-      <span class="widget-subtitle">Group Member</span>
-      <div class="avatar-container">
-        <img
-          src="https://static.vecteezy.com/system/resources/thumbnails/032/176/191/small/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg"
-          alt=""
-        />
-        <img
-          src="https://static.vecteezy.com/system/resources/thumbnails/032/176/191/small/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg"
-          alt=""
-        />
-        <img
-          src="https://static.vecteezy.com/system/resources/thumbnails/032/176/191/small/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg"
-          alt=""
-        />
-        <img
-          src="https://static.vecteezy.com/system/resources/thumbnails/032/176/191/small/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg"
-          alt=""
-        />
-        <div class="stacked-avatar">+3</div>
-      </div>
-      <span class="widget-subtitle">Classifica Interna</span>
-      <ol class="leaderboard-container">
-        <li>
-          <span class="position">1</span>
+    @for (sharedList of sharedLists(); track $index) {
+      <app-shared-list [sharedList]="sharedList" />
+      <!-- <a class="widget" [routerLink]="['/shared', sharedList.id]">
+        <span class="widget-title">{{ sharedList.name }}</span>
+        <span class="widget-subtitle">Group Member</span>
+        <div class="avatar-container">
           <img
             src="https://static.vecteezy.com/system/resources/thumbnails/032/176/191/small/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg"
             alt=""
           />
-          <span>a_str0</span>
-        </li>
-        <li></li>
-        <li></li>
-      </ol>
-    </div>
-    <div class="widget">
+          <img
+            src="https://static.vecteezy.com/system/resources/thumbnails/032/176/191/small/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg"
+            alt=""
+          />
+          <img
+            src="https://static.vecteezy.com/system/resources/thumbnails/032/176/191/small/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg"
+            alt=""
+          />
+          <img
+            src="https://static.vecteezy.com/system/resources/thumbnails/032/176/191/small/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg"
+            alt=""
+          />
+          <div class="stacked-avatar">+3</div>
+        </div>
+        <span class="widget-subtitle">Classifica Interna</span>
+        <ol class="leaderboard-container">
+          <li>
+            <span class="position">1</span>
+            <img
+              src="https://static.vecteezy.com/system/resources/thumbnails/032/176/191/small/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg"
+              alt=""
+            />
+            <span>a_str0</span>
+          </li>
+          <li></li>
+          <li></li>
+        </ol>
+      </a> -->
+    }
+    <!-- <div class="widget">
       <span class="widget-title">Maratona</span>
       <span class="widget-subtitle">Group Member</span>
       <div class="avatar-container">
@@ -133,6 +136,6 @@
         <li></li>
         <li></li>
       </ol>
-    </div>
+    </div> -->
   </div>
 </div>

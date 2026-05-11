@@ -1,0 +1,39 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>sharedList</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">sharedList</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-grid>
+    <ion-row>
+      <ion-col>
+        <h1>{{sharedList()?.name}}</h1>
+        <div>Messaggio: {{sharedList()?.message}}</div>
+
+        @for (userProgress of userSharedAnimesProgress(); track $index) {
+
+        <div>
+          <img [src]="userProgress.anime_cover" alt="" />
+          <p style="color: white; font-size: 18px">
+            Ultimo episodio visto: {{userProgress.current_episode}}
+          </p>
+          <p style="color: white; font-size: 18px">
+            {{userProgress.anime_title}}
+          </p>
+          <button style="padding: 1rem" (click)="addEpisode(userProgress)">
+            +1
+          </button>
+        </div>
+        }
+      </ion-col>
+      <ion-col> </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>

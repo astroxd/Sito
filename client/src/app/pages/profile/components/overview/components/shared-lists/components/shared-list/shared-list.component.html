@@ -1,0 +1,30 @@
+<a class="widget" [routerLink]="['/shared', sharedList().sharedList.id]">
+  <span class="widget-title">{{ sharedList().sharedList.name }}</span>
+  <span class="widget-subtitle">Group Member</span>
+  <div class="avatar-container">
+    @for (member of sharedList().members; track $index) {
+      <img
+        src="https://static.vecteezy.com/system/resources/thumbnails/032/176/191/small/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg"
+        alt=""
+      />
+    }
+    <div class="stacked-avatar">
+      +{{ sharedList().sharedListMembersNumber }}
+    </div>
+  </div>
+  <span class="widget-subtitle">Classifica Interna</span>
+  <ol class="leaderboard-container">
+    @for (member of sharedList().members; track $index) {
+      @if ($index < 3) {
+        <li>
+          <span class="position">{{ $index + 1 }}</span>
+          <img
+            src="https://static.vecteezy.com/system/resources/thumbnails/032/176/191/small/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg"
+            alt=""
+          />
+          <span>{{ member.username }}</span>
+        </li>
+      }
+    }
+  </ol>
+</a>

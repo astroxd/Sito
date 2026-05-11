@@ -73,6 +73,13 @@ export const routes: Routes = [
             (m) => m.WatchListPage,
           ),
       },
+      {
+        path: 'shared/:listId',
+        loadComponent: () =>
+          import('../pages/shared-list/shared-list.page').then(
+            (m) => m.SharedListPage,
+          ),
+      },
 
       {
         path: '',

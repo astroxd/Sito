@@ -52,6 +52,7 @@ export class AddToWatchlistButtonComponent implements OnInit {
   constructor() {
     effect(() => {
       this.getAnimeStatus();
+      this.getSharedLists();
     });
   }
 
@@ -124,6 +125,79 @@ export class AddToWatchlistButtonComponent implements OnInit {
       this.updateStatusList(listId);
     } else {
       this.addToList(listId);
+    }
+  }
+
+  sharedLists = signal<any[]>([]);
+  getSharedLists() {
+    if (this.animeId() && this.authService.user()) {
+      this.apiService
+        .get(
+          `shared-list/${this.authService.user()?.id}/entrie/${this.animeId()}`,
+        )
+        .subscribe((res: any) => {
+          console.log(res);
+          this.sharedLists.set(res.data);
+          // this.animeList.set(res?.entrie?.status ?? null);
+        });
+    }
+  }
+
+  handleSharedList(listId: number, isInList: boolean) {
+    if (isInList) {
+      //! Non conviene togliere un anime da una lista condivisa da qui perché
+      //! potrebbe sbagliare e si cancellano tutti i progressi del gruppo
+      // if (this.animeId() && this.authService.user()) {
+      //   this.apiService
+      //     .delete(
+      //       `shared-list/${this.authService.user()?.id}/${listId}/entrie/${this.animeId()}`,
+      //     )
+      //     .pipe(
+      //       finalize(() => {
+      //         this.getSharedLists();
+      //       }),
+      //     )
+      //     .subscribe((res: any) => {
+      //       console.log(res);
+      //     });
+      // }
+    } else {
+      const {
+        id,
+        idMal,
+        title,
+        coverImage,
+        episodes,
+        nextAiringEpisode,
+        duration,
+        status,
+      } = this.animeDetails()!;
+      if (this.animeId() && this.authService.user()) {
+        this.apiService
+          .post(`shared-list/${this.authService.user()?.id}/${listId}/entrie`, {
+            animeDetails: {
+              id,
+              idMal,
+              title:
+                title.romaji ?? title.english ?? title.native ?? 'NO TITLE',
+              coverImage: coverImage.extraLarge ?? coverImage.large,
+              episodes:
+                nextAiringEpisode?.episode ??
+                (status === 'FINISHED' && !nextAiringEpisode ? episodes : 0),
+              duration: duration ?? 0,
+            },
+          })
+          .pipe(
+            finalize(() => {
+              this.getSharedLists();
+            }),
+          )
+          .subscribe((res: any) => {
+            console.log(res);
+            // this.sharedLists.set(res.data);
+            // this.animeList.set(res?.entrie?.status ?? null);
+          });
+      }
     }
   }
 }

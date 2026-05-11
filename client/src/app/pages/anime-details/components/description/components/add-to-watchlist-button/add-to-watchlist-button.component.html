@@ -27,6 +27,17 @@
           {{ list.name }}
         </li>
       }
+      <span>Add To List</span>
+      @for (sharedList of sharedLists(); track $index) {
+        @let isInList = sharedList?.anime_id ?? false;
+        <li
+          class="dropdown-menu-item"
+          [class]="isInList ? 'selected' : ''"
+          (click)="handleSharedList(sharedList.shared_list_id, isInList)"
+        >
+          {{ sharedList.shared_list_name }}
+        </li>
+      }
     </ul>
   </div>
 </div>

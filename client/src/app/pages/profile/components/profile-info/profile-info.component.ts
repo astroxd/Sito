@@ -21,5 +21,10 @@ export class ProfileInfoComponent implements OnInit {
     this.user = this.UserService.user;
   }
 
+  changeUser() {
+    this.UserService.changeUser();
+    this.user = this.UserService.user;
+  }
+
   ngOnInit() {}
 }
