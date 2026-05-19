@@ -1,0 +1,39 @@
+.auth-form.login-form::after {
+  height: 340px;
+}
+.forgot-pass {
+  font-size: 15px;
+  font-weight: 400;
+  display: inline-block;
+  position: absolute;
+  right: 60px;
+  bottom: 12px;
+}
+.forgot-pass:hover {
+  text-decoration: underline;
+}
+
+.login-register {
+  padding-left: 30px;
+}
+
+.login-register h3 {
+  font-family: var(--header-font);
+  margin-bottom: 30px;
+}
+
+.login-register .primary-btn {
+  padding: 12px 42px;
+  border-radius: 0;
+}
+
+/** Medium devices (tablets, less than 992px) */
+@media (max-width: 991.98px) {
+  .forgot-pass {
+    right: 0;
+  }
+
+  .login-register {
+    padding-left: 0;
+  }
+}

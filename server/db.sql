@@ -117,3 +117,4 @@ INSERT INTO `Shared List Progress` VALUES(1, 2, 21, 400, datetime('now'));
 INSERT INTO `Shared List Progress` VALUES(1, 1, 20, 300, datetime('now'));
 INSERT INTO `Shared List Progress` VALUES(2, 1, 20, 300, datetime('now'));
 DELETE FROM `Shared List Progress` WHERE user_id = 1 AND shared_list_id = 2;
+ALTER TABLE 'User' ADD COLUMN "refresh_token" VARCHAR(255);

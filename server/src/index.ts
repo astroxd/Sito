@@ -1,10 +1,15 @@
 import express from "express";
 import Database, { RunResult, SqliteError } from "better-sqlite3";
 import cors from "cors";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import cookieParser from "cookie-parser";
+import { access } from "node:fs";
 
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(
   cors({
     origin: ["http://localhost:8100"],
@@ -562,7 +567,11 @@ app.post(
             "SELECT last_episode_watched FROM 'Watched Episodes' WHERE user_id = ? AND anime_id = ?",
           )
           .get(userId, animeId);
-
+        const privateAnime: any = db
+          .prepare(
+            'SELECT anime_id, status FROM "Private Anime" WHERE user_id = ? AND anime_id = ?',
+          )
+          .get(userId, animeId);
         const userProgress: any = db
           .prepare(
             `
@@ -588,11 +597,6 @@ app.post(
             )
             .run(listId, animeId);
 
-          const privateAnime: any = db
-            .prepare(
-              'SELECT anime_id, status FROM "Private Anime" WHERE user_id = ? AND anime_id = ?',
-            )
-            .get(userId, animeId);
           //* SE non è in private anime aggiungi in watching
           if (!privateAnime) {
             const insertPrivateAnime = db
@@ -664,6 +668,15 @@ app.post(
                   )
                   .run(2, animeId, userId);
               }
+              //* Se avevo messo l'anime in dropped dopo che avevo fatto progressi in shared List devo rimetterlo in watching
+              console.log("CONTROLLO ", privateAnime);
+              if (privateAnime.status === 3) {
+                const updatePrivateAnime = db
+                  .prepare(
+                    "UPDATE 'Private Anime' SET STATUS = ? WHERE anime_id = ? AND user_id = ?",
+                  )
+                  .run(1, animeId, userId);
+              }
             }
           }
         }
@@ -676,6 +689,164 @@ app.post(
     res.send({ error: "Error on update progress" });
   },
 );
+
+const RSA_PRIVATE_KEY = "RSAPRIVATE";
+app.post("/login", (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    res.send({ error: "Missing params" });
+    return;
+  }
+
+  try {
+    const user: any = db
+      .prepare("SELECT * FROM User WHERE email = ?")
+      .get(email);
+    if (!user) {
+      return res.status(401).send({ error: "Invalid credentials" });
+    }
+
+    // const passwordMatch = bcrypt.compareSync(password, user.password);
+    const passwordMatch = true;
+    if (!passwordMatch) {
+      return res.status(401).send({ error: "Invalid credentials" });
+    }
+
+    const accessToken = jwt.sign(
+      {
+        userId: user.user_id,
+      },
+      RSA_PRIVATE_KEY,
+      {
+        // algorithm: "RS256",
+        expiresIn: "15s",
+        // subject: user.user_id,
+      },
+    );
+
+    const refreshToken = jwt.sign(
+      {
+        userId: user.user_id,
+      },
+      RSA_PRIVATE_KEY,
+      { expiresIn: "30d" },
+    );
+
+    db.prepare("UPDATE User SET refresh_token = ? WHERE user_id = ?").run(
+      refreshToken,
+      user.user_id,
+    );
+
+    res.cookie("jwt", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.send({
+      user: {
+        userId: user.user_id,
+        username: user.username,
+        avatar: user.avatar,
+        banner: user.banner,
+      },
+      accessToken: accessToken,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+  return res.status(401).send({ error: "Invalid credentials" });
+});
+
+app.get("/testauth", (req, res) => {
+  const authHeader = req.headers["authorization"];
+
+  if (!authHeader) {
+    return res.status(401).send({ error: "Access denied" });
+  }
+
+  console.log(authHeader);
+
+  const token = authHeader.split(" ")[1];
+  console.log(token);
+  try {
+    const verified = jwt.verify(token, RSA_PRIVATE_KEY);
+    console.log("VERIFIED ", verified);
+    if (verified) {
+      return res.send({ message: "AUTENTICATO" });
+    }
+  } catch (error) {
+    return res.status(401).send({ error: "Invalid Token" });
+  }
+});
+
+app.get("/refresh-token", (req, res) => {
+  const cookies = req.cookies;
+
+  if (!cookies.jwt) return res.sendStatus(401);
+
+  const refreshToken = cookies.jwt;
+
+  const foundUser: { user_id: string } | undefined = db
+    .prepare("SELECT user_id FROM User WHERE refresh_token = ?")
+    .get(refreshToken) as any;
+  console.log(foundUser);
+  if (!foundUser) return res.sendStatus(403);
+
+  jwt.verify(
+    refreshToken,
+    RSA_PRIVATE_KEY,
+    (err, decoded: { userId: string }) => {
+      if (err || foundUser.user_id !== decoded.userId) {
+        console.log("ERROR?", decoded, foundUser.user_id);
+        return res.sendStatus(403);
+      }
+
+      const accessToken = jwt.sign(
+        {
+          userId: decoded.userId,
+        },
+        RSA_PRIVATE_KEY,
+        { expiresIn: "5s" },
+      );
+
+      res.send({ accessToken });
+    },
+  );
+});
+
+app.get("/session", (req, res) => {
+  const authHeader = req.headers["authorization"];
+
+  if (!authHeader) {
+    return res.status(401).send({ error: "Access denied" });
+  }
+
+  console.log(authHeader);
+
+  const token = authHeader.split(" ")[1];
+  console.log(token);
+  // try {
+  //   const verified = jwt.verify(token, RSA_PRIVATE_KEY);
+  // } catch (error) {
+  //   return res.status(403).send({ error: "Invalid Token" });
+  // }
+
+  const cookies = req.cookies;
+
+  if (!cookies.jwt) return res.sendStatus(401);
+
+  const refreshToken = cookies.jwt;
+
+  const foundUser: any = db
+    .prepare("SELECT * FROM User WHERE refresh_token = ?")
+    .get(refreshToken) as any;
+
+  if (!foundUser) return res.sendStatus(401);
+
+  res.send({ user: foundUser });
+});
 
 app.listen(3001, () => {
   console.log("Server is running on port 3001");
