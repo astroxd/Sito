@@ -719,7 +719,7 @@ app.post("/login", (req, res) => {
       RSA_PRIVATE_KEY,
       {
         // algorithm: "RS256",
-        expiresIn: "15s",
+        expiresIn: "5m",
         // subject: user.user_id,
       },
     );
@@ -808,7 +808,7 @@ app.get("/refresh-token", (req, res) => {
           userId: decoded.userId,
         },
         RSA_PRIVATE_KEY,
-        { expiresIn: "5s" },
+        { expiresIn: "5m" },
       );
 
       res.send({ accessToken });

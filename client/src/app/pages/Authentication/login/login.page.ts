@@ -126,15 +126,16 @@ export class LoginPage implements OnInit {
 
     const { email, password } = this.loginForm.value;
 
-    this.authService.login(email!, password!).subscribe((res: any) => {
-      this.authService.setUser(res.user);
-      console.log(res);
-      this.authService.setToken(res.accessToken);
+    this.authService.login(email!, password!);
+    // .subscribe((res: any) => {
+    //   this.authService.setUser(res.user);
+    //   console.log(res);
+    //   this.authService.setToken(res.accessToken);
 
-      if (res.user) {
-        this.router.navigate(['/profile']);
-      }
-    });
+    //   if (res.user) {
+    //     this.router.navigate(['profile']);
+    //   }
+    // });
   }
 
   TestAuth() {

@@ -25,7 +25,18 @@ export class AuthService {
   login(email: string, password: string) {
     return this.http
       .post('http://localhost:3001/login', { email, password })
-      .pipe(shareReplay());
+      .pipe(shareReplay(1))
+      .subscribe({
+        next: (value: any) => {
+          this.setUser(value.user);
+          this.setToken(value.accessToken);
+          this.router.navigate(['/profile']);
+        },
+        error: () => {
+          this.setUser(null);
+          this.setToken(null);
+        },
+      });
   }
 
   setUser(user: any | null) {
