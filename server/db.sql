@@ -118,3 +118,26 @@ INSERT INTO `Shared List Progress` VALUES(1, 1, 20, 300, datetime('now'));
 INSERT INTO `Shared List Progress` VALUES(2, 1, 20, 300, datetime('now'));
 DELETE FROM `Shared List Progress` WHERE user_id = 1 AND shared_list_id = 2;
 ALTER TABLE 'User' ADD COLUMN "refresh_token" VARCHAR(255);
+
+
+
+-- 1. Rinomina la tabella attuale per non perderla
+ALTER TABLE User RENAME TO User_old;
+
+-- 2. Crea la nuova tabella con la struttura corretta
+CREATE TABLE `User`(
+    `user_id` INTEGER PRIMARY KEY,
+    `email` VARCHAR(255) NOT NULL UNIQUE,
+    `password` VARCHAR(255) NOT NULL,
+    `username` VARCHAR(255) NOT NULL UNIQUE,
+    `created_on` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `avatar` VARCHAR(255) NOT NULL,
+    `banner` VARCHAR(255) NOT NULL
+);
+
+-- 3. Copia i dati dalla vecchia alla nuova
+INSERT INTO User (user_id, email, password, username, created_on, avatar, banner)
+SELECT user_id, email, password, username, created_on, avatar, banner FROM User_old;
+
+-- 4. Elimina la vecchia tabella
+DROP TABLE User_old;

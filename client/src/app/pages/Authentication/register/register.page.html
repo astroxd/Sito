@@ -1,13 +1,126 @@
-<ion-header [translucent]="true">
+<!-- <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>register</ion-title>
   </ion-toolbar>
-</ion-header>
+</ion-header> -->
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
+  <!-- <ion-header collapse="condense">
     <ion-toolbar>
       <ion-title size="large">register</ion-title>
     </ion-toolbar>
-  </ion-header>
+  </ion-header> -->
+  <section style="margin-top: 1rem">
+    <div
+      style="background-image: url(../../../assets/images/banner.jpg)"
+      class="auth"
+    >
+      <!-- <Container> -->
+      <!-- <Row> -->
+      <!-- <Col lg={12} style={{ textAlign: 'center' }}> -->
+      <div>
+        <h2>Sign Up</h2>
+      </div>
+      <!-- </Col> -->
+      <!-- </Row> -->
+      <!-- </Container> -->
+    </div>
+    <section style="padding-top: 130px; padding-bottom: 180px">
+      <ion-grid>
+        <ion-row>
+          <ion-col
+            size="12"
+            size-md="6"
+            style="display: flex; justify-content: flex-end"
+          >
+            <div class="auth-form sign-up-form">
+              <h3>Sign Up</h3>
+
+              <form
+                [formGroup]="registerFormControl.registerForm"
+                (ngSubmit)="onSubmit()"
+              >
+                <p>{{registerError()}}</p>
+                <div class="input-item">
+                  <input
+                    type="text"
+                    placeholder="Email address"
+                    formControlName="email"
+                  />
+                  <!-- <FontAwesomeIcon
+											icon={faEnvelope}
+											className='input-item-icon'
+										/> -->
+                  <p>{{formErrors().email}}</p>
+                </div>
+                <div class="input-item">
+                  <input
+                    type="text"
+                    placeholder="Your Name"
+                    formControlName="username"
+                  />
+                  <!-- <FontAwesomeIcon
+											icon={faUser}
+											className='input-item-icon'
+										/> -->
+                  <p>{{formErrors().username}}</p>
+                </div>
+                <div class="input-item">
+                  <input
+                    type="text"
+                    placeholder="Password"
+                    formControlName="password"
+                  />
+                  <!-- <FontAwesomeIcon
+											icon={faLock}
+											className='input-item-icon'
+										/> -->
+                  <p>{{formErrors().password}}</p>
+                </div>
+                <div class="input-item">
+                  <input
+                    type="text"
+                    placeholder="Confirm Password"
+                    formControlName="confirmPassword"
+                  />
+                  <!-- <FontAwesomeIcon
+											icon={faLock}
+											className='input-item-icon'
+										/> -->
+                  @if (confirmPassword?.invalid && (confirmPassword?.dirty ||
+                  confirmPassword?.touched)){
+                  @if(registerFormControl.registerForm.hasError('PasswordNoMatch')){
+                  <p>Le password devono combiaciare</p>
+                  } }
+                </div>
+                <div style="width: 370px; margin-bottom: 10px">
+                  <input type="file" name="avatar" accept="image/*" />
+                  <!-- <p>{errors.avatar?.message}</p> -->
+                </div>
+                <button
+                  type="submit"
+                  [disabled]="!registerFormControl.registerForm.valid"
+                  class="primary-btn"
+                >
+                  Register Now
+                </button>
+                <!-- <h5>
+                  Already have an account?
+                  <a> Log In! </a>
+                </h5> -->
+              </form>
+            </div>
+          </ion-col>
+          <ion-col size="12" size-md="6">
+            <div class="register-login">
+              <h3>Already have an account?</h3>
+              <a routerLink="/login" replaceUrl="true" class="primary-btn">
+                Log In!
+              </a>
+            </div>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </section>
+  </section>
 </ion-content>

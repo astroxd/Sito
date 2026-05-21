@@ -57,7 +57,8 @@ function handle401Error(
   // Evitiamo di fare il refresh se la richiesta che è fallita era già quella di login o quella di refresh
   if (
     request.url.includes('/login') ||
-    request.url.includes('/refresh-token')
+    request.url.includes('/refresh-token') ||
+    request.url.includes('/register')
   ) {
     return throwError(() => error);
   }

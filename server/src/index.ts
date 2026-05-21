@@ -694,7 +694,7 @@ const RSA_PRIVATE_KEY = "RSAPRIVATE";
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    res.send({ error: "Missing params" });
+    res.send("Missing params");
     return;
   }
 
@@ -703,13 +703,13 @@ app.post("/login", (req, res) => {
       .prepare("SELECT * FROM User WHERE email = ?")
       .get(email);
     if (!user) {
-      return res.status(401).send({ error: "Invalid credentials" });
+      return res.status(401).send("Invalid credentials");
     }
 
     // const passwordMatch = bcrypt.compareSync(password, user.password);
-    const passwordMatch = true;
+    const passwordMatch = false;
     if (!passwordMatch) {
-      return res.status(401).send({ error: "Invalid credentials" });
+      return res.status(401).send("Invalid credentials");
     }
 
     const accessToken = jwt.sign(
@@ -827,11 +827,11 @@ app.get("/session", (req, res) => {
 
   const token = authHeader.split(" ")[1];
   console.log(token);
-  // try {
-  //   const verified = jwt.verify(token, RSA_PRIVATE_KEY);
-  // } catch (error) {
-  //   return res.status(403).send({ error: "Invalid Token" });
-  // }
+  try {
+    const verified = jwt.verify(token, RSA_PRIVATE_KEY);
+  } catch (error) {
+    return res.status(401).send({ error: "Invalid Token" });
+  }
 
   const cookies = req.cookies;
 
@@ -846,6 +846,82 @@ app.get("/session", (req, res) => {
   if (!foundUser) return res.sendStatus(401);
 
   res.send({ user: foundUser });
+});
+
+app.post("/register", (req, res) => {
+  const { email, username, password } = req.body;
+
+  if (!email || !username || !password) {
+    res.send({ error: "Missing params" });
+    return;
+  }
+
+  try {
+    let user: any = db.prepare("SELECT * FROM User WHERE email = ?").get(email);
+    if (user) {
+      return res.status(401).send("Esiste già un utente con questa mail");
+    }
+
+    user = db.prepare("SELECT * FROM User WHERE username = ?").get(username);
+    if (user) {
+      return res
+        .status(401)
+        .send("Esiste già un utente con questo username, scegline un altro");
+    }
+    console.log("PRE INSERT");
+    const insertUser = db
+      .prepare(
+        "INSERT INTO User (email, password, username, avatar, banner) VALUES (?,?,?,?,?)",
+      )
+      .run(email, password, username, "", "");
+
+    // return res.send({ message: "UTENTE REGISTRATO" });
+
+    const accessToken = jwt.sign(
+      {
+        userId: insertUser.lastInsertRowid,
+      },
+      RSA_PRIVATE_KEY,
+      {
+        // algorithm: "RS256",
+        expiresIn: "5m",
+        // subject: user.user_id,
+      },
+    );
+
+    const refreshToken = jwt.sign(
+      {
+        userId: insertUser.lastInsertRowid,
+      },
+      RSA_PRIVATE_KEY,
+      { expiresIn: "30d" },
+    );
+
+    db.prepare("UPDATE User SET refresh_token = ? WHERE user_id = ?").run(
+      refreshToken,
+      insertUser.lastInsertRowid,
+    );
+
+    res.cookie("jwt", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.send({
+      user: {
+        userId: insertUser.lastInsertRowid,
+        username: username,
+        avatar: "",
+        banner: "",
+      },
+      accessToken: accessToken,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+  return res.status(401).send("Errore generico");
 });
 
 app.listen(3001, () => {

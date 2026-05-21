@@ -3,7 +3,7 @@ import { User } from '../models/User';
 import { finalize, Observable, shareReplay, tap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-
+// import bcrypt from 'bcrypt';
 @Injectable({
   providedIn: 'root',
 })
@@ -14,29 +14,28 @@ export class AuthService {
   user = signal<User | undefined | null>(undefined);
   token = signal<string | undefined | null>(undefined);
 
-  constructor() {
-    console.log('Loading user');
-    // this.initSession();
-    // effect(() => {
-    //   // this.loadUser();
-    // });
-  }
+  constructor() {}
 
   login(email: string, password: string) {
     return this.http
-      .post('http://localhost:3001/login', { email, password })
-      .pipe(shareReplay(1))
-      .subscribe({
-        next: (value: any) => {
-          this.setUser(value.user);
-          this.setToken(value.accessToken);
-          this.router.navigate(['/profile']);
-        },
-        error: () => {
-          this.setUser(null);
-          this.setToken(null);
-        },
-      });
+      .post('http://localhost:3001/login', {
+        email,
+        password: this.hashValue(password),
+      })
+      .pipe(
+        tap({
+          next: (value: any) => {
+            this.setUser(value.user);
+            this.setToken(value.accessToken);
+            // this.router.navigate(['/profile']);
+          },
+          error: () => {
+            this.setUser(null);
+            this.setToken(null);
+          },
+        }),
+        shareReplay(1),
+      );
   }
 
   setUser(user: any | null) {
@@ -105,6 +104,34 @@ export class AuthService {
         }),
       )
       .subscribe();
+  }
+
+  register(email: string, username: string, password: string) {
+    return this.http
+      .post('http://localhost:3001/register', {
+        email,
+        username,
+        password: this.hashValue(password),
+      })
+      .pipe(
+        tap({
+          next: (value: any) => {
+            this.setUser(value.user);
+            this.setToken(value.accessToken);
+          },
+          error: () => {
+            this.setUser(null);
+            this.setToken(null);
+          },
+        }),
+        shareReplay(1),
+      );
+  }
+
+  private hashValue(value: string) {
+    const saltRounds = 10;
+    // return bcrypt.hashSync(value, saltRounds);
+    return value;
   }
 
   private userId = 1;

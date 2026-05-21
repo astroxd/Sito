@@ -14,6 +14,7 @@
   "private": true,
   "dependencies": {
     "@angular/animations": "^20.0.0",
+    "@angular/cdk": "^20.2.14",
     "@angular/common": "^20.0.0",
     "@angular/compiler": "^20.0.0",
     "@angular/core": "^20.0.0",
@@ -27,6 +28,7 @@
     "@capacitor/keyboard": "8.0.2",
     "@capacitor/status-bar": "8.0.2",
     "@ionic/angular": "^8.0.0",
+    "bcrypt": "^6.0.0",
     "chart.js": "^4.5.1",
     "ionicons": "^7.0.0",
     "ng2-charts": "^8.0.0",
@@ -46,6 +48,7 @@
     "@angular/language-service": "^20.0.0",
     "@capacitor/cli": "8.3.0",
     "@ionic/angular-toolkit": "^12.0.0",
+    "@types/bcrypt": "^6.0.0",
     "@types/jasmine": "~5.1.0",
     "@typescript-eslint/eslint-plugin": "^8.18.0",
     "@typescript-eslint/parser": "^8.18.0",
