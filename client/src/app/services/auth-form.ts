@@ -143,10 +143,17 @@ class LoginForm {
         console.log(value);
         this.router.navigate(['/profile']);
       },
-      error: (err) => {
-        this._loginError.set(err.error);
+      error: ({ error }) => {
+        this._loginError.set(error.message);
       },
     });
+  }
+
+  resetForm() {
+    this._loginForm.reset();
+
+    this._formErrors.set({ email: '', password: '' });
+    this._loginError.set('');
   }
 
   public get loginForm() {
@@ -187,11 +194,11 @@ class RegisterForm {
     this._registerForm = this.formBuilder.group(
       {
         email: [
-          'andreasciortino2004@gmail.com',
+          'andreasciortino202222204@gmail.com',
           [Validators.required, Validators.email],
         ],
         username: [
-          'andrea',
+          'proviamo',
           [Validators.required, Validators.pattern('^[a-zA-Z0-9_.]+$')],
         ],
         password: [
@@ -210,6 +217,7 @@ class RegisterForm {
             Validators.maxLength(50),
           ],
         ],
+        avatar: [null as File | null],
       },
 
       { validators: confirmPasswordValidator },
@@ -279,17 +287,37 @@ class RegisterForm {
     }
 
     this._registerError.set('');
-    const { email, username, password } = this._registerForm.value;
+    const { email, username, password, avatar } = this._registerForm.value;
 
-    this.authService.register(email!, username!, password!).subscribe({
+    this.authService.register(email!, username!, password!, avatar!).subscribe({
       next: (value: any) => {
         console.log(value);
         this.router.navigate(['/profile']);
       },
-      error: (err) => {
-        this._registerError.set(err.error);
+      error: ({ error }) => {
+        console.log(error.message);
+        this._registerError.set(error.message);
       },
     });
+  }
+
+  resetForm() {
+    this._registerForm.reset();
+
+    this._formErrors.set({ email: '', username: '', password: '' });
+    this._registerError.set('');
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+
+      this._registerForm.patchValue({
+        avatar: file,
+      });
+    }
   }
 
   public get registerForm() {

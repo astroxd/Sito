@@ -20,7 +20,7 @@ export class AuthService {
     return this.http
       .post('http://localhost:3001/login', {
         email,
-        password: this.hashValue(password),
+        password: password,
       })
       .pipe(
         tap({
@@ -48,6 +48,7 @@ export class AuthService {
       id: user.userId,
       email: user.username,
       username: user.username,
+      avatar: user.avatar,
     });
   }
 
@@ -87,6 +88,7 @@ export class AuthService {
               id: user.id,
               username: user.username,
               email: user.email,
+              avatar: user.avatar,
             });
           }
         },
@@ -106,43 +108,45 @@ export class AuthService {
       .subscribe();
   }
 
-  register(email: string, username: string, password: string) {
-    return this.http
-      .post('http://localhost:3001/register', {
-        email,
-        username,
-        password: this.hashValue(password),
-      })
-      .pipe(
-        tap({
-          next: (value: any) => {
-            this.setUser(value.user);
-            this.setToken(value.accessToken);
-          },
-          error: () => {
-            this.setUser(null);
-            this.setToken(null);
-          },
-        }),
-        shareReplay(1),
-      );
-  }
+  register(
+    email: string,
+    username: string,
+    password: string,
+    avatar: File | null,
+  ) {
+    const formData = new FormData();
 
-  private hashValue(value: string) {
-    const saltRounds = 10;
-    // return bcrypt.hashSync(value, saltRounds);
-    return value;
+    formData.append('email', email);
+    formData.append('username', username);
+    formData.append('password', password);
+    if (avatar) {
+      formData.append('avatar', avatar, avatar.name);
+    }
+
+    return this.http.post('http://localhost:3001/register', formData).pipe(
+      tap({
+        next: (value: any) => {
+          this.setUser(value.user);
+          this.setToken(value.accessToken);
+        },
+        error: () => {
+          this.setUser(null);
+          this.setToken(null);
+        },
+      }),
+      shareReplay(1),
+    );
   }
 
   private userId = 1;
   public changeUser() {
-    this.userId++;
-    if (this.userId > 2) this.userId = 1;
-    this.http
-      .get<any>(`http://localhost:3001/user/${this.userId}`)
-      .pipe(tap((data) => console.log(data)))
-      .subscribe(({ user: { user_id: id, username, email } }) => {
-        this.user.set({ id, username, email });
-      });
+    // this.userId++;
+    // if (this.userId > 2) this.userId = 1;
+    // this.http
+    //   .get<any>(`http://localhost:3001/user/${this.userId}`)
+    //   .pipe(tap((data) => console.log(data)))
+    //   .subscribe(({ user: { user_id: id, username, email } }) => {
+    //     this.user.set({ id, username, email });
+    //   });
   }
 }

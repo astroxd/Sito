@@ -1,6 +1,10 @@
 export interface User {
   id: number;
-  username: string;
   email: string;
-  title?: string;
+  username: string;
+  password?: string;
+  avatar: string;
+  banner?: string;
+  created_on?: string;
+  refresh_token?: string;
 }

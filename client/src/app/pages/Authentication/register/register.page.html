@@ -39,6 +39,7 @@
               <form
                 [formGroup]="registerFormControl.registerForm"
                 (ngSubmit)="onSubmit()"
+                enctype="multipart/form-data"
               >
                 <p>{{registerError()}}</p>
                 <div class="input-item">
@@ -90,11 +91,16 @@
                   @if (confirmPassword?.invalid && (confirmPassword?.dirty ||
                   confirmPassword?.touched)){
                   @if(registerFormControl.registerForm.hasError('PasswordNoMatch')){
-                  <p>Le password devono combiaciare</p>
+                  <p>Le password devono combaciare</p>
                   } }
                 </div>
                 <div style="width: 370px; margin-bottom: 10px">
-                  <input type="file" name="avatar" accept="image/*" />
+                  <input
+                    type="file"
+                    name="avatar"
+                    accept="image/*"
+                    (change)="registerFormControl.onFileSelected($event)"
+                  />
                   <!-- <p>{errors.avatar?.message}</p> -->
                 </div>
                 <button
