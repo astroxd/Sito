@@ -13,17 +13,16 @@ import { AuthService } from 'src/app/services/auth-service';
 export class ProfileInfoComponent implements OnInit {
   public bannerImage =
     'https://s4.anilist.co/file/anilistcdn/media/anime/banner/16498-8jpFCOcDmneX.jpg';
-  UserService = inject(AuthService);
+  private authService = inject(AuthService);
 
   user = signal<User | undefined | null>(undefined);
 
   constructor() {
-    this.user = this.UserService.user;
+    this.user = this.authService.user;
   }
 
-  changeUser() {
-    this.UserService.changeUser();
-    this.user = this.UserService.user;
+  logout() {
+    this.authService.logout().subscribe();
   }
 
   ngOnInit() {}

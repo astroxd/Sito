@@ -4,42 +4,72 @@ export interface SharedList {
   message?: string;
   userId: number;
   role: number;
+
+  members: SharedListMember[];
+}
+
+export interface SharedListMember {
+  id: number;
+  username: string;
+  avatar: string;
+  role: number;
+  totalEpisodes: number;
+  length: number;
 }
 
 export interface SharedListInfo {
   sharedList: SharedList;
   sharedListMembersNumber: number;
-  members: [
-    {
-      userId: number;
-      username: string;
-      avatar: string;
-      role: number;
-      totalEpisodes: number;
-    },
-  ];
+  members: SharedListMember[];
 }
 
 export interface SharedListResApi {
-  data: [
-    {
-      sharedList: {
-        shared_list_id: number;
-        shared_list_name: string;
-        message?: string;
-        user_id: number;
-        role: number;
-      };
-      members: [
-        {
-          user_id: number;
-          username: string;
-          avatar: string;
-          role: number;
-          total_episodes: number;
-          length: number;
-        },
-      ];
-    },
-  ];
+  data: {
+    sharedList: SharedList;
+    members: SharedListMember[];
+  }[];
+}
+
+export interface SharedListUserProgress {
+  sharedListId: number;
+  userId: number;
+  currentEpisode: number;
+  updatedAt: string;
+
+  animeId: number;
+  animeMalId: number;
+  animeTitle: string;
+  animeCover: string;
+  animeEpisodes: number;
+  animeAvgEpisodeDuration?: number;
+}
+
+export interface SharedListUserProgressResApi {
+  data: SharedListUserProgress[];
+}
+
+export interface SharedListAnimeProgress {
+  anime: {
+    sharedListId: number;
+    animeId: number;
+    addedOn?: string;
+    lastActivityAt?: string;
+
+    animeMalId: number;
+    animeTitle: string;
+    animeCover: string;
+    animeEpisodes: number;
+    animeAvgEpisodeDuration?: number;
+  };
+  progress: {
+    username: string;
+    avatar: string;
+    currentEpisode: number;
+    animeId: number;
+    updatedAt: string;
+  }[];
+}
+
+export interface SharedListAnimeProgressResApi {
+  data: SharedListAnimeProgress[];
 }

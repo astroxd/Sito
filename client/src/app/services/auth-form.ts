@@ -1,7 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { AuthService } from './auth-service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { confirmPasswordValidator } from './confirm-password-validator';
 
 type ErrorType =
@@ -19,6 +19,7 @@ export class AuthForm {
   private formBuilder = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private activatedRoute = inject(ActivatedRoute);
 
   private _loginFormControl: LoginForm;
   private _registerFormControl: RegisterForm;
@@ -28,11 +29,13 @@ export class AuthForm {
       this.formBuilder,
       this.authService,
       this.router,
+      this.activatedRoute,
     );
     this._registerFormControl = new RegisterForm(
       this.formBuilder,
       this.authService,
       this.router,
+      this.activatedRoute,
     );
   }
 
@@ -48,6 +51,7 @@ class LoginForm {
   private formBuilder: FormBuilder;
   private authService: AuthService;
   private router: Router;
+  private activatedRoute: ActivatedRoute;
   private _loginForm;
 
   private _formErrors = signal({
@@ -61,10 +65,12 @@ class LoginForm {
     formBuilder: FormBuilder,
     authService: AuthService,
     router: Router,
+    activtedRoute: ActivatedRoute,
   ) {
     this.formBuilder = formBuilder;
     this.authService = authService;
     this.router = router;
+    this.activatedRoute = activtedRoute;
 
     this._loginForm = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]],
@@ -141,7 +147,10 @@ class LoginForm {
     this.authService.login(email!, password!).subscribe({
       next: (value: any) => {
         console.log(value);
-        this.router.navigate(['/profile']);
+        const returnUrl =
+          this.activatedRoute.snapshot.queryParamMap.get('returnUrl') ||
+          '/home';
+        this.router.navigateByUrl(returnUrl);
       },
       error: ({ error }) => {
         this._loginError.set(error.message);
@@ -172,6 +181,7 @@ class RegisterForm {
   private formBuilder: FormBuilder;
   private authService: AuthService;
   private router: Router;
+  private activatedRoute: ActivatedRoute;
   private _registerForm;
 
   private _formErrors = signal({
@@ -186,10 +196,12 @@ class RegisterForm {
     formBuilder: FormBuilder,
     authService: AuthService,
     router: Router,
+    activatedRoute: ActivatedRoute,
   ) {
     this.formBuilder = formBuilder;
     this.authService = authService;
     this.router = router;
+    this.activatedRoute = activatedRoute;
 
     this._registerForm = this.formBuilder.group(
       {
@@ -292,7 +304,10 @@ class RegisterForm {
     this.authService.register(email!, username!, password!, avatar!).subscribe({
       next: (value: any) => {
         console.log(value);
-        this.router.navigate(['/profile']);
+        const returnUrl =
+          this.activatedRoute.snapshot.queryParamMap.get('returnUrl') ||
+          '/home';
+        this.router.navigateByUrl(returnUrl);
       },
       error: ({ error }) => {
         console.log(error.message);

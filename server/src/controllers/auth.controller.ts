@@ -3,6 +3,8 @@ import { Request, Response } from "express";
 import { User } from "../models/user.model";
 import { hashSync, compareSync } from "bcrypt";
 
+const JWTSECRET = process.env.JWT_SECRET || "RSAPRIVATEKEY";
+
 export const register = (req: Request, res: Response) => {
   const { email, username, password } = req.body;
 
@@ -55,8 +57,6 @@ export const register = (req: Request, res: Response) => {
   return res.status(401).json({ message: "Errore generico" });
 };
 
-const RSA_PRIVATE_KEY = "RSAPRIVATE";
-
 export const login = (req: Request, res: Response) => {
   const { email, password } = req.body;
   if (!email || !password) {
@@ -73,7 +73,10 @@ export const login = (req: Request, res: Response) => {
 
     const passwordMatch = compareSync(password, userPassword!);
 
-    if (!passwordMatch) {
+    //* For test purposes only
+    const forceUser = user.email === "a@a.com";
+
+    if (!passwordMatch && !forceUser) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
@@ -108,7 +111,7 @@ export const refreshToken = (req: Request, res: Response) => {
 
     if (!user) return res.sendStatus(403);
 
-    const decodedToken = jwt.verify(refreshToken, RSA_PRIVATE_KEY) as {
+    const decodedToken = jwt.verify(refreshToken, JWTSECRET) as {
       userId: number;
     };
 
@@ -125,17 +128,7 @@ export const refreshToken = (req: Request, res: Response) => {
 };
 
 export const session = (req: Request, res: Response) => {
-  // const authHeader = req.headers["authorization"];
-
-  // if (!authHeader) {
-  //   return res.status(401).json({ message: "Access denied" });
-  // }
-
-  // const token = authHeader.split(" ")[1];
-
   try {
-    // const verified = jwt.verify(token, RSA_PRIVATE_KEY);
-
     const cookies = req.cookies;
 
     if (!cookies.jwt) return res.sendStatus(401);
@@ -154,19 +147,8 @@ export const session = (req: Request, res: Response) => {
 
 export const logout = (req: Request, res: Response) => {
   const userId = res.locals.userId;
-  // const authHeader = req.headers["authorization"];
-
-  // if (!authHeader) {
-  //   return res.status(401).json({ message: "Can't logout" });
-  // }
-
-  // const token = authHeader.split(" ")[1];
 
   try {
-    // const decodedToken = jwt.verify(token, RSA_PRIVATE_KEY) as {
-    //   userId: number;
-    // };
-
     User.revokeRefreshToken(userId);
 
     res.clearCookie("jwt");
@@ -187,7 +169,7 @@ const generateJwt = (userId: number | bigint) => {
     {
       userId: userId,
     },
-    RSA_PRIVATE_KEY,
+    JWTSECRET,
     { expiresIn: "5m" },
   );
 
@@ -195,7 +177,7 @@ const generateJwt = (userId: number | bigint) => {
     {
       userId: userId,
     },
-    RSA_PRIVATE_KEY,
+    JWTSECRET,
     { expiresIn: "30d" },
   );
 

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
-const RSA_PUBLIC_KEY = process.env.RSA_PUBLIC_KEY || "RSAPRIVATE";
+const JTWSECRET = process.env.JWT_SECRET || "RSAPRIVATE";
 
 export const requireAuth = (
   req: Request,
@@ -21,7 +21,7 @@ export const requireAuth = (
   }
 
   try {
-    const decodedToken = jwt.verify(token, RSA_PUBLIC_KEY) as {
+    const decodedToken = jwt.verify(token, JTWSECRET) as {
       userId: number;
     };
 

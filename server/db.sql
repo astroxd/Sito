@@ -49,7 +49,7 @@ SELECT * FROM 'Private Anime' p
     WHERE p.user_id = 1 AND p.status = ?;
 
 CREATE TABLE `Shared List`(
-`shared_list_id` BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+`shared_list_id` BIGINT PRIMARY KEY,
 `shared_list_name` VARCHAR(255) NOT NULL,
 `message` VARCHAR(255) NULL
 );
@@ -122,22 +122,21 @@ ALTER TABLE 'User' ADD COLUMN "refresh_token" VARCHAR(255);
 
 
 -- 1. Rinomina la tabella attuale per non perderla
-ALTER TABLE User RENAME TO User_old;
+ALTER TABLE 'Shared List' RENAME TO Shared_list_old;
 
 -- 2. Crea la nuova tabella con la struttura corretta
-CREATE TABLE `User`(
-    `user_id` INTEGER PRIMARY KEY,
-    `email` VARCHAR(255) NOT NULL UNIQUE,
-    `password` VARCHAR(255) NOT NULL,
-    `username` VARCHAR(255) NOT NULL UNIQUE,
-    `created_on` DATETIME DEFAULT CURRENT_TIMESTAMP,
-    `avatar` VARCHAR(255) NOT NULL,
-    `banner` VARCHAR(255) NOT NULL
+CREATE TABLE `Shared List`(
+`shared_list_id` INTEGER PRIMARY KEY,
+`shared_list_name` VARCHAR(255) NOT NULL,
+`message` VARCHAR(255) NULL
 );
 
 -- 3. Copia i dati dalla vecchia alla nuova
-INSERT INTO User (user_id, email, password, username, created_on, avatar, banner)
-SELECT user_id, email, password, username, created_on, avatar, banner FROM User_old;
+INSERT INTO 'Shared List' ('shared_list_id', 'shared_list_name', 'message')
+SELECT 'shared_list_id', 'shared_list_name', 'message' FROM Shared_list_old;
 
+
+INSERT INTO `Shared List` VALUES (1, "Test Condivisa", "message");
+INSERT INTO `Shared List` VALUES (2, "Test 2", '');
 -- 4. Elimina la vecchia tabella
-DROP TABLE User_old;
+DROP TABLE Shared_list_old;

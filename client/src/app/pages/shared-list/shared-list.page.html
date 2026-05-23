@@ -1,39 +1,177 @@
-<ion-header [translucent]="true">
+<!-- <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>sharedList</ion-title>
   </ion-toolbar>
-</ion-header>
+</ion-header> -->
 
 <ion-content class="ion-padding">
-  <ion-header collapse="condense">
+  <!-- <ion-header collapse="condense">
     <ion-toolbar>
       <ion-title size="large">sharedList</ion-title>
     </ion-toolbar>
-  </ion-header>
+  </ion-header> -->
 
   <ion-grid>
     <ion-row>
-      <ion-col>
-        <h1>{{sharedList()?.name}}</h1>
-        <div>Messaggio: {{sharedList()?.message}}</div>
-
-        @for (userProgress of userSharedAnimesProgress(); track $index) {
-
-        <div>
-          <img [src]="userProgress.anime_cover" alt="" />
-          <p style="color: white; font-size: 18px">
-            Ultimo episodio visto: {{userProgress.current_episode}}
-          </p>
-          <p style="color: white; font-size: 18px">
-            {{userProgress.anime_title}}
-          </p>
-          <button style="padding: 1rem" (click)="addEpisode(userProgress)">
-            +1
-          </button>
+      <ion-col size="12" size-md="8">
+        <div class="section-header">
+          <div class="section-title">
+            <h4>{{sharedList()?.name}}</h4>
+          </div>
         </div>
-        }
+        <div class="leader-message-container widget">
+          <div class="leader-message-header">
+            <span>Leader Message</span>
+            <span>icona</span>
+          </div>
+          <div class="leader-message-content">
+            <input type="text" name="message" [value]="sharedList()?.message" />
+          </div>
+          <div class="list-actions">
+            <div class="action">
+              <button class="primary-btn">
+                <span>icon</span>
+                Add Member
+              </button>
+            </div>
+            <div class="editor-buttons">
+              <button class="primary-btn">Add Anime</button>
+            </div>
+          </div>
+        </div>
+        <div class="section-header">
+          <div class="section-title">
+            <h5>Next Episodes</h5>
+          </div>
+        </div>
+        <div class="anime-carousel-container widget">
+          @if(userSharedAnimesProgress().length > 0){
+          <ul class="anime-carousel">
+            @for(userProgress of userSharedAnimesProgress(); track $index){
+            @if(userProgress.currentEpisode !== userProgress.animeEpisodes){
+            @let progress = userProgress.currentEpisode /
+            userProgress.animeEpisodes;
+            <li class="anime-episode-card">
+              <div class="anime-episode-card-image">
+                <img
+                  [src]="userProgress.animeCover"
+                  [alt]="userProgress.animeTitle"
+                />
+                <button class="primary-btn" (click)="addEpisode(userProgress)">
+                  +
+                </button>
+              </div>
+              <div class="anime-progress">
+                <ion-progress-bar
+                  [value]="progress"
+                  class="progress"
+                ></ion-progress-bar>
+              </div>
+              <span>Mark Ep: {{userProgress.currentEpisode+1}}</span>
+              <!-- <button class="primary-btn">
+                Mark Ep: {{userProgress.currentEpisode+1}}
+              </button> -->
+            </li>
+            } }
+          </ul>
+          }@else {
+          <div class="no-results">
+            <span>You haven't started an anime yet</span>
+          </div>
+          }
+        </div>
+        <div class="anime-progress-container">
+          <ion-accordion-group [value]="['static-panel']" expand="inset">
+            @for (animeProgress of sharedListAnimes(); track $index) {
+
+            <ion-accordion value="static-panel" [value]="$index">
+              <ion-item slot="header">
+                <img
+                  [src]="animeProgress.anime.animeCover"
+                  [alt]="animeProgress.anime.animeTitle"
+                />
+                <span class="ellipsis">{{animeProgress.anime.animeTitle}}</span>
+              </ion-item>
+              <div class="ion-padding" slot="content">
+                @if(animeProgress.progress.length > 0){
+
+                <ul class="progresses">
+                  @for (progress of animeProgress.progress; track $index) { @let
+                  userProgress = progress.currentEpisode /
+                  animeProgress.anime.animeEpisodes;
+                  <li class="user-progress">
+                    <div class="user-info">
+                      <img
+                        src="https://static.vecteezy.com/system/resources/thumbnails/032/176/191/small/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg"
+                        alt=""
+                      />
+                      <span>{{progress.username}}</span>
+                    </div>
+                    <div class="progress">
+                      <ion-progress-bar
+                        [value]="userProgress"
+                      ></ion-progress-bar>
+
+                      <span
+                        >{{`${progress.currentEpisode} /
+                        ${animeProgress.anime.animeEpisodes}`}}</span
+                      >
+                    </div>
+                  </li>
+                  }
+                </ul>
+                }@else {
+                <div class="no-results">
+                  <span> No one started this anime yet </span>
+                </div>
+                }
+              </div>
+            </ion-accordion>
+            }
+            <!-- <ion-accordion>
+              <ion-item slot="header">
+                <ion-label>Second Accordion</ion-label>
+              </ion-item>
+              <div class="ion-padding" slot="content">Second Content</div>
+            </ion-accordion>
+            <ion-accordion>
+              <ion-item slot="header">
+                <ion-label>Third Accordion</ion-label>
+              </ion-item>
+              <div class="ion-padding" slot="content">Third Content</div>
+            </ion-accordion> -->
+          </ion-accordion-group>
+        </div>
       </ion-col>
-      <ion-col> </ion-col>
+      <ion-col size="12" size-md="4">
+        <div class="leaderboard-container widget">
+          <div class="section-header">
+            <div class="section-title">
+              <h5>Top Viewers</h5>
+            </div>
+          </div>
+          <div class="leaderboard-content">
+            <ion-list>
+              @for (member of sharedList()?.members; track $index) {
+
+              <ion-item
+                [lines]="$index+1 === sharedList()?.members?.length ? 'none' : 'full'"
+              >
+                <span class="rank">{{`#${$index+1}`}}</span>
+                <ion-avatar>
+                  <img
+                    src="https://static.vecteezy.com/system/resources/thumbnails/032/176/191/small/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg"
+                    alt=""
+                  />
+                </ion-avatar>
+                <ion-label>{{member.username}}</ion-label>
+                <span>{{member.totalEpisodes}}</span>
+              </ion-item>
+              }
+            </ion-list>
+          </div>
+        </div>
+      </ion-col>
     </ion-row>
   </ion-grid>
 </ion-content>

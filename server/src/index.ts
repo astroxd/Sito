@@ -3,6 +3,8 @@ import Database, { RunResult, SqliteError } from "better-sqlite3";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import db from "./config/database";
+import "dotenv/config";
+
 const app = express();
 
 app.use(express.json());
@@ -231,49 +233,49 @@ app.get("/lists/:userId/:status", (req, res) => {
   res.send({ data: list, page: p, perPage: perPage, hasNextPage });
 });
 
-app.get("/shared-lists/:userId", (req, res) => {
-  const { userId } = req.params;
-  if (!userId) {
-    res.send({ error: "Error missing params" });
-    return;
-  }
+// app.get("/shared-lists/:userId", (req, res) => {
+//   const { userId } = req.params;
+//   if (!userId) {
+//     res.send({ error: "Error missing params" });
+//     return;
+//   }
 
-  try {
-    let sharedListsInfo: any[] = [];
+//   try {
+//     let sharedListsInfo: any[] = [];
 
-    const sharedLists = db
-      .prepare(
-        `
-      SELECT * FROM 'Shared List' l
-      INNER JOIN 'Shared List User' u ON l.shared_list_id = u.shared_list_id
-      WHERE u.user_id = ?`,
-      )
-      .all(userId);
-    console.log(sharedLists);
+//     const sharedLists = db
+//       .prepare(
+//         `
+//       SELECT * FROM 'Shared List' l
+//       INNER JOIN 'Shared List User' u ON l.shared_list_id = u.shared_list_id
+//       WHERE u.user_id = ?`,
+//       )
+//       .all(userId);
+//     console.log(sharedLists);
 
-    const sharedUsersStmt = db.prepare(
-      `SELECT User.user_id, User.avatar, User.username, u.role, IFNULL(SUM(p.current_episode), 0) as total_episodes, COUNT(*) OVER() AS length 
-      FROM 'Shared List User' u
-      LEFT JOIN 'Shared List Progress' p ON p.user_id = u.user_id AND p.shared_list_id = u.shared_list_id 
-      INNER JOIN 'User' ON User.user_id = u.user_id
-      WHERE u.shared_list_id = ?
-      GROUP BY u.user_id
-      ORDER BY total_episodes
-      LIMIT 5`,
-    );
-    sharedLists.forEach((list: any) => {
-      sharedListsInfo.push({
-        sharedList: list,
-        members: sharedUsersStmt.all(list.shared_list_id),
-      });
-    });
+//     const sharedUsersStmt = db.prepare(
+//       `SELECT User.user_id, User.avatar, User.username, u.role, IFNULL(SUM(p.current_episode), 0) as total_episodes, COUNT(*) OVER() AS length
+//       FROM 'Shared List User' u
+//       LEFT JOIN 'Shared List Progress' p ON p.user_id = u.user_id AND p.shared_list_id = u.shared_list_id
+//       INNER JOIN 'User' ON User.user_id = u.user_id
+//       WHERE u.shared_list_id = ?
+//       GROUP BY u.user_id
+//       ORDER BY total_episodes
+//       LIMIT 5`,
+//     );
+//     sharedLists.forEach((list: any) => {
+//       sharedListsInfo.push({
+//         sharedList: list,
+//         members: sharedUsersStmt.all(list.shared_list_id),
+//       });
+//     });
 
-    res.send({ data: sharedListsInfo });
-    return;
-  } catch (error) {
-    console.log(error);
-  }
-});
+//     res.send({ data: sharedListsInfo });
+//     return;
+//   } catch (error) {
+//     console.log(error);
+//   }
+// });
 
 // app.get("/shared-list/:userId/:listId/users", (req,res)=>{
 
@@ -289,67 +291,67 @@ app.get("/shared-lists/:userId", (req, res) => {
 // })
 
 //* Informazioni lista specifica, chiamata quando carica shared-list.page
-app.get("/shared-list/:userId/:listId", (req, res) => {
-  const { userId, listId } = req.params;
-  if (!listId) {
-    res.send({ error: "Missing params" });
-    return;
-  }
+// app.get("/shared-list/:userId/:listId", (req, res) => {
+//   const { userId, listId } = req.params;
+//   if (!listId) {
+//     res.send({ error: "Missing params" });
+//     return;
+//   }
 
-  try {
-    const data = db
-      .prepare(
-        `
-      SELECT * FROM 'Shared List' l
-      INNER JOIN 'Shared List User' u ON l.shared_list_id = u.shared_list_id
-      WHERE l.shared_list_id = ? AND u.user_id = ?
-      `,
-      )
-      .get(listId, userId);
+//   try {
+//     const data = db
+//       .prepare(
+//         `
+//       SELECT * FROM 'Shared List' l
+//       INNER JOIN 'Shared List User' u ON l.shared_list_id = u.shared_list_id
+//       WHERE l.shared_list_id = ? AND u.user_id = ?
+//       `,
+//       )
+//       .get(listId, userId);
 
-    console.log(data);
+//     console.log(data);
 
-    res.send({ data: data });
-    return;
-  } catch (error) {
-    console.log(error);
-  }
-});
+//     res.send({ data: data });
+//     return;
+//   } catch (error) {
+//     console.log(error);
+//   }
+// });
 
 //* Ottiene i progressi per ogni anime del singolo utente della lista
-app.get("/shared-list/:userId/:listId/animes", (req, res) => {
-  const { userId, listId } = req.params;
+// app.get("/shared-list/:userId/:listId/animes", (req, res) => {
+//   const { userId, listId } = req.params;
 
-  if (!userId || !listId) {
-    res.send({ error: "Missing params" });
-    return;
-  }
+//   if (!userId || !listId) {
+//     res.send({ error: "Missing params" });
+//     return;
+//   }
 
-  try {
-    //  SELECT * FROM 'Shared List Anime' sa
-    //     LEFT JOIN 'Shared List Progress' p ON p.shared_list_id = sa.shared_list_id  AND p.user_id = @userId
-    //     JOIN 'Anime' a ON a.anime_id = sa.anime_id
-    //     WHERE sa.shared_list_id = @listId
-    const userProgress = db
-      .prepare(
-        `
-        SELECT *, sa.shared_list_id FROM 'Shared List Anime' sa
-        LEFT JOIN 'Shared List Progress' p ON p.shared_list_id = sa.shared_list_id
-          AND p.anime_id = sa.anime_id AND p.user_id = @userId
-        JOIN 'Anime' a ON a.anime_id = sa.anime_id
-        WHERE sa.shared_list_id = @listId
-        ORDER BY p.updated_at DESC
-      `,
-      )
-      .all({ listId, userId });
+//   try {
+//     //  SELECT * FROM 'Shared List Anime' sa
+//     //     LEFT JOIN 'Shared List Progress' p ON p.shared_list_id = sa.shared_list_id  AND p.user_id = @userId
+//     //     JOIN 'Anime' a ON a.anime_id = sa.anime_id
+//     //     WHERE sa.shared_list_id = @listId
+//     const userProgress = db
+//       .prepare(
+//         `
+//         SELECT *, sa.shared_list_id FROM 'Shared List Anime' sa
+//         LEFT JOIN 'Shared List Progress' p ON p.shared_list_id = sa.shared_list_id
+//           AND p.anime_id = sa.anime_id AND p.user_id = @userId
+//         JOIN 'Anime' a ON a.anime_id = sa.anime_id
+//         WHERE sa.shared_list_id = @listId
+//         ORDER BY p.updated_at DESC
+//       `,
+//       )
+//       .all({ listId, userId });
 
-    console.log(userProgress);
+//     console.log(userProgress);
 
-    res.send({ data: userProgress });
-  } catch (error) {
-    console.log(error);
-  }
-});
+//     res.send({ data: userProgress });
+//   } catch (error) {
+//     console.log(error);
+//   }
+// });
 
 //* Ottiene i progressi per ogni anime per ogni utente della lista
 app.get("/shared-list/:userId/:listId/animes/all", (req, res) => {

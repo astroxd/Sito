@@ -1,7 +1,15 @@
-import { Component, effect, inject, OnInit, signal } from '@angular/core';
+import {
+  Component,
+  effect,
+  inject,
+  OnInit,
+  signal,
+  ViewChild,
+} from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { list } from 'node_modules/ionicons/icons';
-import { map, share, tap } from 'rxjs';
+import { list } from 'ionicons/icons';
+import { finalize, map, pipe, share, tap } from 'rxjs';
 import {
   SharedList,
   SharedListInfo,
@@ -10,16 +18,52 @@ import {
 import { APIService } from 'src/app/services/apiservice';
 import { AuthService } from 'src/app/services/auth-service';
 import { SharedListComponent } from './components/shared-list/shared-list.component';
-
+import {
+  IonModal,
+  IonHeader,
+  IonToolbar,
+  IonButtons,
+  IonButton,
+  IonTitle,
+  IonContent,
+  IonItem,
+  IonInput,
+  IonList,
+  IonLabel,
+  IonListHeader,
+  IonAvatar,
+  IonIcon,
+} from '@ionic/angular/standalone';
+import { OverlayEventDetail } from '@ionic/core/components';
+import { SharedListsService } from 'src/app/services/shared-lists-service';
 @Component({
   selector: 'app-profile-shared-lists',
   templateUrl: './shared-lists.component.html',
   styleUrls: ['./shared-lists.component.scss'],
-  imports: [RouterLink, SharedListComponent],
+  imports: [
+    FormsModule,
+    RouterLink,
+    SharedListComponent,
+    IonModal,
+    IonHeader,
+    IonToolbar,
+    IonButtons,
+    IonButton,
+    IonTitle,
+    IonContent,
+    IonItem,
+    IonInput,
+    IonList,
+    IonLabel,
+    IonListHeader,
+    IonAvatar,
+    IonIcon,
+  ],
 })
 export class SharedListsComponent implements OnInit {
   private authService = inject(AuthService);
   private apiService = inject(APIService);
+  private sharedListsService = inject(SharedListsService);
   sharedLists = signal<SharedListInfo[]>([]);
 
   constructor() {
@@ -30,41 +74,38 @@ export class SharedListsComponent implements OnInit {
     });
   }
 
-  loadSharedList() {
-    this.apiService
-      .get<SharedListResApi>(`shared-lists/${this.authService.user()!.id}`)
+  @ViewChild(IonModal) modal!: IonModal;
+  name!: string;
+  cancel() {
+    this.modal.dismiss(null, 'cancel');
+    this.name = '';
+  }
+
+  confirm() {
+    this.modal.dismiss(this.name, 'confirm');
+    this.sharedListsService
+      .createSharedList(this.name)
       .pipe(
-        tap((val) => {
-          console.log(val);
-        }),
-        map(({ data }) => {
-          return data.map(({ sharedList, members }) => {
-            return {
-              sharedList: {
-                id: sharedList.shared_list_id,
-                name: sharedList.shared_list_name,
-                message: sharedList.message,
-                userId: sharedList.user_id,
-                role: sharedList.role,
-              } as SharedList,
-              members: members.map((member) => {
-                return {
-                  userId: member.user_id,
-                  username: member.username,
-                  avatar: member.avatar,
-                  role: member.role,
-                  totalEpisodes: member.total_episodes,
-                };
-              }),
-              sharedListMembersNumber: members[0].length,
-            } as SharedListInfo;
-          });
+        finalize(() => {
+          this.loadSharedList();
         }),
       )
+      .subscribe();
 
-      .subscribe((res) => {
-        this.sharedLists.set(res);
-      });
+    this.name = '';
+  }
+
+  onWillDismiss(event: CustomEvent<OverlayEventDetail>) {
+    if (event.detail.role === 'confirm') {
+      // this.message = `Hello, ${event.detail.data}!`;
+      console.log('testmodal' + this.name);
+    }
+  }
+
+  loadSharedList() {
+    this.sharedListsService.loadSharedLists().subscribe((sharedListsInfo) => {
+      this.sharedLists.set(sharedListsInfo);
+    });
   }
 
   ngOnInit() {}

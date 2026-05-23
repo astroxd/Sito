@@ -3,7 +3,7 @@ import { User } from '../models/User';
 import { finalize, Observable, shareReplay, tap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-// import bcrypt from 'bcrypt';
+
 @Injectable({
   providedIn: 'root',
 })
@@ -20,7 +20,7 @@ export class AuthService {
     return this.http
       .post('http://localhost:3001/login', {
         email,
-        password: password,
+        password,
       })
       .pipe(
         tap({
@@ -38,18 +38,13 @@ export class AuthService {
       );
   }
 
-  setUser(user: any | null) {
+  setUser(user: User | null) {
     if (!user) {
       this.user.set(null);
       return;
     }
 
-    this.user.set({
-      id: user.userId,
-      email: user.username,
-      username: user.username,
-      avatar: user.avatar,
-    });
+    this.user.set(user);
   }
 
   setToken(token: string | null) {
@@ -70,7 +65,7 @@ export class AuthService {
     console.log('INIT SESSION');
     this.refreshToken().subscribe({
       next: () => this.loadUser(), // Una volta ottenuto il token, carichiamo l'utente
-      error: () => this.user.set(null),
+      error: () => this.setUser(null),
     });
   }
 
@@ -80,32 +75,24 @@ export class AuthService {
       .pipe(tap((data) => console.log(data)))
       .subscribe(
         // { error(err) {}, next(res) {} },
-        ({ user }) => {
+        ({ user }: { user: User }) => {
           if (!user) {
-            this.user.set(null);
+            this.setUser(null);
           } else {
-            this.user.set({
-              id: user.id,
-              username: user.username,
-              email: user.email,
-              avatar: user.avatar,
-            });
+            this.setUser(user);
           }
         },
       );
   }
 
   logout() {
-    this.http
-      .post('http://localhost:3001/logout', {})
-      .pipe(
-        finalize(() => {
-          this.token.set(null);
-          this.user.set(null);
-          this.router.navigate(['/login']);
-        }),
-      )
-      .subscribe();
+    return this.http.post('http://localhost:3001/logout', {}).pipe(
+      finalize(() => {
+        this.setToken(null);
+        this.setUser(null);
+        this.router.navigate(['/login']);
+      }),
+    );
   }
 
   register(
@@ -136,6 +123,10 @@ export class AuthService {
       }),
       shareReplay(1),
     );
+  }
+
+  isAuthenticated() {
+    return this.user() ? true : false;
   }
 
   private userId = 1;

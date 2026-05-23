@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { TabsPage } from './tabs.page';
 import { AnimeDetailsPage } from '../pages/anime-details/anime-details.page';
-import { ProfilePage } from '../pages/profile/profile.page';
+import { authGuard } from '../guards/auth-guard';
 
 export const routes: Routes = [
   {
@@ -38,6 +38,7 @@ export const routes: Routes = [
               ),
           },
         ],
+        canActivate: [authGuard],
       },
       {
         path: 'anime/:id',
@@ -72,6 +73,7 @@ export const routes: Routes = [
           import('../pages/watch-list/watch-list.page').then(
             (m) => m.WatchListPage,
           ),
+        canActivate: [authGuard],
       },
       {
         path: 'shared/:listId',
@@ -79,6 +81,7 @@ export const routes: Routes = [
           import('../pages/shared-list/shared-list.page').then(
             (m) => m.SharedListPage,
           ),
+        canActivate: [authGuard],
       },
 
       {

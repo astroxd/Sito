@@ -34,7 +34,7 @@
 
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import "@ionic/angular/css/palettes/dark.system.css";
+// @import "@ionic/angular/css/palettes/dark.system.css";
 
 /* You can add global styles to this file, and also import other style files */
 @import url("app/components/section/section.scss");
@@ -56,6 +56,10 @@
 
   --grey: rgba(61, 61, 61, 1);
   --light-grey: rgba(255, 255, 255, 0.2);
+
+  --gold: gold;
+  --silver: silver;
+  --bronze: #cd7f32;
 }
 
 /** || GENERAL STYLES */
@@ -188,20 +192,6 @@ input[type="search"] {
   align-items: center;
   z-index: 9999;
   background-color: var(--bg-primary);
-}
-
-ion-row {
-  --gutter-x: 1.5rem;
-  --gutter-y: 0;
-  // display: flex;
-  // flex-wrap: wrap;
-  // margin-top: calc(-1 * var(--gutter-y));
-  // margin-right: calc(-0.5 * var(--gutter-x));
-  // margin-left: calc(-0.5 * var(--gutter-x));
-}
-
-ion-grid ion-row > * {
-  padding-inline: calc(1.5rem * 0.5);
 }
 
 .widget {

@@ -40,13 +40,13 @@ a.widget {
 }
 
 .leaderboard-container li:nth-child(1) .position {
-  color: gold;
+  color: var(--gold);
 }
 .leaderboard-container li:nth-child(2) .position {
-  color: silver;
+  color: var(--silver);
 }
 .leaderboard-container li:nth-child(3) .position {
-  color: #cd7f32;
+  color: var(--bronze);
 }
 
 .leaderboard-container img {

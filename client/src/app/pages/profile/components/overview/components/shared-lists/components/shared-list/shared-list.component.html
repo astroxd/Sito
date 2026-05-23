@@ -8,9 +8,11 @@
         alt=""
       />
     }
-    <div class="stacked-avatar">
-      +{{ sharedList().sharedListMembersNumber }}
-    </div>
+    @if (sharedList().sharedListMembersNumber > 3) {
+      <div class="stacked-avatar">
+        +{{ sharedList().sharedListMembersNumber - 3 }}
+      </div>
+    }
   </div>
   <span class="widget-subtitle">Classifica Interna</span>
   <ol class="leaderboard-container">

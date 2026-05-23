@@ -1,0 +1,71 @@
+import { inject, Injectable } from '@angular/core';
+import { APIService } from './apiservice';
+import { AuthService } from './auth-service';
+import {
+  SharedList,
+  SharedListAnimeProgressResApi,
+  SharedListInfo,
+  SharedListResApi,
+  SharedListUserProgressResApi,
+} from '../models/SharedList';
+import { map, tap } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class SharedListsService {
+  private apiService = inject(APIService);
+
+  loadSharedLists() {
+    return this.apiService.get<SharedListResApi>('shared-lists').pipe(
+      tap((val) => {
+        console.log(val.data);
+      }),
+      map(({ data }) => {
+        return data.map(({ sharedList, members }) => {
+          return {
+            sharedList,
+            members,
+            sharedListMembersNumber: members[0].length,
+          } as SharedListInfo;
+        });
+      }),
+    );
+  }
+
+  createSharedList(sharedListName: string) {
+    return this.apiService.post('shared-list', { name: sharedListName });
+  }
+
+  loadSharedList(sharedListId: number) {
+    return this.apiService
+      .get<{ data: SharedList }>(`shared-list/${sharedListId}`)
+      .pipe(
+        tap((val) => {
+          console.log(val);
+        }),
+      );
+  }
+
+  getUserSharedAnimeProgress(sharedListId: number) {
+    return this.apiService
+      .get<SharedListUserProgressResApi>(`shared-list/${sharedListId}/animes`)
+      .pipe(
+        tap((val) => {
+          console.log(val);
+        }),
+      );
+  }
+
+  getSharedAnimesProgress(sharedListId: number) {
+    return this.apiService
+      .get<SharedListAnimeProgressResApi>(
+        `shared-list/${sharedListId}/animes/all`,
+      )
+      .pipe(
+        tap((val) => {
+          console.log(val);
+        }),
+      );
+  }
+}
