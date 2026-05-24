@@ -78,4 +78,41 @@ export const User = {
 
     return result.lastInsertRowid;
   },
+
+  findLastEpisodeWatchedByAnimeId: (userId: number, animeId: number) => {
+    return db
+      .prepare(
+        `
+        SELECT last_episode_watched as lastEpisodeWatched
+        FROM 'Watched Episodes' 
+        WHERE user_id = ? AND anime_id = ?
+      `,
+      )
+      .get(userId, animeId) as { lastEpisodeWatched: number } | undefined;
+  },
+  insertAnimeIntoWatchedEpisodes: (userId: number, animeId: number) => {
+    return db
+      .prepare(
+        `
+          INSERT INTO 'Watched Episodes' (user_id, anime_id, last_episode_watched)
+          VALUES (?,?,?)
+        `,
+      )
+      .run(userId, animeId, 1);
+  },
+
+  updateLastWatchedEpisode: (
+    userId: number,
+    animeId: number,
+    lastWatchedEpisode: number,
+  ) => {
+    return db
+      .prepare(
+        `
+          UPDATE 'Watched Episodes' SET last_episode_watched = ? 
+          WHERE anime_id = ? AND user_id = ?
+        `,
+      )
+      .run(lastWatchedEpisode, animeId, userId).lastInsertRowid;
+  },
 };

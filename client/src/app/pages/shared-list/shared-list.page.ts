@@ -110,20 +110,23 @@ export class SharedListPage implements OnInit {
       });
   }
 
-  addEpisode(animeProgress: any) {
-    // this.apiService
-    //   .post(
-    //     `shared-list/${this.authService.user()!.id}/${this.listId}/progress/entrie/${animeProgress.anime_id}`,
-    //     {},
-    //   )
-    //   .pipe(
-    //     tap((val) => {
-    //       console.log(val);
-    //     }),
-    //     finalize(() => this.getUserSharedAnimeProgress()),
-    //   )
-    //   .subscribe((res: any) => {
-    //     // this.userSharedAnimesProgress.set(res.data);
-    //   });
+  addEpisode(userProgress: SharedListUserProgress) {
+    this.apiService
+      .post(
+        `shared-list/${this.listId}/progress/entrie/${userProgress.animeId}`,
+        {},
+      )
+      .pipe(
+        tap((val) => {
+          console.log(val);
+        }),
+        finalize(() => {
+          this.getUserSharedAnimeProgress();
+          this.getSharedAnimesProgress();
+        }),
+      )
+      .subscribe((res: any) => {
+        // this.userSharedAnimesProgress.set(res.data);
+      });
   }
 }

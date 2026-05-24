@@ -140,3 +140,67 @@ INSERT INTO `Shared List` VALUES (1, "Test Condivisa", "message");
 INSERT INTO `Shared List` VALUES (2, "Test 2", '');
 -- 4. Elimina la vecchia tabella
 DROP TABLE Shared_list_old;
+
+
+-- 1. Rinomina la tabella attuale per non perderla
+ALTER TABLE 'Shared List Progress' RENAME TO Shared_list_old;
+
+CREATE TABLE `Shared List Progress`(
+    `shared_list_id` INTEGER NOT NULL,
+    `user_id` INTEGER NOT NULL,
+    `anime_id` INTEGER NOT NULL,
+    `current_episode` INTEGER DEFAULT 0,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(
+        `shared_list_id`,
+        `user_id`,
+        `anime_id`
+    ),
+    CONSTRAINT fk_shared_list
+        FOREIGN KEY (`shared_list_id`) REFERENCES `Shared List`(`shared_list_id`) ON DELETE CASCADE,
+ 
+    CONSTRAINT fk_user
+        FOREIGN KEY (`user_id`) REFERENCES `User`(`user_id`) ON DELETE CASCADE,
+    
+    CONSTRAINT fk_anime
+        FOREIGN KEY (`anime_id`) REFERENCES `Anime`(`anime_id`) ON DELETE CASCADE
+);
+
+-- 3. Copia i dati dalla vecchia alla nuova
+INSERT OR REPLACE INTO `Shared List Progress` (`shared_list_id`, `user_id`, `anime_id`, `current_episode`, `updated_at`)
+SELECT `shared_list_id`, `user_id`, `anime_id`, `current_episode`, `updated_at` 
+FROM Shared_list_old;
+
+
+
+
+ALTER TABLE 'Private Anime' RENAME TO Shared_list_old;
+
+CREATE TABLE `Private Anime`(
+    `user_id` INTEGER NOT NULL,
+    `anime_id` INTEGER NOT NULL,
+    `status` TEXT NOT NULL DEFAULT 'WATCHING',
+    `added_on` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(`user_id`, `anime_id`)
+
+    CONSTRAINT fk_user
+        FOREIGN KEY (`user_id`) REFERENCES `User`(`user_id`) ON DELETE CASCADE,
+    
+    CONSTRAINT fk_anime
+        FOREIGN KEY (`anime_id`) REFERENCES `Anime`(`anime_id`) ON DELETE CASCADE,
+
+    CONSTRAINT check_status CHECK (`status` IN ('WATCHING', 'COMPLETED', 'DROPPED'))
+
+);
+INSERT INTO `Private Anime` (`user_id`, `anime_id`, `status`, `added_on`)
+SELECT 
+    `user_id`,
+    `anime_id`, 
+    CASE MAX(`status`) -- In caso di vecchio duplicato, prende il numero più alto (es. 1 = COMPLETED vince su 0 = WATCHING)
+        WHEN 0 THEN 'WATCHING'
+        WHEN 1 THEN 'COMPLETED'
+        ELSE 'WATCHING'
+    END,
+    MAX(`added_on`)
+FROM `Shared_list_old`
+GROUP BY `user_id`, `anime_id`; -- Raggruppa assicurando l'unicità richiesta dalla nuova PK

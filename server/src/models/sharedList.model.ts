@@ -1,4 +1,5 @@
 import db from "../config/database";
+import { Anime } from "./anime.model";
 
 interface SharedListUser {
   sharedListId: number;
@@ -28,7 +29,7 @@ export interface SharedListProgress {
   sharedListId: number;
   userId: number;
   animeId: number;
-  currentEpisode: number;
+  currentEpisode?: number;
   updatedAt?: string;
 }
 
@@ -37,15 +38,6 @@ export interface SharedListAnime {
   animeId: number;
   addedOn?: string;
   lastActivityAt?: string;
-}
-
-export interface Anime {
-  animeId: number;
-  animeMalId: number;
-  animeTitle: string;
-  animeCover: string;
-  animeEpisodes: number;
-  animeAvgEpisodeDuration?: number;
 }
 
 export type SharedListUserProgress = SharedListProgress & Anime;
@@ -142,6 +134,7 @@ export const SharedList = {
           FROM 'Shared List Anime' sa
           JOIN 'Anime' a ON a.anime_id = sa.anime_id
           WHERE sa.shared_list_id = ?
+          ORDER BY sa.last_activity_at DESC
       `,
       )
       .all(listId) as (SharedListAnime & Anime)[];
@@ -160,5 +153,67 @@ export const SharedList = {
           `,
       )
       .all({ listId, animeId }) as AnimeProgress[];
+  },
+
+  findUserAnimeProgressByAnimeId: (
+    listId: number,
+    userId: number,
+    animeId: number,
+  ) => {
+    return db
+      .prepare(
+        `
+            SELECT sa.shared_list_id as sharedListId, sa.anime_id as animeId, p.user_id as userId, p.current_episode as currentEpisode, p.updated_at as updatedAt
+            FROM 'Shared List Anime' sa
+            LEFT JOIN 'Shared List Progress' p ON p.shared_list_id = sa.shared_list_id
+              AND p.anime_id = sa.anime_id AND p.user_id = @userId
+            WHERE sa.shared_list_id = @listId AND sa.anime_id = @animeId 
+        `,
+      )
+      .get({ listId, userId, animeId }) as SharedListProgress | undefined;
+  },
+
+  insertUserProgress: (
+    listId: number,
+    userId: number,
+    animeId: number,
+    currentEpisode: number,
+  ) => {
+    return db
+      .prepare(
+        `
+          INSERT INTO 'Shared List Progress' (shared_list_id, user_id, anime_id, current_episode)
+          VALUES (?, ?, ?, ?)
+        `,
+      )
+      .run(listId, userId, animeId, currentEpisode).lastInsertRowid;
+  },
+
+  updateUserProgress: (
+    listId: number,
+    userId: number,
+    animeId: number,
+    currentEpisode: number,
+  ) => {
+    return db
+      .prepare(
+        `
+          UPDATE 'Shared List Progress'
+          SET current_episode = ?, updated_at = datetime('now')
+          WHERE shared_list_id = ? AND user_id = ? AND anime_id = ?
+        `,
+      )
+      .run(currentEpisode, listId, userId, animeId);
+  },
+
+  updateAnimeLastActivity: (listId: number, animeId: number) => {
+    return db
+      .prepare(
+        `
+          UPDATE 'Shared List Anime' SET last_activity_at = datetime('now')
+          WHERE shared_list_id = ? AND anime_id = ?
+        `,
+      )
+      .run(listId, animeId).lastInsertRowid;
   },
 };

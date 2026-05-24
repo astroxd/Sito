@@ -12,6 +12,7 @@ import { AnimeDetail } from 'src/app/models/AnimeDetails';
 import { APIService } from 'src/app/services/apiservice';
 import { AuthService } from 'src/app/services/auth-service';
 
+type statusType = 'WATCHING' | 'COMPLETED' | 'DROPPED';
 @Component({
   selector: 'app-add-to-watchlist-button',
   templateUrl: './add-to-watchlist-button.component.html',
@@ -83,7 +84,7 @@ export class AddToWatchlistButtonComponent implements OnInit {
     this.apiService
       .post(`list/${this.authService.user()?.id}/entrie`, {
         animeId: this.animeId(),
-        status: listId,
+        status: 'DROPPED',
         animeDetails: {
           id,
           idMal,

@@ -354,50 +354,50 @@ app.get("/lists/:userId/:status", (req, res) => {
 // });
 
 //* Ottiene i progressi per ogni anime per ogni utente della lista
-app.get("/shared-list/:userId/:listId/animes/all", (req, res) => {
-  const { userId, listId } = req.params;
+// app.get("/shared-list/:userId/:listId/animes/all", (req, res) => {
+//   const { userId, listId } = req.params;
 
-  if (!userId || !listId) {
-    res.send({ error: "Missing params" });
-    return;
-  }
+//   if (!userId || !listId) {
+//     res.send({ error: "Missing params" });
+//     return;
+//   }
 
-  try {
-    const sharedListAnimes = db
-      .prepare(
-        `
-        SELECT * FROM 'Shared List Anime' sa
-        INNER JOIN 'Anime' a ON a.anime_id = sa.anime_id
-        WHERE sa.shared_list_id = @listId
-      `,
-      )
-      .all({ listId });
+//   try {
+//     const sharedListAnimes = db
+//       .prepare(
+//         `
+//         SELECT * FROM 'Shared List Anime' sa
+//         INNER JOIN 'Anime' a ON a.anime_id = sa.anime_id
+//         WHERE sa.shared_list_id = @listId
+//       `,
+//       )
+//       .all({ listId });
 
-    console.log(sharedListAnimes);
-    let sharedListProgress: any[] = [];
-    sharedListAnimes.forEach((anime: any) => {
-      const animeProgress = db
-        .prepare(
-          `SELECT * FROM 'Shared List Progress' p
-          INNER JOIN 'Shared List User' u  ON u.shared_list_id = p.shared_list_id AND u.user_id = p.user_id
-          INNER JOIN 'User' ON User.user_id = u.user_id
-          WHERE p.anime_id = @animeId
-          ORDER BY p.current_episode DESC
-          `,
-        )
-        .all({ animeId: anime.anime_id });
+//     console.log(sharedListAnimes);
+//     let sharedListProgress: any[] = [];
+//     sharedListAnimes.forEach((anime: any) => {
+//       const animeProgress = db
+//         .prepare(
+//           `SELECT * FROM 'Shared List Progress' p
+//           INNER JOIN 'Shared List User' u  ON u.shared_list_id = p.shared_list_id AND u.user_id = p.user_id
+//           INNER JOIN 'User' ON User.user_id = u.user_id
+//           WHERE p.anime_id = @animeId
+//           ORDER BY p.current_episode DESC
+//           `,
+//         )
+//         .all({ animeId: anime.anime_id });
 
-      sharedListProgress.push({
-        anime: anime,
-        progress: animeProgress,
-      });
-    });
+//       sharedListProgress.push({
+//         anime: anime,
+//         progress: animeProgress,
+//       });
+//     });
 
-    res.send({ data: sharedListProgress });
-  } catch (error) {
-    console.log(error);
-  }
-});
+//     res.send({ data: sharedListProgress });
+//   } catch (error) {
+//     console.log(error);
+//   }
+// });
 
 //* Ritorna tutte le liste condivise dell'utente
 //* se l'anime è presente il campo "anime_id" !== null
@@ -545,145 +545,145 @@ app.delete("/shared-list/:userId/:listId/entrie/:animeId", (req, res) => {
   res.send({ error: "Error on add" });
 });
 
-app.post(
-  "/shared-list/:userId/:listId/progress/entrie/:animeId",
-  (req, res) => {
-    const { userId, listId, animeId } = req.params;
+// app.post(
+//   "/shared-list/:userId/:listId/progress/entrie/:animeId",
+//   (req, res) => {
+//     const { userId, listId, animeId } = req.params;
 
-    if (!userId || !listId || !animeId) {
-      res.send({ error: "Missing params" });
-      return;
-    }
+//     if (!userId || !listId || !animeId) {
+//       res.send({ error: "Missing params" });
+//       return;
+//     }
 
-    try {
-      db.transaction(() => {
-        const watchedEpisode: any = db
-          .prepare(
-            "SELECT last_episode_watched FROM 'Watched Episodes' WHERE user_id = ? AND anime_id = ?",
-          )
-          .get(userId, animeId);
-        const privateAnime: any = db
-          .prepare(
-            'SELECT anime_id, status FROM "Private Anime" WHERE user_id = ? AND anime_id = ?',
-          )
-          .get(userId, animeId);
-        const userProgress: any = db
-          .prepare(
-            `
-        SELECT *, sa.shared_list_id FROM 'Shared List Anime' sa
-        LEFT JOIN 'Shared List Progress' p ON p.shared_list_id = sa.shared_list_id
-          AND p.anime_id = sa.anime_id AND p.user_id = @userId
-        WHERE sa.shared_list_id = @listId AND sa.anime_id = @animeId`,
-          )
-          .get({ listId, userId, animeId });
+//     try {
+//       db.transaction(() => {
+//         const watchedEpisode: any = db
+//           .prepare(
+//             "SELECT last_episode_watched FROM 'Watched Episodes' WHERE user_id = ? AND anime_id = ?",
+//           )
+//           .get(userId, animeId);
+//         const privateAnime: any = db
+//           .prepare(
+//             'SELECT anime_id, status FROM "Private Anime" WHERE user_id = ? AND anime_id = ?',
+//           )
+//           .get(userId, animeId);
+//         const userProgress: any = db
+//           .prepare(
+//             `
+//         SELECT *, sa.shared_list_id FROM 'Shared List Anime' sa
+//         LEFT JOIN 'Shared List Progress' p ON p.shared_list_id = sa.shared_list_id
+//           AND p.anime_id = sa.anime_id AND p.user_id = @userId
+//         WHERE sa.shared_list_id = @listId AND sa.anime_id = @animeId`,
+//           )
+//           .get({ listId, userId, animeId });
 
-        //*Se progress === null, crea Shared List Progress, aggiungi a watching
-        if (!userProgress?.current_episode) {
-          const insertProgress = db
-            .prepare(
-              `
-            INSERT INTO 'Shared List Progress' (shared_list_id, user_id, anime_id, current_episode, updated_at)
-              VALUES (?, ?, ?, ?, datetime('now'))`,
-            )
-            .run(listId, userId, animeId, 1);
-          const updateShareListAnime = db
-            .prepare(
-              "UPDATE 'Shared List Anime' SET last_activity_at = datetime('now') WHERE shared_list_id = ? AND anime_id = ?",
-            )
-            .run(listId, animeId);
+//         //*Se progress === null, crea Shared List Progress, aggiungi a watching
+//         if (!userProgress?.current_episode) {
+//           const insertProgress = db
+//             .prepare(
+//               `
+//             INSERT INTO 'Shared List Progress' (shared_list_id, user_id, anime_id, current_episode, updated_at)
+//               VALUES (?, ?, ?, ?, datetime('now'))`,
+//             )
+//             .run(listId, userId, animeId, 1);
+//           const updateShareListAnime = db
+//             .prepare(
+//               "UPDATE 'Shared List Anime' SET last_activity_at = datetime('now') WHERE shared_list_id = ? AND anime_id = ?",
+//             )
+//             .run(listId, animeId);
 
-          //* SE non è in private anime aggiungi in watching
-          if (!privateAnime) {
-            const insertPrivateAnime = db
-              .prepare(
-                "INSERT INTO 'Private Anime' (user_id, status, anime_id, added_on) VALUES (?,?,?, datetime('now'))",
-              )
-              .run(userId, 1, animeId);
-            //*Aggiungi in watched episodes
-            const insertWatchedEpisodes = db
-              .prepare(
-                "INSERT INTO 'Watched Episodes' (user_id, anime_id, last_episode_watched) VALUES (?,?,?)",
-              )
-              .run(userId, animeId, 1);
-            //* SE è in private anime ma ha status dropped, sposta in watching (se è completed non fare niente)
-          } else if (privateAnime.status === 3) {
-            const updatePrivateAnime = db
-              .prepare(
-                "UPDATE 'Private Anime' SET status = 1 WHERE anime_id = ? AND user_id = ?",
-              )
-              .run(animeId, userId);
-            if (watchedEpisode && watchedEpisode?.last_episode_watched < 1) {
-              const updateWatchedEpisodes = db
-                .prepare(
-                  "UPDATE 'Watched Episodes' SET last_episode_watched = ? WHERE anime_id = ? AND user_id = ?",
-                )
-                .run(1, animeId, userId);
-            }
-          }
-        }
-        //*Se progress !== null, aggiorna puntata in Shared List Progress, ottieni valore di watching
-        else {
-          const animeEpisodes: any = db
-            .prepare("SELECT anime_episodes FROM 'Anime' WHERE anime_id = ?")
-            .get(animeId);
+//           //* SE non è in private anime aggiungi in watching
+//           if (!privateAnime) {
+//             const insertPrivateAnime = db
+//               .prepare(
+//                 "INSERT INTO 'Private Anime' (user_id, status, anime_id, added_on) VALUES (?,?,?, datetime('now'))",
+//               )
+//               .run(userId, 1, animeId);
+//             //*Aggiungi in watched episodes
+//             const insertWatchedEpisodes = db
+//               .prepare(
+//                 "INSERT INTO 'Watched Episodes' (user_id, anime_id, last_episode_watched) VALUES (?,?,?)",
+//               )
+//               .run(userId, animeId, 1);
+//             //* SE è in private anime ma ha status dropped, sposta in watching (se è completed non fare niente)
+//           } else if (privateAnime.status === 3) {
+//             const updatePrivateAnime = db
+//               .prepare(
+//                 "UPDATE 'Private Anime' SET status = 1 WHERE anime_id = ? AND user_id = ?",
+//               )
+//               .run(animeId, userId);
+//             if (watchedEpisode && watchedEpisode?.last_episode_watched < 1) {
+//               const updateWatchedEpisodes = db
+//                 .prepare(
+//                   "UPDATE 'Watched Episodes' SET last_episode_watched = ? WHERE anime_id = ? AND user_id = ?",
+//                 )
+//                 .run(1, animeId, userId);
+//             }
+//           }
+//         }
+//         //*Se progress !== null, aggiorna puntata in Shared List Progress, ottieni valore di watching
+//         else {
+//           const animeEpisodes: any = db
+//             .prepare("SELECT anime_episodes FROM 'Anime' WHERE anime_id = ?")
+//             .get(animeId);
 
-          if (
-            userProgress.current_episode + 1 <=
-            animeEpisodes.anime_episodes
-          ) {
-            const updateSharedListProgress = db
-              .prepare(
-                "UPDATE 'Shared List Progress' SET current_episode = ?, updated_at = datetime('now') WHERE shared_list_id = ? AND user_id = ? AND anime_id = ?",
-              )
-              .run(userProgress.current_episode + 1, listId, userId, animeId);
-            const updateShareListAnime = db
-              .prepare(
-                "UPDATE 'Shared List Anime' SET last_activity_at = datetime('now') WHERE shared_list_id = ? AND anime_id = ?",
-              )
-              .run(listId, animeId);
+//           if (
+//             userProgress.current_episode + 1 <=
+//             animeEpisodes.anime_episodes
+//           ) {
+//             const updateSharedListProgress = db
+//               .prepare(
+//                 "UPDATE 'Shared List Progress' SET current_episode = ?, updated_at = datetime('now') WHERE shared_list_id = ? AND user_id = ? AND anime_id = ?",
+//               )
+//               .run(userProgress.current_episode + 1, listId, userId, animeId);
+//             const updateShareListAnime = db
+//               .prepare(
+//                 "UPDATE 'Shared List Anime' SET last_activity_at = datetime('now') WHERE shared_list_id = ? AND anime_id = ?",
+//               )
+//               .run(listId, animeId);
 
-            if (
-              watchedEpisode &&
-              watchedEpisode?.last_episode_watched <=
-                userProgress.current_episode
-            ) {
-              const updateWatchedEpisodes = db
-                .prepare(
-                  "UPDATE 'Watched Episodes' SET last_episode_watched = ? WHERE anime_id = ? AND user_id = ?",
-                )
-                .run(userProgress.current_episode + 1, animeId, userId);
-              if (
-                animeEpisodes.anime_episodes ===
-                userProgress.current_episode + 1
-              ) {
-                //* Move anime to completed
-                const updatePrivateAnime = db
-                  .prepare(
-                    "UPDATE 'Private Anime' SET STATUS = ? WHERE anime_id = ? AND user_id = ?",
-                  )
-                  .run(2, animeId, userId);
-              }
-              //* Se avevo messo l'anime in dropped dopo che avevo fatto progressi in shared List devo rimetterlo in watching
-              console.log("CONTROLLO ", privateAnime);
-              if (privateAnime.status === 3) {
-                const updatePrivateAnime = db
-                  .prepare(
-                    "UPDATE 'Private Anime' SET STATUS = ? WHERE anime_id = ? AND user_id = ?",
-                  )
-                  .run(1, animeId, userId);
-              }
-            }
-          }
-        }
-      })();
-      res.send({ message: "Updated Progress" });
-      return;
-    } catch (error) {
-      console.log(error);
-    }
-    res.send({ error: "Error on update progress" });
-  },
-);
+//             if (
+//               watchedEpisode &&
+//               watchedEpisode?.last_episode_watched <=
+//                 userProgress.current_episode
+//             ) {
+//               const updateWatchedEpisodes = db
+//                 .prepare(
+//                   "UPDATE 'Watched Episodes' SET last_episode_watched = ? WHERE anime_id = ? AND user_id = ?",
+//                 )
+//                 .run(userProgress.current_episode + 1, animeId, userId);
+//               if (
+//                 animeEpisodes.anime_episodes ===
+//                 userProgress.current_episode + 1
+//               ) {
+//                 //* Move anime to completed
+//                 const updatePrivateAnime = db
+//                   .prepare(
+//                     "UPDATE 'Private Anime' SET STATUS = ? WHERE anime_id = ? AND user_id = ?",
+//                   )
+//                   .run(2, animeId, userId);
+//               }
+//               //* Se avevo messo l'anime in dropped dopo che avevo fatto progressi in shared List devo rimetterlo in watching
+//               console.log("CONTROLLO ", privateAnime);
+//               if (privateAnime.status === 3) {
+//                 const updatePrivateAnime = db
+//                   .prepare(
+//                     "UPDATE 'Private Anime' SET STATUS = ? WHERE anime_id = ? AND user_id = ?",
+//                   )
+//                   .run(1, animeId, userId);
+//               }
+//             }
+//           }
+//         }
+//       })();
+//       res.send({ message: "Updated Progress" });
+//       return;
+//     } catch (error) {
+//       console.log(error);
+//     }
+//     res.send({ error: "Error on update progress" });
+//   },
+// );
 
 import globalRoutes from "./routes/index";
 

@@ -5,6 +5,7 @@ import {
   getSharedList,
   getSharedUserProgress,
   getSharedAnimesProgress,
+  updateSharedUserProgress,
 } from "../controllers/sharedLists.controller";
 
 const router = Router();
@@ -20,4 +21,11 @@ router.get("/shared-list/:listId/animes", getSharedUserProgress);
 
 //* Ottiene i progressi per ogni anime per ogni utente della lista
 router.get("/shared-list/:listId/animes/all", getSharedAnimesProgress);
+
+//* Aggiorna i progressi di un anime visto dentro una shared-list
+router.post(
+  "/shared-list/:listId/progress/entrie/:animeId",
+  updateSharedUserProgress,
+);
+
 export default router;
