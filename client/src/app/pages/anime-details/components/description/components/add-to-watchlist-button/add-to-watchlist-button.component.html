@@ -1,14 +1,14 @@
 <div class="add-to-watchlist">
   <button
     class="primary-btn text"
-    [class]="animeList() ? 'selected' : ''"
+    [class]="animeStatus() ? 'selected' : ''"
     (click)="showWatchlistMenu = !showWatchlistMenu"
   >
-    {{ animeStatus() }}
+    {{ formattedAnimeStatus() }}
   </button>
   <button
     class="primary-btn icon"
-    [class]="animeList() ? 'selected' : ''"
+    [class]="animeStatus() ? 'selected' : ''"
     (click)="showWatchlistMenu = !showWatchlistMenu"
   >
     <!-- <FontAwesomeIcon icon={faChevronDown} /> -->
@@ -18,7 +18,7 @@
     <ul>
       <li class="dropdown-menu-item no-hover">Set as:</li>
       @for (list of userLists; track list.status) {
-        @let isInList = list.status === animeList();
+        @let isInList = list.status === animeStatus();
         <li
           class="dropdown-menu-item"
           [class]="isInList ? 'selected' : ''"

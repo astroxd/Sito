@@ -11,8 +11,8 @@
     </ion-toolbar>
   </ion-header>
   <ion-grid>
-    <app-list [status]="1" name="Watching" />
-    <app-list [status]="2" name="Completed" />
-    <app-list [status]="3" name="Dropped" />
+    <app-list [status]="AnimeStatus.Watching" name="Watching" />
+    <app-list [status]="AnimeStatus.Completed" name="Completed" />
+    <app-list [status]="AnimeStatus.Dropped" name="Dropped" />
   </ion-grid>
 </ion-content>

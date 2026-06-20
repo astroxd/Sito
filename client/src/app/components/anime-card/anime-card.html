@@ -1,17 +1,17 @@
 @if(listedAnime()){
 <div class="anime-card">
   <div class="anime-card-image">
-    <a [routerLink]="['/anime', listedAnime()!.anime_id]">
+    <a [routerLink]="['/anime', listedAnime()!.animeId]">
       <img
-        [src]="listedAnime()!.anime_cover"
-        [alt]="listedAnime()!.anime_title"
+        [src]="listedAnime()!.animeCover"
+        [alt]="listedAnime()!.animeTitle"
       />
     </a>
   </div>
   <div class="anime-card-text">
     <h5 class="ellipsis">
-      <a [routerLink]="['/anime', listedAnime()!.anime_id]">
-        {{ listedAnime()!.anime_title}}
+      <a [routerLink]="['/anime', listedAnime()!.animeId]">
+        {{ listedAnime()!.animeTitle}}
       </a>
     </h5>
   </div>

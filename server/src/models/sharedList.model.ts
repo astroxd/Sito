@@ -216,4 +216,20 @@ export const SharedList = {
       )
       .run(listId, animeId).lastInsertRowid;
   },
+
+  getUserRole: (listId: number, userId: number) => {
+    return db
+      .prepare(
+        `SELECT u.role FROM 'Shared List User' u
+        WHERE u.shared_list_id = ? AND u.user_id = ?
+        `,
+      )
+      .get(listId, userId) as number | undefined;
+  },
+
+  addSharedAnime: (listId: number, animeId: number) => {
+    db.prepare(
+      "INSERT INTO 'Shared List Anime'(shared_list_id,anime_id,added_on,last_activity_at) VALUES(?,?, datetime('now'), datetime('now'))",
+    ).run(listId, animeId);
+  },
 };

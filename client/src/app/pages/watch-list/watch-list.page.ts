@@ -9,6 +9,7 @@ import {
   IonGrid,
 } from '@ionic/angular/standalone';
 
+import { AnimeStatus } from 'src/app/models/List';
 import { ListComponent } from './components/list/list.component';
 
 @Component({
@@ -28,6 +29,7 @@ import { ListComponent } from './components/list/list.component';
   ],
 })
 export class WatchListPage implements OnInit {
+  public readonly AnimeStatus = AnimeStatus;
   constructor() {}
 
   ngOnInit() {}

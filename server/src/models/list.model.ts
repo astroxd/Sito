@@ -7,9 +7,42 @@ export interface PrivateAnime {
   addedOn?: string;
 }
 
-export type AnimeStatus = "WATCHING" | "COMPLETED" | "DROPPED";
+export interface ListedAnime extends PrivateAnime {
+  animeMalId: number;
+  animeTitle: string;
+  animeCover: string;
+  animeEpisodes: number;
+  lastEpisodeWatched: number;
+  length: number;
+}
+
+export enum AnimeStatus {
+  Watching = "WATCHING",
+  Completed = "COMPLETED",
+  Dropped = "DROPPED",
+}
 
 export const List = {
+  findAllByStatus: (
+    userId: number,
+    status: AnimeStatus,
+    perPage: number,
+    offset = 0,
+  ) => {
+    return db
+      .prepare(
+        `
+          SELECT p.user_id as userId, p.status, a.anime_id as animeId, a.anime_mal_id as animeMalId, a.anime_title as animeTitle, a.anime_cover as animeCover, a.anime_episodes as animeEpisodes, w.last_episode_watched as lastEpisodeWatched, COUNT(*) OVER() AS length FROM 'Private Anime' p
+          JOIN Anime a ON a.anime_id = p.anime_id
+          JOIN 'Watched Episodes' w ON w.anime_id = p.anime_id AND w.user_id = p.user_id
+          WHERE p.user_id = ? AND p.status = ?
+          LIMIT ?
+          OFFSET ?
+        `,
+      )
+      .all(userId, status, perPage, offset) as ListedAnime[];
+  },
+
   findPrivateAnimeByAnimeId: (userId: number, animeId: number) => {
     return db
       .prepare(
@@ -20,6 +53,29 @@ export const List = {
         `,
       )
       .get(userId, animeId) as PrivateAnime | undefined;
+  },
+
+  findByAnimeTitle: (
+    userId: number,
+    status: AnimeStatus,
+    perPage: number,
+    offset = 0,
+    animeTitle: string,
+  ) => {
+    return db
+      .prepare(
+        `
+          SELECT p.user_id as userId, p.status, a.anime_id as animeId, a.anime_mal_id as animeMalId, a.anime_title as animeTitle, a.anime_cover as animeCover, a.anime_episodes as animeEpisodes, w.last_episode_watched as lastEpisodeWatched, COUNT(*) OVER() AS length FROM 'Private Anime' p
+          JOIN Anime a ON a.anime_id = p.anime_id
+          JOIN 'Watched Episodes' w ON w.anime_id = p.anime_id
+          WHERE p.user_id = ? AND p.status = ? AND a.anime_title COLLATE UTF8_GENERAL_CI LIKE @query
+          LIMIT ?
+          OFFSET ?
+        `,
+      )
+      .all(userId, status, perPage, offset, {
+        query: animeTitle + "%",
+      }) as ListedAnime[];
   },
 
   insertPrivateAnime: (
@@ -46,5 +102,16 @@ export const List = {
         `,
       )
       .run(status, animeId, userId).lastInsertRowid;
+  },
+
+  deleteByAnimeId: (userId: number, animeId: number) => {
+    return db
+      .prepare(
+        `
+            DELETE FROM 'Private Anime'
+            WHERE user_id = ? AND anime_id = ?
+        `,
+      )
+      .run(userId, animeId).changes;
   },
 };

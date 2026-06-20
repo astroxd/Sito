@@ -169,6 +169,7 @@ export class GetAnimes {
     			}
                 media (type: ANIME, search: $search, genre_in: $genre_in, seasonYear: $seasonYear, season: $season, format_in: $format_in, status_in: $status_in, sort: $sort){
                     id
+                    idMal
                     title{
                         english
                         romaji
@@ -182,7 +183,8 @@ export class GetAnimes {
                         large
                     }
                     genres
-    				status
+    				        status
+                    duration
                 }
             }
         }

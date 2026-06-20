@@ -8,8 +8,9 @@ import {
 
 import db from "../config/database";
 import { User } from "../models/user.model";
-import { List } from "../models/list.model";
+import { List, AnimeStatus } from "../models/list.model";
 import { Anime } from "../models/anime.model";
+
 export const getSharedLists = (req: Request, res: Response) => {
   const userId = res.locals.userId;
 
@@ -249,15 +250,19 @@ export const updateSharedUserProgress = (req: Request, res: Response) => {
         userId,
         Number(animeId),
       );
+      console.log(watchedEpisode);
       const privateAnime = List.findPrivateAnimeByAnimeId(
         userId,
         Number(animeId),
       );
+      console.log(privateAnime);
       const userProgress = SharedList.findUserAnimeProgressByAnimeId(
         Number(listId),
         userId,
         Number(animeId),
       );
+
+      console.log(userProgress);
 
       const anime = Anime.findAnimeById(Number(animeId));
       if (!anime?.animeEpisodes)
@@ -297,22 +302,28 @@ export const updateSharedUserProgress = (req: Request, res: Response) => {
       SharedList.updateAnimeLastActivity(Number(listId), Number(animeId));
 
       // 4. AGGIORNAMENTO PROGRESSO PRIVATO DA SOLO (watchedEpisodes)
-      const lastWatchedPrivate = watchedEpisode?.lastEpisodeWatched || 0;
-      if (lastWatchedPrivate < newCurrentEpisode) {
-        // Se la lista condivisa è più avanti di quello che ho visto da solo, allineo il mio counter privato
-        User.updateLastWatchedEpisode(
-          userId,
-          Number(animeId),
-          newCurrentEpisode,
-        );
+      if (!watchedEpisode) {
+        User.insertAnimeIntoWatchedEpisodes(userId, Number(animeId));
+      } else {
+        const lastWatchedPrivate = watchedEpisode?.lastEpisodeWatched || 0;
+        if (lastWatchedPrivate < newCurrentEpisode) {
+          // Se la lista condivisa è più avanti di quello che ho visto da solo, allineo il mio counter privato
+          User.updateLastWatchedEpisode(
+            userId,
+            Number(animeId),
+            newCurrentEpisode,
+          );
+        }
       }
 
       // 5. GESTIONE STATI AUTOMATICA
       // Calcoliamo lo stato che DOVREBBE avere l'anime in base all'episodio appena raggiunto
-      if (privateAnime?.status !== "COMPLETED") {
+      if (privateAnime?.status !== AnimeStatus.Completed) {
         // Calcoliamo lo stato ideale per chi NON l'ha ancora completato privatamente
         const calculatedStatus =
-          newCurrentEpisode === maxEpisodes ? "COMPLETED" : "WATCHING";
+          newCurrentEpisode === maxEpisodes
+            ? AnimeStatus.Completed
+            : AnimeStatus.Watching;
 
         if (!privateAnime) {
           // Se non esisteva proprio, lo inseriamo (inizia come WATCHING o COMPLETED se è l'ultima puntata)
@@ -326,6 +337,78 @@ export const updateSharedUserProgress = (req: Request, res: Response) => {
       }
     })();
     return res.status(200).json({ message: "Updated Progress" });
+  } catch (error) {
+    console.error(error);
+  }
+  return res.status(500).json({
+    message: "INTERNAL SERVER ERROR",
+  });
+};
+
+export const addSharedAnime = (req: Request, res: Response) => {
+  const userId = res.locals.userId;
+  const { listId } = req.params;
+  const { animeDetails } = req.body;
+
+  if (!listId) {
+    return res.status(400).json({ message: "Missing params" });
+  }
+
+  const {
+    id: animeId,
+    idMal,
+    title,
+    coverImage,
+    episodes,
+    duration,
+  } = animeDetails;
+
+  try {
+    db.transaction(() => {
+      //* Ottieni Ruolo utente
+      const userRole = SharedList.getUserRole(Number(listId), userId);
+
+      if (!userRole || userRole > 1) {
+        res.status(400).json({
+          error: "L'utente non ha i permessi per aggiungere l'anime",
+        });
+        return;
+      }
+      //* Aggiorna (upsert) la tabella Anime con i dettagli dell'anime
+      Anime.animeUpsert({
+        animeId: animeId,
+        animeMalId: idMal,
+        animeTitle: title,
+        animeCover: coverImage,
+        animeEpisodes: episodes,
+        animeAvgEpisodeDuration: duration,
+      });
+
+      // const animeUpsert = db
+      //   .prepare(
+      //     `INSERT INTO Anime (anime_id, anime_mal_id, anime_title, anime_cover, anime_episodes, anime_avg_episode_duration) VALUES(?, ?, ?, ?, ?, ?)
+      //   ON CONFLICT (anime_id)
+      //   DO UPDATE SET anime_title = @title, anime_cover = @cover, anime_episodes = @episodes, anime_avg_episode_duration = @duration`,
+      //   )
+      //   .run(animeId, idMal, title, coverImage, episodes, duration, {
+      //     title: title,
+      //     cover: coverImage,
+      //     episodes: episodes,
+      //     duration: duration,
+      //   });
+      // console.log("Anime Upsert: ", animeUpsert);
+
+      //* Aggiungi anime in SharedListAnime
+      // const resp = db
+      //   .prepare(
+      //     "INSERT INTO 'Shared List Anime'(shared_list_id,anime_id,added_on,last_activity_at) VALUES(?,?, datetime('now'), datetime('now'))",
+      //   )
+      //   .run(listId, animeId);
+      // console.log("Shared List Anime: ", resp);
+
+      SharedList.addSharedAnime(Number(listId), animeId);
+    })();
+    return res.status(200).json({ message: "Added" });
   } catch (error) {
     console.error(error);
   }

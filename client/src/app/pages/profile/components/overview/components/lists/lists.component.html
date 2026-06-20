@@ -15,36 +15,36 @@
     <div class="widget-navigation">
       <div
         class="widget-navigation-item"
-        [class.active]="status() === 1"
-        (click)="status.set(1)"
+        [class.active]="status() === AnimeStatus.Watching"
+        (click)="status.set(AnimeStatus.Watching)"
       >
         Watching
       </div>
       <div
         class="widget-navigation-item"
-        [class.active]="status() === 2"
-        (click)="status.set(2)"
+        [class.active]="status() === AnimeStatus.Completed"
+        (click)="status.set(AnimeStatus.Completed)"
       >
         Completati
       </div>
       <div
         class="widget-navigation-item"
-        [class.active]="status() === 3"
-        (click)="status.set(3)"
+        [class.active]="status() === AnimeStatus.Dropped"
+        (click)="status.set(AnimeStatus.Dropped)"
       >
         Dropped
       </div>
     </div>
     <ul class="list-container">
-      @for (anime of listedAnimes(); track anime.anime_id) {
-        @let progress = 400 / anime.anime_episodes;
-        <!-- @let progress = anime.last_episode_watched / anime.anime_episodes; -->
-        <a [routerLink]="['/anime', anime.anime_id]">
+      @for (anime of listedAnimes(); track anime.animeId) {
+        <!-- @let progress = 400 / anime.animeEpisodes; -->
+        @let progress = anime.lastEpisodeWatched / anime.animeEpisodes;
+        <a [routerLink]="['/anime', anime.animeId]">
           <li class="list-anime">
-            <img [src]="anime.anime_cover" alt="`${anime.anime_title} image`" />
+            <img [src]="anime.animeCover" alt="`${anime.animeTitle} image`" />
             <div class="list-anime-info">
               <span class="list-anime-title ellipsis">{{
-                anime.anime_title
+                anime.animeTitle
               }}</span>
               <div class="list-anime-progress">
                 <ion-progress-bar
@@ -54,8 +54,8 @@
                 <div class="list-anime-episodes">
                   <span class="list-anime-episodes">Progress:</span>
                   <span class="list-anime-episodes number"
-                    >{{ anime.last_episode_watched }}/{{
-                      anime.anime_episodes
+                    >{{ anime.lastEpisodeWatched }}/{{
+                      anime.animeEpisodes
                     }}</span
                   >
                 </div>

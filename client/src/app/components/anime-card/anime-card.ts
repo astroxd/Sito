@@ -1,7 +1,8 @@
 import { Component, input, ViewEncapsulation } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { Anime, ListedAnime } from '../../models/Anime';
+import { Anime } from 'src/app/models/Anime';
+import { ListedAnime } from '../../models/List';
 import { getEpisodes } from 'src/app/helpers/formattedAnimeDetails';
 @Component({
   selector: 'app-anime-card',

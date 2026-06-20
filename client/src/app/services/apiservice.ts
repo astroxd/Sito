@@ -13,13 +13,13 @@ export class APIService {
   get<T>(route: string): Observable<T> {
     return this.http.get<T>(`${this.baseURL}${route}`);
   }
-  post(route: string, body: any): Observable<any> {
-    return this.http.post(`${this.baseURL}${route}`, body);
+  post<T>(route: string, body: any): Observable<T> {
+    return this.http.post<T>(`${this.baseURL}${route}`, body);
   }
-  patch(route: string, body: any): Observable<any> {
-    return this.http.patch(`${this.baseURL}${route}`, body);
+  patch<T>(route: string, body: any): Observable<T> {
+    return this.http.patch<T>(`${this.baseURL}${route}`, body);
   }
-  delete(route: string): Observable<any> {
-    return this.http.delete(`${this.baseURL}${route}`);
+  delete<T>(route: string): Observable<T> {
+    return this.http.delete<T>(`${this.baseURL}${route}`);
   }
 }

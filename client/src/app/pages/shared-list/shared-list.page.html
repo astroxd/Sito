@@ -34,7 +34,10 @@
               </button>
             </div>
             <div class="editor-buttons">
-              <button class="primary-btn">Add Anime</button>
+              <app-add-anime-button
+                [sharedListId]="listId"
+                (onAdd)="loadData()"
+              />
             </div>
           </div>
         </div>

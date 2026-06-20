@@ -9,6 +9,7 @@ import {
   SharedListUserProgressResApi,
 } from '../models/SharedList';
 import { map, tap } from 'rxjs';
+import { Anime } from '../models/Anime';
 
 @Injectable({
   providedIn: 'root',
@@ -67,5 +68,33 @@ export class SharedListsService {
           console.log(val);
         }),
       );
+  }
+
+  addAnimeToSharedList(sharedListId: number, anime: Anime) {
+    const {
+      id,
+      idMal,
+      title,
+      coverImage,
+      nextAiringEpisode,
+      episodes,
+      duration,
+      status,
+    } = anime;
+
+    return this.apiService
+      .post<{ message: string }>(`shared-list/${sharedListId}/entrie`, {
+        animeDetails: {
+          id,
+          idMal,
+          title: title.romaji ?? title.english ?? 'NO TITLE',
+          coverImage: coverImage?.extraLarge ?? coverImage?.large,
+          episodes:
+            nextAiringEpisode?.episode ??
+            (status === 'FINISHED' && !nextAiringEpisode ? episodes : 0),
+          duration: duration ?? 0,
+        },
+      })
+      .pipe();
   }
 }

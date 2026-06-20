@@ -7,12 +7,17 @@ import {
   signal,
 } from '@angular/core';
 import { debounceTime, Subject, tap } from 'rxjs';
-import { ListedAnime, ListedAnimeApiRes } from 'src/app/models/Anime';
+import {
+  AnimeStatus,
+  ListedAnime,
+  ListedAnimeApiRes,
+} from 'src/app/models/List';
 
 import { APIService } from 'src/app/services/apiservice';
 import { AuthService } from 'src/app/services/auth-service';
 import { IonRow, IonCol } from '@ionic/angular/standalone';
 import { AnimeCard } from 'src/app/components/anime-card/anime-card';
+import { ListsService } from 'src/app/services/lists-service';
 
 @Component({
   selector: 'app-list',
@@ -22,10 +27,11 @@ import { AnimeCard } from 'src/app/components/anime-card/anime-card';
 })
 export class ListComponent implements OnInit {
   private authService = inject(AuthService);
-  private apiService = inject(APIService);
+
+  private listsService = inject(ListsService);
 
   public readonly name = input.required<string>();
-  public readonly status = input.required<number>();
+  public readonly status = input.required<AnimeStatus>();
 
   public listedAnimes = signal<ListedAnime[]>([]);
   public listedAnimesInfo = signal<ListedAnimeApiRes>({
@@ -69,13 +75,9 @@ export class ListComponent implements OnInit {
     this.searchSubject.next(query);
   }
 
-  searchAnimes(query: string = '', page: number = 1) {
-    console.log(query);
-    this.apiService
-      .get<ListedAnimeApiRes>(
-        `lists/${this.authService.user()?.id}/${this.status()}?q=${query}&page=${page}`,
-      )
-      .pipe(tap((val) => console.log(val)))
+  searchAnimes(query?: string, page?: number) {
+    this.listsService
+      .searchAnimes(this.status(), query, page)
       .subscribe((res) => {
         if (page === 1) {
           this.listedAnimes.set([...res.data]);

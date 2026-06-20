@@ -1,0 +1,45 @@
+<button class="primary-btn" id="open-modal" (click)="openModal()">
+  Add Anime
+</button>
+<ion-modal>
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-button (click)="cancel()">Cancel</ion-button>
+        </ion-buttons>
+        <ion-title>Welcome</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="confirm()" [strong]="true">Confirm</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <ion-item>
+        <ion-input
+          label="Enter your name"
+          labelPlacement="stacked"
+          type="text"
+          placeholder="Your name"
+          [(ngModel)]="name"
+          (input)="onSearch($event)"
+        ></ion-input>
+      </ion-item>
+
+      <ion-list>
+        <!-- prettier-ignore -->
+        @for (anime of searchResults(); track $index) {
+
+          <ion-item>
+            <ion-img [src]="anime.coverImage?.large"></ion-img>
+          <ion-label>{{anime.title.english}}</ion-label>
+          <ion-button slot="end" (click)="addToSharedList(anime)">Add</ion-button>
+        </ion-item>
+        }
+      </ion-list>
+      <ion-infinite-scroll (ionInfinite)="onIonInfinite($event)">
+        <ion-infinite-scroll-content></ion-infinite-scroll-content>
+      </ion-infinite-scroll>
+    </ion-content>
+  </ng-template>
+</ion-modal>

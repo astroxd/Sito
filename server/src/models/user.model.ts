@@ -90,7 +90,11 @@ export const User = {
       )
       .get(userId, animeId) as { lastEpisodeWatched: number } | undefined;
   },
-  insertAnimeIntoWatchedEpisodes: (userId: number, animeId: number) => {
+  insertAnimeIntoWatchedEpisodes: (
+    userId: number,
+    animeId: number,
+    watchedEpisodes = 1,
+  ) => {
     return db
       .prepare(
         `
@@ -98,7 +102,7 @@ export const User = {
           VALUES (?,?,?)
         `,
       )
-      .run(userId, animeId, 1);
+      .run(userId, animeId, watchedEpisodes);
   },
 
   updateLastWatchedEpisode: (
@@ -114,5 +118,16 @@ export const User = {
         `,
       )
       .run(lastWatchedEpisode, animeId, userId).lastInsertRowid;
+  },
+
+  deleteFromWatchingByAnimeId: (userId: number, animeId: number) => {
+    return db
+      .prepare(
+        `
+          DELETE FROM 'Watched Episodes' 
+          WHERE user_id = ? AND anime_id = ?
+        `,
+      )
+      .run(userId, animeId).changes;
   },
 };

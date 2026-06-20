@@ -1,9 +1,20 @@
-import { Component, effect, inject, OnInit, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ListedAnime, ListedAnimeApiRes } from 'src/app/models/Anime';
-import { APIService } from 'src/app/services/apiservice';
+import {
+  AnimeStatus,
+  ListedAnime,
+  ListedAnimeApiRes,
+} from 'src/app/models/List';
 import { AuthService } from 'src/app/services/auth-service';
 import { IonProgressBar } from '@ionic/angular/standalone';
+import { ListsService } from 'src/app/services/lists-service';
 
 @Component({
   selector: 'app-profile-lists',
@@ -12,21 +23,21 @@ import { IonProgressBar } from '@ionic/angular/standalone';
   imports: [RouterLink, IonProgressBar],
 })
 export class ListsComponent implements OnInit {
-  private apiService = inject(APIService);
+  private listsService = inject(ListsService);
   private authService = inject(AuthService);
+  public readonly AnimeStatus = AnimeStatus;
 
-  status = signal(1);
+  status = signal<AnimeStatus>(AnimeStatus.Watching);
 
   listedAnimes = signal<ListedAnime[]>([]);
 
   constructor() {
     effect(() => {
       if (this.authService.user()) {
-        this.apiService
-          .get<ListedAnimeApiRes>(
-            `lists/${this.authService.user()?.id}/${this.status()}/1`,
-          )
+        this.listsService
+          .getListedAnimes(this.status())
           .subscribe(({ data }) => {
+            console.log(data);
             this.listedAnimes.set(data);
           });
       }

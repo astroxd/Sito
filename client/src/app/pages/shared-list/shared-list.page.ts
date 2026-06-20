@@ -1,4 +1,12 @@
-import { Component, effect, inject, OnInit, signal } from '@angular/core';
+import {
+  Component,
+  effect,
+  inject,
+  OnInit,
+  output,
+  signal,
+  ViewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -16,6 +24,9 @@ import {
   IonLabel,
   IonList,
   IonAvatar,
+  IonModal,
+  IonButtons,
+  IonButton,
 } from '@ionic/angular/standalone';
 import { AuthService } from 'src/app/services/auth-service';
 import { APIService } from 'src/app/services/apiservice';
@@ -28,6 +39,7 @@ import {
   SharedListUserProgress,
 } from 'src/app/models/SharedList';
 import { SharedListsService } from 'src/app/services/shared-lists-service';
+import { AddAnimeButtonComponent } from './components/add-anime-button/add-anime-button.component';
 
 @Component({
   selector: 'app-shared-list',
@@ -51,6 +63,10 @@ import { SharedListsService } from 'src/app/services/shared-lists-service';
     IonLabel,
     IonList,
     IonAvatar,
+    IonButtons,
+    IonButton,
+    IonModal,
+    AddAnimeButtonComponent,
   ],
 })
 export class SharedListPage implements OnInit {
@@ -59,7 +75,9 @@ export class SharedListPage implements OnInit {
   private sharedListsService = inject(SharedListsService);
   private activeRoute = inject(ActivatedRoute);
 
-  private listId: number | undefined;
+  onAdd = output();
+
+  listId: number | undefined;
 
   sharedList = signal<SharedList | undefined>(undefined);
 
@@ -71,12 +89,16 @@ export class SharedListPage implements OnInit {
           this.listId = params['listId'];
           if (this.listId) {
             this.loadSharedList();
-            this.getSharedAnimesProgress();
-            this.getUserSharedAnimeProgress();
+            this.loadData();
           }
         });
       }
     });
+  }
+
+  loadData() {
+    this.getSharedAnimesProgress();
+    this.getUserSharedAnimeProgress();
   }
 
   ngOnInit() {}

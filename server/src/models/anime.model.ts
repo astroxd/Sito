@@ -19,4 +19,34 @@ export const Anime = {
       )
       .get(animeId) as Anime | undefined;
   },
+
+  animeUpsert: (anime: Anime) => {
+    const {
+      animeId,
+      animeMalId,
+      animeTitle,
+      animeCover,
+      animeEpisodes,
+      animeAvgEpisodeDuration,
+    } = anime;
+
+    db.prepare(
+      `INSERT INTO Anime (anime_id, anime_mal_id, anime_title, anime_cover, anime_episodes, anime_avg_episode_duration) VALUES(?, ?, ?, ?, ?, ?)
+        ON CONFLICT (anime_id)
+        DO UPDATE SET anime_title = @title, anime_cover = @cover, anime_episodes = @episodes, anime_avg_episode_duration = @duration`,
+    ).run(
+      animeId,
+      animeMalId,
+      animeTitle,
+      animeCover,
+      animeEpisodes,
+      animeAvgEpisodeDuration,
+      {
+        title: animeTitle,
+        cover: animeCover,
+        episodes: animeEpisodes,
+        duration: animeAvgEpisodeDuration,
+      },
+    );
+  },
 };

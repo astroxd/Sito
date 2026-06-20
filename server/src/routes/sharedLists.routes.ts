@@ -6,6 +6,7 @@ import {
   getSharedUserProgress,
   getSharedAnimesProgress,
   updateSharedUserProgress,
+  addSharedAnime,
 } from "../controllers/sharedLists.controller";
 
 const router = Router();
@@ -27,5 +28,8 @@ router.post(
   "/shared-list/:listId/progress/entrie/:animeId",
   updateSharedUserProgress,
 );
+
+//* Aggiungi anime a lista condivisa
+router.post("/shared-list/:listId/entrie", addSharedAnime);
 
 export default router;
