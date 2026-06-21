@@ -3,7 +3,8 @@ import { Anime } from '../models/Anime';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable, tap } from 'rxjs';
 import { getCurrentSeason, getNextSeason } from '../helpers/animeSeasons';
-import { QueryOptions } from '../pages/search/searchTypes';
+import { QueryOptions, SearchResultsData } from '../models/Search';
+import { sortOptions } from '../helpers/animeSearchOptions';
 
 @Injectable({
   providedIn: 'root',
@@ -15,7 +16,7 @@ export class GetAnimes {
 
   FetchAnime(query: Object) {
     return this.http.post<any>(this.url, query).pipe(
-      // tap(({ data: { Page } }) => console.log(Page)),
+      tap(({ data: Page }) => console.log(Page.Page.media)),
       map(
         ({
           data: {
@@ -162,8 +163,11 @@ export class GetAnimes {
     return this.FetchAnime(query);
   }
 
-  SearchAnime({ page, sort, options }: QueryOptions) {
-    let loading = true;
+  SearchAnime({
+    page = 1,
+    sort = sortOptions[0].name,
+    searchOptions = {},
+  }: QueryOptions) {
     let query = {
       query: `
     	query($page: Int, $perPage: Int, $search: String, $genre_in: [String], $seasonYear: Int, $season: MediaSeason, $format_in: [MediaFormat], $status_in: [MediaStatus], $sort: [MediaSort]){
@@ -198,8 +202,15 @@ export class GetAnimes {
         }
 
     `,
-      variables: { page: page, perPage: 12, sort: sort, ...options },
+      variables: { page: page, perPage: 12, sort: sort, ...searchOptions },
     };
-    return this.FetchAnime(query);
+
+    console.log(sort);
+    console.log(searchOptions);
+
+    return this.http.post<any>(this.url, query).pipe(
+      tap(({ data: Page }) => console.log(Page.Page.media)),
+      map(({ data: { Page } }) => Page),
+    ) as Observable<SearchResultsData>;
   }
 }

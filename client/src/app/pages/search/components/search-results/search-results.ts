@@ -1,12 +1,13 @@
-import { Component, input, model } from '@angular/core';
+import { Component, computed, effect, input, model } from '@angular/core';
 
-import { sortOptions } from '../../searchOptions';
 import { AnimeCard } from '../../../../components/anime-card/anime-card';
-import { IonRow, IonCol } from '@ionic/angular/standalone';
-
+import { IonRow, IonCol, IonSpinner } from '@ionic/angular/standalone';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { SearchResultsData } from '../../../../models/Search';
+import { sortOptions } from 'src/app/helpers/animeSearchOptions';
 @Component({
   selector: 'app-search-results',
-  imports: [AnimeCard, IonRow, IonCol],
+  imports: [ReactiveFormsModule, AnimeCard, IonRow, IonCol, IonSpinner],
   templateUrl: './search-results.html',
   styleUrls: [
     './search-results.scss',
@@ -14,16 +15,59 @@ import { IonRow, IonCol } from '@ionic/angular/standalone';
   ],
 })
 export class SearchResults {
-  sortOptions = sortOptions;
+  readonly sortOptions = sortOptions;
 
-  anime = input.required<[] | null>();
+  searchResults = input.required<SearchResultsData | null>();
   query = input<string | undefined>('');
   page = model<number>(1);
+  isLoading = input(false);
 
-  sortModel = model<string>(sortOptions[0].name);
-  // sortForm = form(this.sortModel);
+  sort = model<string>(sortOptions[0].name);
+  inputSort = new FormControl(this.sort());
 
-  updatePage() {
-    this.page.update((page) => page + 1);
+  constructor() {
+    effect(() => {
+      const parentValue = this.sort();
+      if (this.inputSort.value !== parentValue) {
+        //  emitEvent: false, valueChangesSubscription doesn't fire
+        this.inputSort.setValue(parentValue, { emitEvent: false });
+      }
+    });
+
+    this.inputSort.valueChanges.subscribe((newSort) => {
+      if (newSort && newSort !== this.sort()) {
+        this.sort.set(newSort);
+      }
+    });
+  }
+
+  paginationRange = computed(() => {
+    const current = this.page();
+    const hasNext = this.searchResults()?.pageInfo.hasNextPage;
+
+    const pages: number[] = [];
+
+    // 1. Aggiungiamo la pagina precedente se non siamo alla prima pagina
+    if (current > 1) {
+      pages.push(current - 1);
+    }
+
+    // 2. Aggiungiamo sempre la pagina corrente
+    pages.push(current);
+
+    // 3. Aggiungiamo la pagina successiva solo se l'API ci dice che esiste
+    if (hasNext) {
+      pages.push(current + 1);
+
+      if (current === 1) {
+        pages.push(current + 2);
+      }
+    }
+
+    return pages;
+  });
+
+  goToPage(page: number) {
+    this.page.set(page);
   }
 }

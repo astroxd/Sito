@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartType } from 'chart.js';
-import { genreOptions } from 'src/app/pages/search/searchOptions';
+import { genreOptions } from 'src/app/helpers/animeSearchOptions';
 
 @Component({
   selector: 'app-genres-chart',

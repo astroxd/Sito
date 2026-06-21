@@ -13,7 +13,11 @@
     <ion-row>
       <ion-col>
         <form class="search-bar-container" (submit)="onSubmit($event)">
-          <input type="search" placeholder="Search..." />
+          <input
+            type="search"
+            placeholder="Search..."
+            [formControl]="inputSearch"
+          />
           <button class="search-bar-icon" type="submit">
             <ion-icon name="search-outline"></ion-icon>
           </button>

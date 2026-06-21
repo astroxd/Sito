@@ -15,12 +15,19 @@ import {
   IonToolbar,
   IonGrid,
 } from '@ionic/angular/standalone';
-import { SearchResults } from './components/search-results/search-results';
 import { SearchBar } from './components/search-bar/search-bar';
 import { GetAnimes } from 'src/app/services/get-animes';
 import { ActivatedRoute, Router } from '@angular/router';
-import { sortOptions } from './searchOptions';
-import { QueryOptions, SearchOptions } from './searchTypes';
+
+import {
+  QueryOptions,
+  SearchOptions,
+  SearchResultsData,
+} from './../../models/Search';
+
+import { SearchResults } from './components/search-results/search-results';
+import { sortOptions } from 'src/app/helpers/animeSearchOptions';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-search',
@@ -34,9 +41,9 @@ import { QueryOptions, SearchOptions } from './searchTypes';
     IonToolbar,
     CommonModule,
     FormsModule,
-    SearchResults,
     SearchBar,
     IonGrid,
+    SearchResults,
   ],
 })
 export class SearchPage {
@@ -45,22 +52,27 @@ export class SearchPage {
   private activatedRoute = inject(ActivatedRoute);
   private routeSnapshot = this.activatedRoute.snapshot;
 
-  sortOptions = sortOptions;
+  private readonly sortOptions = sortOptions;
 
-  options = signal<SearchOptions | null>(null);
+  searchOptions = signal<SearchOptions | null>(null);
+
+  //* sortOption and page are detached from options because i need to update them
+  //* specifically in searchResultPage
   sortOption = signal(
-    this.routeSnapshot.queryParamMap.get('sort') ?? sortOptions[0].name,
+    this.routeSnapshot.queryParamMap.get('sort') ?? this.sortOptions[0].name,
   );
   page = signal(Number(this.routeSnapshot.queryParamMap.get('page') ?? 1));
+  //* //////////////
 
   queryOptions = computed<QueryOptions>(() => {
     return {
       sort: this.sortOption(),
       page: this.page(),
-      options: this.options() ?? {},
-    };
+      searchOptions: this.searchOptions() ?? {},
+    } as QueryOptions;
   });
 
+  //* For changing url only
   paramOptions = signal({});
   queryParamOptions = computed(() => {
     return {
@@ -70,17 +82,27 @@ export class SearchPage {
     };
   });
 
-  anime: any;
+  searchResults = signal<SearchResultsData | null>(null);
+  isLoading = signal<boolean>(false);
 
   constructor() {
     effect(() => {
+      console.log('NAVIGATE');
       this.router.navigate([], {
         queryParams: this.queryParamOptions(),
       });
     });
     effect(() => {
-      if (this.options() !== null) {
-        this.anime = this.animeService.SearchAnime(this.queryOptions());
+      console.log('SEARCH OPTIONS');
+      if (this.searchOptions() !== null) {
+        this.isLoading.set(true);
+        this.animeService
+          .SearchAnime(this.queryOptions())
+          .pipe(finalize(() => this.isLoading.set(false)))
+          .subscribe((res) => {
+            console.log(res);
+            this.searchResults.set(res);
+          });
       }
     });
   }

@@ -7,30 +7,59 @@
         </div>
         <div class="order-by">
           <span>Order by:</span>
-          <select>
+          <select [formControl]="inputSort" [disabled]="isLoading()">
             @for (sort of sortOptions; track $index) {
             <option [value]="sort.name">{{ sort.showName }}</option>
             }
           </select>
         </div>
         <span class="search-query"> Search for &quot;{{ query() }}&quot; </span>
-        {{ page() }}
+
         <div class="inline-pagination">
-          <button (click)="updatePage()">+ page</button>
+          <button
+            class="pagination-indicator"
+            [disabled]="page() === 1 || isLoading()"
+            (click)="goToPage(page() - 1)"
+          >
+            &laquo; Prev
+          </button>
+
+          @for (p of paginationRange(); track p) {
+          <button
+            class="pagination-indicator"
+            [class.current]="p === page()"
+            [disabled]="isLoading()"
+            (click)="goToPage(p)"
+          >
+            {{ p }}
+          </button>
+          }
+
+          <button
+            class="pagination-indicator"
+            [disabled]="!searchResults()?.pageInfo?.hasNextPage || isLoading()"
+            (click)="goToPage(page() + 1)"
+          >
+            Next &raquo;
+          </button>
         </div>
       </div>
     </ion-col>
   </ion-row>
   <ion-row style="margin-top: 20px">
-    @if (anime() && $any(anime())?.length > 0) { @for (a of anime(); track
-    $index) {
+    @if (isLoading()) {
+    <div style="width: 100%; text-align: center; color: var(--text-secondary)">
+      <ion-spinner name="circular" />
+    </div>
+    }@else { @if (searchResults()?.media && searchResults()?.media!.length > 0)
+    { @for (anime of searchResults()?.media; track $index) {
     <ion-col size-xl="3" size-lg="4" size-sm="6">
-      <app-anime-card [anime]="a" />
+      <app-anime-card [anime]="anime" />
     </ion-col>
     } } @else {
     <div style="width: 100%; text-align: center; color: var(--text-secondary)">
       No Results
     </div>
-    }
+    } }
   </ion-row>
 </section>

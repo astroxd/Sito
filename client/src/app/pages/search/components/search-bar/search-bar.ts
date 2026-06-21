@@ -23,12 +23,13 @@ import {
   getFormats,
   getStatus,
   sortOptions,
-} from '../../searchOptions';
-import { SearchOption, SearchOptions } from '../../searchTypes';
+} from '../../../../helpers/animeSearchOptions';
+import { SearchOption, SearchOptions } from '../../../../models/Search';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-search-bar',
-  imports: [SelectMenu, IonRow, IonCol, IonIcon],
+  imports: [ReactiveFormsModule, SelectMenu, IonRow, IonCol, IonIcon],
   templateUrl: './search-bar.html',
   styleUrl: './search-bar.scss',
 })
@@ -59,9 +60,13 @@ export class SearchBar implements OnInit {
   sort = model<string>(sortOptions[0].name);
   queryParamOptions = model({});
 
-  searchModel = signal({
-    search: this.activatedRoute.snapshot.queryParamMap.get('query') ?? '',
-  });
+  // searchModel = signal({
+  //   search: this.activatedRoute.snapshot.queryParamMap.get('query') ?? '',
+  // });
+
+  inputSearch = new FormControl(
+    this.activatedRoute.snapshot.queryParamMap.get('query') ?? '',
+  );
   // searchForm = form(this.searchModel);
 
   onSubmit(event: Event) {
@@ -71,9 +76,8 @@ export class SearchBar implements OnInit {
     //* If the searchbar has content and is equal to the searcOption value
     //* DON'T search
     if (
-      (this.searchModel().search.length <= 0 &&
-        !this.searchOptions()?.search) ||
-      this.searchModel().search === this.searchOptions()?.search
+      (this.inputSearch.value!.length <= 0 && !this.searchOptions()?.search) ||
+      this.inputSearch.value === this.searchOptions()?.search
     )
       return;
     this.search();
@@ -103,19 +107,19 @@ export class SearchBar implements OnInit {
 
   ngOnInit(): void {
     this.activatedRoute.queryParams.subscribe((param) => {
-      if (param['sort'] === undefined) {
-        console.log('test');
-        // this.searchForm().value.set({ search: '' });
-        this.genres.set([]);
-        this.year.set([]);
-        this.formats.set([]);
-        this.status.set([]);
-        return;
-      }
+      // if (param['sort'] === undefined) {
+      //   console.log('test');
+      //   // this.searchForm().value.set({ search: '' });
+      //   this.genres.set([]);
+      //   this.year.set([]);
+      //   this.formats.set([]);
+      //   this.status.set([]);
+      //   return;
+      // }
 
       const searchParamFromHeader = param['query'];
       if (searchParamFromHeader === undefined) return;
-      if (searchParamFromHeader !== this.searchModel().search) {
+      if (searchParamFromHeader !== this.inputSearch.value) {
         // this.searchForm().value.set({ search: searchParamFromHeader });
         this.genres.set([]);
         this.year.set([]);
@@ -127,12 +131,14 @@ export class SearchBar implements OnInit {
   }
   search() {
     let searchOptions: SearchOptions = {
-      search: untracked(this.searchModel).search,
+      search: this.inputSearch.value!,
       genre_in: this.genres().map((option: any) => option.name),
       seasonYear: this.year()[0]?.name ?? '',
       format_in: this.formats().map((option: any) => option.name),
       status_in: this.status()[0]?.name ?? '',
     };
+
+    console.log(searchOptions);
 
     for (const [key, param] of Object.entries(searchOptions)) {
       if (param.length <= 0) {
@@ -142,12 +148,14 @@ export class SearchBar implements OnInit {
     console.log('search');
     this.updateQueryParams();
 
+    console.log(searchOptions);
+
     this.searchOptions.set(searchOptions);
   }
 
   updateQueryParams() {
     let params: any = {
-      query: untracked(this.searchModel).search,
+      query: this.inputSearch.value!,
       genres: this.genres()
         .map((genre) => genre.name)
         .join(','),
@@ -165,9 +173,10 @@ export class SearchBar implements OnInit {
       }
     }
 
+    //* resets page number when query changes or any filter is added/removed
     if (!this.firstRender) {
       this.page.set(1);
-      this.sort.set(sortOptions[0].name);
+      // this.sort.set(sortOptions[0].name);
     }
     this.queryParamOptions.set(params);
   }

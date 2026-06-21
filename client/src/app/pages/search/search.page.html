@@ -13,16 +13,17 @@
   <!-- <section class="search-page"> -->
   <ion-grid>
     <app-search-bar
-      [(searchOptions)]="options"
+      [(searchOptions)]="searchOptions"
       [(sort)]="sortOption"
       [(page)]="page"
       [(queryParamOptions)]="paramOptions"
     />
     <app-search-results
-      [anime]="anime | async"
-      [query]="queryOptions().options.search"
-      [(sortModel)]="sortOption"
+      [searchResults]="searchResults()"
+      [query]="queryOptions().searchOptions?.search"
+      [(sort)]="sortOption"
       [(page)]="page"
+      [isLoading]="isLoading()"
     />
   </ion-grid>
   <!-- </section> -->

@@ -1,11 +1,9 @@
-import { AsyncPipe } from '@angular/common';
 import {
   Component,
   inject,
   input,
   OnInit,
   output,
-  Signal,
   signal,
   ViewChild,
 } from '@angular/core';
@@ -29,8 +27,9 @@ import {
 } from '@ionic/angular/standalone';
 import { IonInfiniteScrollCustomEvent } from '@ionic/core';
 import { debounceTime, finalize, Observable, Subject } from 'rxjs';
+import { sortOptions } from 'src/app/helpers/animeSearchOptions';
 import { Anime } from 'src/app/models/Anime';
-import { sortOptions } from 'src/app/pages/search/searchOptions';
+
 import { GetAnimes } from 'src/app/services/get-animes';
 import { SharedListsService } from 'src/app/services/shared-lists-service';
 
@@ -51,7 +50,6 @@ import { SharedListsService } from 'src/app/services/shared-lists-service';
     IonInput,
     IonLabel,
     IonList,
-    AsyncPipe,
     IonImg,
     IonInfiniteScroll,
     IonInfiniteScrollContent,
@@ -114,7 +112,7 @@ export class AddAnimeButtonComponent implements OnInit {
         .SearchAnime({
           page: page,
           sort: sortOptions[0].name,
-          options: { search: query },
+          searchOptions: { search: query },
         })
         .subscribe((animes: any) => {
           this.searchResults.update((values) => [...values, ...animes]);
@@ -124,7 +122,7 @@ export class AddAnimeButtonComponent implements OnInit {
         .SearchAnime({
           page: page,
           sort: sortOptions[0].name,
-          options: {},
+          searchOptions: {},
         })
         .subscribe((animes: any) => {
           console.log(animes);
