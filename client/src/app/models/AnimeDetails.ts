@@ -6,11 +6,11 @@ export type StatusType =
 
 export interface AnimeDetail {
   id: number;
-  idMal: number;
+  idMal?: number;
   title: {
     english?: string;
-    romaji?: string;
-    native?: string;
+    romaji: string;
+    native: string;
   };
   description?: string;
   format: string;
@@ -37,15 +37,15 @@ export interface AnimeDetail {
   popularity: number;
   duration?: number;
   coverImage: {
-    extraLarge: string;
     large: string;
+    extraLarge: string;
   };
   favourites: number;
   episodes?: number;
-  nextAiringEpisode: {
+  nextAiringEpisode?: {
     airingAt?: number;
     episode?: number;
-  } | null;
+  };
 }
 
 export interface AnimeTag {

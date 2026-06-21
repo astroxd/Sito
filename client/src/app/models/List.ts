@@ -10,6 +10,13 @@ export const AnimeStatusLabels: Record<AnimeStatus, string> = {
   [AnimeStatus.Dropped]: 'Dropped',
 };
 
+export const iterableAnimeStatusLabels = Object.entries(AnimeStatusLabels).map(
+  ([key, label]) => ({
+    animeStatus: key as AnimeStatus,
+    label,
+  }),
+);
+
 export interface PrivateAnime {
   userId: number;
   animeId: number;

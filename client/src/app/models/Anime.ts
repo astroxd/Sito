@@ -1,21 +1,21 @@
 export interface Anime {
   id: number;
-  idMal: number;
+  idMal?: number;
   title: {
     english?: string;
-    romaji?: string;
+    romaji: string;
   };
   episodes?: number;
   nextAiringEpisode?: {
-    episode: number;
+    episode?: number;
   };
   popularity: number;
-  coverImage?: {
-    large?: string;
-    extraLarge?: string;
+  coverImage: {
+    large: string;
+    extraLarge: string;
   };
   bannerImage?: string;
   genres: [];
   status: string;
-  duration: number;
+  duration?: number;
 }

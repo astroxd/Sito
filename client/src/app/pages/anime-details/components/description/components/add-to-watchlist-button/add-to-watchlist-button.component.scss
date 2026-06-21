@@ -39,6 +39,10 @@
   padding-left: 16px;
 }
 
+.no-touch {
+  cursor: default !important;
+}
+
 /** X-Small devices (portrait phones, less than 576px) */
 @media (max-width: 575.98px) {
   .add-to-watchlist .icon {

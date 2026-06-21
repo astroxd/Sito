@@ -41,35 +41,6 @@ app.get("/user/:userId", (req, res) => {
   res.send({ user: user });
 });
 
-//* Ritorna tutte le liste condivise dell'utente
-//* se l'anime è presente il campo "anime_id" !== null
-//* se l'anime non è presente il campo "anime_id" === null
-app.get("/shared-list/:userId/entrie/:animeId", (req, res) => {
-  const { userId, animeId } = req.params;
-
-  if (!userId || !animeId) {
-    res.send({ error: "Missing params" });
-    return;
-  }
-  try {
-    const sharedLists = db
-      .prepare(
-        `
-        SELECT * FROM 'Shared List' l
-        LEFT JOIN 'Shared List Anime' a ON a.shared_list_id = l.shared_list_id AND a.anime_id = ?
-        LEFT JOIN 'Shared List User' u ON u.shared_list_id = l.shared_list_id
-        WHERE u.user_id = ?`,
-      )
-      .all(animeId, userId);
-
-    console.log(sharedLists);
-    res.send({ data: sharedLists });
-    return;
-  } catch (error) {
-    console.log(error);
-  }
-});
-
 import globalRoutes from "./routes/index";
 
 app.use("/", globalRoutes);

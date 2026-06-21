@@ -9,10 +9,15 @@ import {
 } from '@angular/core';
 import { finalize } from 'rxjs';
 import { AnimeDetail } from 'src/app/models/AnimeDetails';
-import { AnimeStatus, AnimeStatusLabels } from 'src/app/models/List';
-import { APIService } from 'src/app/services/apiservice';
+import {
+  AnimeStatus,
+  AnimeStatusLabels,
+  iterableAnimeStatusLabels,
+} from 'src/app/models/List';
 import { AuthService } from 'src/app/services/auth-service';
 import { ListsService } from 'src/app/services/lists-service';
+import { SharedListsService } from 'src/app/services/shared-lists-service';
+import { Anime } from 'src/app/models/Anime';
 
 @Component({
   selector: 'app-add-to-watchlist-button',
@@ -24,19 +29,15 @@ import { ListsService } from 'src/app/services/lists-service';
 })
 export class AddToWatchlistButtonComponent implements OnInit {
   private listsService = inject(ListsService);
+  private sharedListsService = inject(SharedListsService);
   private authService = inject(AuthService);
   private readonly AnimeStatusLabels = AnimeStatusLabels;
+  readonly iterableAnimeStatusLabels = iterableAnimeStatusLabels;
 
   animeDetails = input.required<AnimeDetail | undefined>();
   animeId = computed(() => this.animeDetails()?.id);
 
   animeStatus = signal<AnimeStatus | null>(null);
-
-  readonly userLists = [
-    { status: AnimeStatus.Watching, name: 'Watching' },
-    { status: AnimeStatus.Completed, name: 'Completed' },
-    { status: AnimeStatus.Dropped, name: 'Dropped' },
-  ];
 
   formattedAnimeStatus = computed(() => {
     const status = this.animeStatus();
@@ -63,7 +64,6 @@ export class AddToWatchlistButtonComponent implements OnInit {
   }
 
   addToList(status: AnimeStatus) {
-    console.log('adedTo list');
     this.listsService
       .addAnime(status, this.animeDetails()!)
       .pipe(finalize(() => this.getAnimeStatus()))
@@ -96,76 +96,84 @@ export class AddToWatchlistButtonComponent implements OnInit {
     }
   }
 
-  sharedLists = signal<any[]>([]);
+  sharedLists = signal<
+    {
+      sharedListId: number;
+      sharedListName: string;
+      animeId?: number;
+    }[]
+  >([]);
+
   getSharedLists() {
-    // if (this.animeId() && this.authService.user()) {
-    //   this.apiService
-    //     .get(
-    //       `shared-list/${this.authService.user()?.id}/entrie/${this.animeId()}`,
-    //     )
-    //     .subscribe((res: any) => {
-    //       console.log(res);
-    //       this.sharedLists.set(res.data);
-    //       // this.animeList.set(res?.entrie?.status ?? null);
-    //     });
-    // }
+    if (this.animeId() && this.authService.user()) {
+      this.sharedListsService
+        .getSharedListsWithAnimeId(this.animeId()!)
+        .subscribe((res) => {
+          this.sharedLists.set(res.data);
+        });
+    }
   }
 
   handleSharedList(listId: number, isInList: boolean) {
-    //   if (isInList) {
-    //     //! Non conviene togliere un anime da una lista condivisa da qui perché
-    //     //! potrebbe sbagliare e si cancellano tutti i progressi del gruppo
-    //     // if (this.animeId() && this.authService.user()) {
-    //     //   this.apiService
-    //     //     .delete(
-    //     //       `shared-list/${this.authService.user()?.id}/${listId}/entrie/${this.animeId()}`,
-    //     //     )
-    //     //     .pipe(
-    //     //       finalize(() => {
-    //     //         this.getSharedLists();
-    //     //       }),
-    //     //     )
-    //     //     .subscribe((res: any) => {
-    //     //       console.log(res);
-    //     //     });
-    //     // }
-    //   } else {
-    //     const {
-    //       id,
-    //       idMal,
-    //       title,
-    //       coverImage,
-    //       episodes,
-    //       nextAiringEpisode,
-    //       duration,
-    //       status,
-    //     } = this.animeDetails()!;
-    //     if (this.animeId() && this.authService.user()) {
-    //       this.apiService
-    //         .post(`shared-list/${this.authService.user()?.id}/${listId}/entrie`, {
-    //           animeDetails: {
-    //             id,
-    //             idMal,
-    //             title:
-    //               title.romaji ?? title.english ?? title.native ?? 'NO TITLE',
-    //             coverImage: coverImage.extraLarge ?? coverImage.large,
-    //             episodes:
-    //               nextAiringEpisode?.episode ??
-    //               (status === 'FINISHED' && !nextAiringEpisode ? episodes : 0),
-    //             duration: duration ?? 0,
-    //           },
-    //         })
-    //         .pipe(
-    //           finalize(() => {
-    //             this.getSharedLists();
-    //           }),
-    //         )
-    //         .subscribe((res: any) => {
-    //           console.log(res);
-    //           // this.sharedLists.set(res.data);
-    //           // this.animeList.set(res?.entrie?.status ?? null);
-    //         });
-    //     }
-    //   }
+    if (isInList) {
+      //     //! Non conviene togliere un anime da una lista condivisa da qui perché
+      //     //! potrebbe sbagliare e si cancellano tutti i progressi del gruppo
+      //     // if (this.animeId() && this.authService.user()) {
+      //     //   this.apiService
+      //     //     .delete(
+      //     //       `shared-list/${this.authService.user()?.id}/${listId}/entrie/${this.animeId()}`,
+      //     //     )
+      //     //     .pipe(
+      //     //       finalize(() => {
+      //     //         this.getSharedLists();
+      //     //       }),
+      //     //     )
+      //     //     .subscribe((res: any) => {
+      //     //       console.log(res);
+      //     //     });
+      //     // }
+    } else {
+      const {
+        id,
+        idMal,
+        title,
+        coverImage,
+        episodes,
+        nextAiringEpisode,
+        duration,
+        status,
+        popularity,
+      } = this.animeDetails()!;
+
+      const anime: Anime = {
+        id,
+        idMal,
+        title: {
+          english: title.english,
+          romaji: title.romaji,
+        },
+        coverImage,
+        episodes,
+        nextAiringEpisode: {
+          episode: nextAiringEpisode?.episode,
+        },
+
+        status,
+        duration,
+        popularity,
+        genres: [],
+      };
+
+      if (this.animeId() && this.authService.user()) {
+        this.sharedListsService
+          .addAnimeToSharedList(listId, anime)
+          .pipe(
+            finalize(() => {
+              this.getSharedLists();
+            }),
+          )
+          .subscribe();
+      }
+    }
   }
 }

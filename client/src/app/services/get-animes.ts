@@ -33,6 +33,7 @@ export class GetAnimes {
           Page(page: $page, perPage: $perPage){
             media (type: ANIME, sort: TRENDING_DESC){
               id
+              idMal
               title{
                 english
                 romaji
@@ -44,6 +45,7 @@ export class GetAnimes {
               popularity
               coverImage{
                 large
+                extraLarge
               }
               genres
               status
@@ -62,6 +64,7 @@ export class GetAnimes {
           Page(page: $page, perPage: $perPage){
             media (seasonYear: $seasonYear, season: $season, type: ANIME, sort: POPULARITY_DESC){
               id
+              idMal
               title{
                 english
                 romaji
@@ -73,6 +76,7 @@ export class GetAnimes {
               popularity
               coverImage{
                 large
+                extraLarge
               }
               genres
               status
@@ -96,6 +100,7 @@ export class GetAnimes {
           Page(page: $page, perPage: $perPage){
             media (seasonYear: $seasonYear, season: $season, type: ANIME, sort: POPULARITY_DESC){
               id
+              idMal
               title{
                 english
                 romaji
@@ -106,6 +111,7 @@ export class GetAnimes {
               }
               popularity
               coverImage{
+                large
                 extraLarge
               }
               genres
@@ -130,6 +136,7 @@ export class GetAnimes {
           Page(page: $page, perPage: $perPage){
             media (type: ANIME, sort: POPULARITY_DESC){
               id
+              idMal
               title{
                 english
                 romaji
@@ -140,6 +147,7 @@ export class GetAnimes {
               }
               popularity
               coverImage{
+                large
                 extraLarge
               }
               bannerImage

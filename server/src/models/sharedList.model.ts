@@ -220,16 +220,37 @@ export const SharedList = {
   getUserRole: (listId: number, userId: number) => {
     return db
       .prepare(
-        `SELECT u.role FROM 'Shared List User' u
-        WHERE u.shared_list_id = ? AND u.user_id = ?
+        ` 
+          SELECT u.role FROM 'Shared List User' u
+          WHERE u.shared_list_id = ? AND u.user_id = ?
         `,
       )
       .get(listId, userId) as number | undefined;
   },
 
   addSharedAnime: (listId: number, animeId: number) => {
-    db.prepare(
-      "INSERT INTO 'Shared List Anime'(shared_list_id,anime_id,added_on,last_activity_at) VALUES(?,?, datetime('now'), datetime('now'))",
-    ).run(listId, animeId);
+    return db
+      .prepare(
+        `
+        INSERT INTO 'Shared List Anime'(shared_list_id,anime_id,added_on,last_activity_at)
+        VALUES(?,?, datetime('now'), datetime('now'))
+      `,
+      )
+      .run(listId, animeId).lastInsertRowid;
+  },
+
+  findAllWithAnimeId: (animeId: number, userId: number) => {
+    return db
+      .prepare<
+        unknown[],
+        { sharedListId: number; sharedListName: string; animeId?: number }
+      >(
+        `
+        SELECT l.shared_list_id as sharedListId, l.shared_list_name as sharedListName,a.anime_id as animeId FROM 'Shared List' l
+        LEFT JOIN 'Shared List Anime' a ON a.shared_list_id = l.shared_list_id AND a.anime_id = ?
+        LEFT JOIN 'Shared List User' u ON u.shared_list_id = l.shared_list_id
+        WHERE u.user_id = ?`,
+      )
+      .all(animeId, userId);
   },
 };

@@ -384,34 +384,32 @@ export const addSharedAnime = (req: Request, res: Response) => {
         animeAvgEpisodeDuration: duration,
       });
 
-      // const animeUpsert = db
-      //   .prepare(
-      //     `INSERT INTO Anime (anime_id, anime_mal_id, anime_title, anime_cover, anime_episodes, anime_avg_episode_duration) VALUES(?, ?, ?, ?, ?, ?)
-      //   ON CONFLICT (anime_id)
-      //   DO UPDATE SET anime_title = @title, anime_cover = @cover, anime_episodes = @episodes, anime_avg_episode_duration = @duration`,
-      //   )
-      //   .run(animeId, idMal, title, coverImage, episodes, duration, {
-      //     title: title,
-      //     cover: coverImage,
-      //     episodes: episodes,
-      //     duration: duration,
-      //   });
-      // console.log("Anime Upsert: ", animeUpsert);
-
-      //* Aggiungi anime in SharedListAnime
-      // const resp = db
-      //   .prepare(
-      //     "INSERT INTO 'Shared List Anime'(shared_list_id,anime_id,added_on,last_activity_at) VALUES(?,?, datetime('now'), datetime('now'))",
-      //   )
-      //   .run(listId, animeId);
-      // console.log("Shared List Anime: ", resp);
-
       SharedList.addSharedAnime(Number(listId), animeId);
     })();
     return res.status(200).json({ message: "Added" });
   } catch (error) {
     console.error(error);
   }
+  return res.status(500).json({
+    message: "INTERNAL SERVER ERROR",
+  });
+};
+
+export const getAllSharedListsWithAnimeId = (req: Request, res: Response) => {
+  const userId = res.locals.userId;
+  const { animeId } = req.params;
+
+  if (!animeId) {
+    return res.status(400).json({ error: "Missing params" });
+  }
+  try {
+    const sharedLists = SharedList.findAllWithAnimeId(Number(animeId), userId);
+
+    return res.status(200).json({ data: sharedLists });
+  } catch (error) {
+    console.error(error);
+  }
+
   return res.status(500).json({
     message: "INTERNAL SERVER ERROR",
   });

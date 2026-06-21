@@ -52,7 +52,7 @@ export class Episodes implements OnInit {
           this.loadEpisodes();
         }),
       )
-      .subscribe((res: AnimeDetail) => (this.malId = res.idMal));
+      .subscribe((res: AnimeDetail) => (this.malId = res.idMal ?? null));
   }
 
   ngOnInit() {}

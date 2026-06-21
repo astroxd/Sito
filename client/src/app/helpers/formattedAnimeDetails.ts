@@ -81,7 +81,7 @@ export function getEpisodes(
 ) {
   switch (status) {
     case 'RELEASING':
-      return `${nextAiringEpisode ? nextAiringEpisode.episode - 1 : '?'} / ${
+      return `${nextAiringEpisode?.episode ? nextAiringEpisode?.episode - 1 : '?'} / ${
         episodes ?? '?'
       }`;
     default:

@@ -10,6 +10,7 @@ import {
 } from '../models/SharedList';
 import { map, tap } from 'rxjs';
 import { Anime } from '../models/Anime';
+import { AnimeDetail } from '../models/AnimeDetails';
 
 @Injectable({
   providedIn: 'root',
@@ -96,5 +97,15 @@ export class SharedListsService {
         },
       })
       .pipe();
+  }
+
+  getSharedListsWithAnimeId(animeId: number) {
+    return this.apiService.get<{
+      data: {
+        sharedListId: number;
+        sharedListName: string;
+        animeId?: number;
+      }[];
+    }>(`shared-list/entrie/${animeId}`);
   }
 }
