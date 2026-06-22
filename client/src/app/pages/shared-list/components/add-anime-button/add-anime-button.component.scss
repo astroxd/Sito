@@ -1,3 +1,17 @@
-ion-img {
-  width: 100px;
+// ion-img {
+//   width: 100px;
+// }
+
+ion-thumbnail {
+  // --size: 92px;
+  // height: 130px;
+  --size: 64px;
+  height: 90px;
+  margin-right: 8px;
+
+  ion-img,
+  img {
+    object-fit: cover;
+    border-radius: 4px;
+  }
 }

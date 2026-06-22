@@ -24,11 +24,13 @@ import {
   ModalController,
   IonInfiniteScroll,
   IonInfiniteScrollContent,
+  IonThumbnail,
 } from '@ionic/angular/standalone';
 import { IonInfiniteScrollCustomEvent } from '@ionic/core';
-import { debounceTime, finalize, Observable, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, finalize, Subject } from 'rxjs';
 import { sortOptions } from 'src/app/helpers/animeSearchOptions';
 import { Anime } from 'src/app/models/Anime';
+import { QueryOptions } from 'src/app/models/Search';
 
 import { GetAnimes } from 'src/app/services/get-animes';
 import { SharedListsService } from 'src/app/services/shared-lists-service';
@@ -53,11 +55,13 @@ import { SharedListsService } from 'src/app/services/shared-lists-service';
     IonImg,
     IonInfiniteScroll,
     IonInfiniteScrollContent,
+    IonThumbnail,
   ],
 })
 export class AddAnimeButtonComponent implements OnInit {
   onAdd = output();
   sharedListId = input<number>();
+  sharedListAnimeIds = input(new Set<number>());
 
   animeService = inject(GetAnimes);
   sharedListService = inject(SharedListsService);
@@ -71,10 +75,6 @@ export class AddAnimeButtonComponent implements OnInit {
     this.modal.dismiss(null, 'cancel');
   }
 
-  confirm() {
-    this.modal.dismiss(this.name, 'confirm');
-  }
-
   async openModal() {
     this.searchAnimes('');
     this.modal.present();
@@ -82,6 +82,7 @@ export class AddAnimeButtonComponent implements OnInit {
     const dismiss = this.modal.onDidDismiss();
     dismiss.finally(() => {
       this.name = '';
+      this.searchedAnime.set([]);
     });
   }
 
@@ -96,43 +97,60 @@ export class AddAnimeButtonComponent implements OnInit {
   private page: number = 1;
 
   constructor() {
-    this.searchSubject.pipe(debounceTime(300)).subscribe((query) => {
-      this.searchAnimes(query);
-      this.query = query;
+    this.searchSubject
+      .pipe(debounceTime(300), distinctUntilChanged())
+      .subscribe((query) => {
+        this.query = query;
+        this.page = 1;
+        this.searchAnimes(query, this.page, true);
+      });
+  }
+
+  searchedAnime = signal<Anime[]>([]);
+
+  searchAnimes(
+    query: string,
+    page = 1,
+    isNewQuery = false,
+    infiniteEvent?: IonInfiniteScrollCustomEvent<void>,
+  ) {
+    console.log(query);
+
+    const queryOptions: QueryOptions = { page };
+    if (query.trim().length > 0) {
+      queryOptions.searchOptions = { search: query };
+    }
+
+    this.animeService.SearchAnime(queryOptions).subscribe({
+      next: (data) => {
+        const newAnime = data.media;
+
+        if (isNewQuery) {
+          this.searchedAnime.set(newAnime);
+        } else {
+          this.searchedAnime.update((currentAnime) => [
+            ...currentAnime,
+            ...newAnime,
+          ]);
+        }
+
+        if (infiniteEvent && !data.pageInfo.hasNextPage) {
+          infiniteEvent.target.disabled = true;
+        }
+      },
+      error: (err) => {
+        console.log('Error', err);
+      },
+      complete: () => {
+        if (infiniteEvent) {
+          infiniteEvent.target.complete();
+        }
+      },
     });
   }
 
-  searchResults = signal<Anime[]>([]);
-
-  searchAnimes(query: string, page = 1) {
-    console.log(query);
-
-    if (query.length > 0) {
-      this.animeService
-        .SearchAnime({
-          page: page,
-          sort: sortOptions[0].name,
-          searchOptions: { search: query },
-        })
-        .subscribe((animes: any) => {
-          this.searchResults.update((values) => [...values, ...animes]);
-        });
-    } else {
-      this.animeService
-        .SearchAnime({
-          page: page,
-          sort: sortOptions[0].name,
-          searchOptions: {},
-        })
-        .subscribe((animes: any) => {
-          console.log(animes);
-          this.searchResults.update((values) => [...values, ...animes]);
-        });
-    }
-  }
-
   onIonInfinite($event: IonInfiniteScrollCustomEvent<void>) {
-    this.searchAnimes(this.query, ++this.page);
+    this.searchAnimes(this.query, ++this.page, false, $event);
   }
 
   addToSharedList(anime: Anime) {

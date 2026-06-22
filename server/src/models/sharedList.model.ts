@@ -199,7 +199,7 @@ export const SharedList = {
       .prepare(
         `
           UPDATE 'Shared List Progress'
-          SET current_episode = ?, updated_at = datetime('now')
+          SET current_episode = ?, updated_at = CURRENT_TIMESTAMP
           WHERE shared_list_id = ? AND user_id = ? AND anime_id = ?
         `,
       )
@@ -210,7 +210,7 @@ export const SharedList = {
     return db
       .prepare(
         `
-          UPDATE 'Shared List Anime' SET last_activity_at = datetime('now')
+          UPDATE 'Shared List Anime' SET last_activity_at = CURRENT_TIMESTAMP
           WHERE shared_list_id = ? AND anime_id = ?
         `,
       )
@@ -232,8 +232,8 @@ export const SharedList = {
     return db
       .prepare(
         `
-        INSERT INTO 'Shared List Anime'(shared_list_id,anime_id,added_on,last_activity_at)
-        VALUES(?,?, datetime('now'), datetime('now'))
+        INSERT INTO 'Shared List Anime'(shared_list_id,anime_id)
+        VALUES(?,?)
       `,
       )
       .run(listId, animeId).lastInsertRowid;

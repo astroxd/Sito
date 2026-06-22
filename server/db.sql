@@ -204,3 +204,63 @@ SELECT
     MAX(`added_on`)
 FROM `Shared_list_old`
 GROUP BY `user_id`, `anime_id`; -- Raggruppa assicurando l'unicità richiesta dalla nuova PK
+
+
+
+
+
+
+DROP TABLE Shared_list_old;
+
+-- 1. Rinomina la tabella attuale per non perderla
+ALTER TABLE 'Shared List Anime' RENAME TO Shared_list_old;
+
+CREATE TABLE `Shared List Anime`(
+    `shared_list_id` INTEGER NOT NULL,
+    `anime_id` INTEGER NOT NULL,
+    `added_on` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `last_activity_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(`shared_list_id`, `anime_id`)
+
+    CONSTRAINT fk_shared_list
+        FOREIGN KEY (`shared_list_id`) REFERENCES `Shared List`(`shared_list_id`) ON DELETE CASCADE
+
+    CONSTRAINT fk_anime
+        FOREIGN KEY (`anime_id`) REFERENCES `Anime`(`anime_id`) ON DELETE CASCADE
+    
+);
+
+-- 3. Copia i dati dalla vecchia alla nuova
+INSERT OR REPLACE INTO `Shared List Anime` (`shared_list_id`, `anime_id`, `added_on`, `last_activity_at`)
+SELECT `shared_list_id`, `anime_id`, `added_on`, `last_activity_at`
+FROM Shared_list_old;
+
+
+
+
+DROP TABLE Shared_list_old;
+
+-- 1. Rinomina la tabella attuale per non perderla
+ALTER TABLE 'Shared List User' RENAME TO Shared_list_old;
+
+
+CREATE TABLE `Shared List User`(
+    `shared_list_id` INTEGER NOT NULL,
+    `user_id` INTEGER NOT NULL,
+    `role` TEXT NOT NULL DEFAULT 'MEMBER',
+    `joined_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(`shared_list_id`, `user_id`)
+
+    CONSTRAINT fk_user
+        FOREIGN KEY (`user_id`) REFERENCES `User`(`user_id`) ON DELETE CASCADE
+    CONSTRAINT fk_shared_list
+        FOREIGN KEY (`shared_list_id`) REFERENCES `Shared List`(`shared_list_id`) ON DELETE CASCADE
+
+    CONSTRAINT check_role CHECK (`role` IN ('OWNER', 'EDITOR', 'MEMBER'))
+
+);
+
+-- 3. Copia i dati dalla vecchia alla nuova
+INSERT OR REPLACE INTO `Shared List User` (`shared_list_id`, `user_id`)
+SELECT `shared_list_id`, `user_id`
+FROM Shared_list_old;

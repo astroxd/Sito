@@ -179,26 +179,26 @@ export class GetAnimes {
     				lastPage
     				hasNextPage
     			}
-                media (type: ANIME, search: $search, genre_in: $genre_in, seasonYear: $seasonYear, season: $season, format_in: $format_in, status_in: $status_in, sort: $sort){
-                    id
-                    idMal
-                    title{
-                        english
-                        romaji
-                    }
-                    episodes
-                    nextAiringEpisode{
-                        episode
-                    }
-                    popularity
-                    coverImage{
-                        large
-                    }
-                    genres
-    				        status
-                    duration
+            media (type: ANIME, search: $search, genre_in: $genre_in, seasonYear: $seasonYear, season: $season, format_in: $format_in, status_in: $status_in, sort: $sort){
+                id
+                idMal
+                title{
+                  english
+                  romaji
                 }
+                episodes
+                nextAiringEpisode{
+                  episode
+                }
+                popularity
+                coverImage{
+                  large
+                }
+                genres
+                status
+                duration
             }
+          }
         }
 
     `,

@@ -8,10 +8,7 @@
         <ion-buttons slot="start">
           <ion-button (click)="cancel()">Cancel</ion-button>
         </ion-buttons>
-        <ion-title>Welcome</ion-title>
-        <ion-buttons slot="end">
-          <ion-button (click)="confirm()" [strong]="true">Confirm</ion-button>
-        </ion-buttons>
+        <ion-title class="ion-text-center">Choose Animes</ion-title>
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
@@ -27,14 +24,23 @@
       </ion-item>
 
       <ion-list>
-        <!-- prettier-ignore -->
-        @for (anime of searchResults(); track $index) {
-
+        @for (anime of searchedAnime(); track $index) {
+          @let isAlreadyAdded = sharedListAnimeIds().has(anime.id);
           <ion-item>
-            <ion-img [src]="anime.coverImage?.large"></ion-img>
-          <ion-label>{{anime.title.english}}</ion-label>
-          <ion-button slot="end" (click)="addToSharedList(anime)">Add</ion-button>
-        </ion-item>
+            <ion-thumbnail slot="start">
+              <img [src]="anime.coverImage.large" />
+            </ion-thumbnail>
+            <ion-label>{{
+              anime.title.english || anime.title.romaji
+            }}</ion-label>
+            <ion-button
+              slot="end"
+              [fill]="isAlreadyAdded ? 'outline' : 'solid'"
+              [disabled]="isAlreadyAdded"
+              (click)="addToSharedList(anime)"
+              >{{ isAlreadyAdded ? "Added" : "Add" }}</ion-button
+            >
+          </ion-item>
         }
       </ion-list>
       <ion-infinite-scroll (ionInfinite)="onIonInfinite($event)">

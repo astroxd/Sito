@@ -36,6 +36,7 @@
             <div class="editor-buttons">
               <app-add-anime-button
                 [sharedListId]="listId"
+                [sharedListAnimeIds]="sharedListAnimesSet()"
                 (onAdd)="loadData()"
               />
             </div>

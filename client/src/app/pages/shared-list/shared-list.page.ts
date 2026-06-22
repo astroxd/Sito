@@ -1,5 +1,6 @@
 import {
   Component,
+  computed,
   effect,
   inject,
   OnInit,
@@ -79,7 +80,23 @@ export class SharedListPage implements OnInit {
 
   listId: number | undefined;
 
+  //* General information of the shared list
   sharedList = signal<SharedList | undefined>(undefined);
+
+  //* Shared animes with progress of current member
+  userSharedAnimesProgress = signal<SharedListUserProgress[]>([]);
+
+  //* Shared animes with progress of all member
+  sharedListAnimes = signal<SharedListAnimeProgress[]>([]);
+
+  sharedListAnimesSet = computed(
+    () =>
+      new Set(
+        this.sharedListAnimes().map(
+          (animeProgress) => animeProgress.anime.animeId,
+        ),
+      ),
+  );
 
   constructor() {
     //TODO togli effect tanto se sono qui sono loggato
@@ -112,8 +129,6 @@ export class SharedListPage implements OnInit {
       });
   }
 
-  sharedListAnimes = signal<SharedListAnimeProgress[]>([]);
-
   getSharedAnimesProgress() {
     this.sharedListsService
       .getSharedAnimesProgress(this.listId!)
@@ -121,8 +136,6 @@ export class SharedListPage implements OnInit {
         this.sharedListAnimes.set(data);
       });
   }
-
-  userSharedAnimesProgress = signal<SharedListUserProgress[]>([]);
 
   getUserSharedAnimeProgress() {
     this.sharedListsService
