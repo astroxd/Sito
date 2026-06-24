@@ -20,7 +20,6 @@ import {
   IonInput,
   IonLabel,
   IonList,
-  IonImg,
   ModalController,
   IonInfiniteScroll,
   IonInfiniteScrollContent,
@@ -28,7 +27,6 @@ import {
 } from '@ionic/angular/standalone';
 import { IonInfiniteScrollCustomEvent } from '@ionic/core';
 import { debounceTime, distinctUntilChanged, finalize, Subject } from 'rxjs';
-import { sortOptions } from 'src/app/helpers/animeSearchOptions';
 import { Anime } from 'src/app/models/Anime';
 import { QueryOptions } from 'src/app/models/Search';
 
@@ -52,7 +50,6 @@ import { SharedListsService } from 'src/app/services/shared-lists-service';
     IonInput,
     IonLabel,
     IonList,
-    IonImg,
     IonInfiniteScroll,
     IonInfiniteScrollContent,
     IonThumbnail,
@@ -83,6 +80,8 @@ export class AddAnimeButtonComponent implements OnInit {
     dismiss.finally(() => {
       this.name = '';
       this.searchedAnime.set([]);
+      this.query = '';
+      this.page = 1;
     });
   }
 

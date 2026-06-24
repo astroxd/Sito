@@ -59,7 +59,7 @@ export const sortOptions: SearchOption[] = [
   { name: 'SCORE_DESC', showName: 'Score' },
   { name: 'TRENDING_DESC', showName: 'Trending' },
   { name: 'ID_DESC', showName: 'Date' },
-];
+] as const;
 
 const toList = (string: string, typeList: SearchOption[]) => {
   let list: SearchOption[] = [];

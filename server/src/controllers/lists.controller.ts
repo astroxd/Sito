@@ -77,9 +77,7 @@ export const searchInList = (req: Request, res: Response) => {
       hasNextPage = list[0].length > p * perPage;
     }
 
-    return res
-      .status(200)
-      .json({ data: list, page: p, perPage: perPage, hasNextPage });
+    return res.status(200).json({ data: list, page: p, perPage, hasNextPage });
   } catch (error) {
     console.error(error);
   }
@@ -142,8 +140,9 @@ export const addAnimeToList = (req: Request, res: Response) => {
       //* invece lì li aggiungo quando effettivamente segno la punta
       User.insertAnimeIntoWatchedEpisodes(userId, id, 0);
     })();
-    res.status(200).json({ message: "Added Anime to list successfully" });
-    return;
+    return res
+      .status(200)
+      .json({ message: "Added Anime to list successfully" });
   } catch (error) {
     console.log(error);
   }

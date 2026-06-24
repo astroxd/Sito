@@ -264,3 +264,22 @@ CREATE TABLE `Shared List User`(
 INSERT OR REPLACE INTO `Shared List User` (`shared_list_id`, `user_id`)
 SELECT `shared_list_id`, `user_id`
 FROM Shared_list_old;
+
+
+CREATE TABLE `Friendship` (
+    `user_id_1` INTEGER NOT NULL,
+    `user_id_2` INTEGER NOT NULL,
+    `status` TEXT NOT NULL DEFAULT 'PENDING',
+    `sender_user_id` INTEGER NOT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`user_id_1`, `user_id_2`),
+    
+    CONSTRAINT fk_user_1
+        FOREIGN KEY (`user_id_1`) REFERENCES `User`(`user_id`) ON DELETE CASCADE,
+    CONSTRAINT fk_user_2
+        FOREIGN KEY (`user_id_2`) REFERENCES `User`(`user_id`) ON DELETE CASCADE,
+    CONSTRAINT fk_sender_user
+        FOREIGN KEY (`sender_user_id`) REFERENCES `User`(`user_id`) ON DELETE CASCADE,
+    
+    CONSTRAINT check_status CHECK (`status` IN ('PENDING', 'ACCEPTED'))
+);

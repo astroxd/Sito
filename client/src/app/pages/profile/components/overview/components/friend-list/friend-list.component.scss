@@ -1,10 +1,15 @@
 .friend-container {
-  margin-inline: 20px;
+  // margin-inline: 20px;
 }
 
 .friend-container li {
   display: flex;
-  align-items: center;
+  justify-content: space-between;
+
+  div {
+    display: flex;
+    align-items: center;
+  }
 }
 
 .friend-container img {

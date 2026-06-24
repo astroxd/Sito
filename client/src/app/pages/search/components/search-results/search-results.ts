@@ -3,7 +3,7 @@ import { Component, computed, effect, input, model } from '@angular/core';
 import { AnimeCard } from '../../../../components/anime-card/anime-card';
 import { IonRow, IonCol, IonSpinner } from '@ionic/angular/standalone';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { SearchResultsData } from '../../../../models/Search';
+import { SearchOption, SearchResultsData } from '../../../../models/Search';
 import { sortOptions } from 'src/app/helpers/animeSearchOptions';
 @Component({
   selector: 'app-search-results',
@@ -22,7 +22,7 @@ export class SearchResults {
   page = model<number>(1);
   isLoading = input(false);
 
-  sort = model<string>(sortOptions[0].name);
+  sort = model<(typeof sortOptions)[number]['name']>(sortOptions[0].name);
   inputSort = new FormControl(this.sort());
 
   constructor() {
@@ -43,19 +43,19 @@ export class SearchResults {
 
   paginationRange = computed(() => {
     const current = this.page();
-    const hasNext = this.searchResults()?.pageInfo.hasNextPage;
+    const hasNext = this.searchResults()?.pageInfo.hasNextPage ?? false;
 
     const pages: number[] = [];
 
-    // 1. Aggiungiamo la pagina precedente se non siamo alla prima pagina
+    //* add previous page if page > 1
     if (current > 1) {
       pages.push(current - 1);
     }
 
-    // 2. Aggiungiamo sempre la pagina corrente
+    //* the current page
     pages.push(current);
 
-    // 3. Aggiungiamo la pagina successiva solo se l'API ci dice che esiste
+    //* add next page if exists
     if (hasNext) {
       pages.push(current + 1);
 

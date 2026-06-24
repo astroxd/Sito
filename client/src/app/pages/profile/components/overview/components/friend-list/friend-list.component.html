@@ -3,17 +3,127 @@
     <div class="section-title">
       <h5>Friends</h5>
     </div>
-    <button class="primary-btn" style="display: inline">Add friend</button>
+    <button
+      class="primary-btn"
+      style="display: inline"
+      id="open-modal"
+      (click)="openModal()"
+    >
+      Add friend
+    </button>
   </div>
   <ol class="friend-container">
-    <li>
-      <img
-        src="https://static.vecteezy.com/system/resources/thumbnails/032/176/191/small/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg"
-        alt=""
-      />
-      <span>a_str0</span>
-    </li>
-    <li></li>
-    <li></li>
+    @for (pending of pendingRequests(); track $index) {
+      <li>
+        <div>
+          <img [src]="pending.friendAvatar" [alt]="pending.friendUsername" />
+          <span>{{ pending.friendUsername }}</span>
+        </div>
+        <div>
+          @if (pending.isIncoming) {
+            <ion-button
+              color="success"
+              fill="clear"
+              (click)="acceptFriendRequest(pending.friendUserId)"
+              >Accept
+            </ion-button>
+            <ion-button
+              color="danger"
+              fill="clear"
+              (click)="declineFriendRequest(pending.friendUserId)"
+              >Decline
+            </ion-button>
+          } @else {
+            <ion-button color="warning" fill="clear" disabled>
+              Sent
+            </ion-button>
+          }
+        </div>
+      </li>
+    }
+    @for (friend of friends(); track $index) {
+      <li>
+        <div>
+          <img [src]="friend.friendAvatar" [alt]="friend.friendUsername" />
+          <span>{{ friend.friendUsername }}</span>
+        </div>
+      </li>
+    }
   </ol>
 </div>
+
+<ion-modal>
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-button (click)="cancel()">Cancel</ion-button>
+        </ion-buttons>
+        <ion-title class="ion-text-center">Search users</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <ion-item>
+        <ion-input
+          label="Enter your name"
+          labelPlacement="stacked"
+          type="text"
+          placeholder="Your name"
+          [(ngModel)]="name"
+          (input)="onSearch($event)"
+        ></ion-input>
+      </ion-item>
+
+      <ion-list>
+        @for (user of searchedUsers(); track $index) {
+          @let relation = friendsAndPendingMap().get(user.userId);
+          <ion-item>
+            <ion-label>{{ user.username }}</ion-label>
+            <ion-avatar slot="start">
+              <img [src]="user.avatar" [alt]="user.username" />
+            </ion-avatar>
+
+            <div slot="end">
+              @if (relation) {
+                @if (relation.status === "ACCEPTED") {
+                  <ion-button color="success" fill="outline" disabled>
+                    Amici
+                  </ion-button>
+                } @else if (relation.status === "PENDING") {
+                  @if (relation.isIncoming) {
+                    <ion-button
+                      color="success"
+                      fill="clear"
+                      (click)="acceptFriendRequest(user.userId)"
+                      >Accept
+                    </ion-button>
+                    <ion-button
+                      color="danger"
+                      fill="clear"
+                      (click)="declineFriendRequest(user.userId)"
+                      >Decline
+                    </ion-button>
+                  } @else {
+                    <ion-button color="warning" fill="clear" disabled>
+                      Inviata
+                    </ion-button>
+                  }
+                }
+              } @else {
+                <ion-button
+                  color="primary"
+                  (click)="sendFriendRequest(user.userId)"
+                >
+                  Add
+                </ion-button>
+              }
+            </div>
+          </ion-item>
+        }
+      </ion-list>
+      <ion-infinite-scroll (ionInfinite)="onIonInfinite($event)">
+        <ion-infinite-scroll-content></ion-infinite-scroll-content>
+      </ion-infinite-scroll>
+    </ion-content>
+  </ng-template>
+</ion-modal>

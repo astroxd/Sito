@@ -73,10 +73,7 @@ export const login = (req: Request, res: Response) => {
 
     const passwordMatch = compareSync(password, userPassword!);
 
-    //* For test purposes only
-    const forceUser = user.email === "a@a.com";
-
-    if (!passwordMatch && !forceUser) {
+    if (!passwordMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
@@ -90,7 +87,7 @@ export const login = (req: Request, res: Response) => {
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
-    return res.send({
+    return res.status(200).json({
       user,
       accessToken: accessToken,
     });
