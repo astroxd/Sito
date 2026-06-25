@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
 import {
   AnimeProgress,
-  InvitedUser,
   SharedList,
   SharedListAnime,
+  SharedListInvitation,
   SharedListMember,
 } from "../models/sharedList.model";
 
@@ -120,7 +120,6 @@ export const getSharedUserProgress = (req: Request, res: Response) => {
 
 export const getSharedAnimesProgress = (req: Request, res: Response) => {
   const { listId } = req.params;
-  const userId = res.locals.userId;
 
   if (!listId) {
     return res.status(400).json({ message: "Missing params" });
@@ -367,13 +366,12 @@ export const addSharedAnime = (req: Request, res: Response) => {
   try {
     db.transaction(() => {
       //* Ottieni Ruolo utente
-      const userRole = SharedList.getUserRole(Number(listId), userId);
-
-      if (!userRole || userRole > 1) {
-        res.status(400).json({
+      const userRole = SharedList.getUserRole(Number(listId), userId)?.role;
+      console.log(userRole);
+      if (!userRole || !["OWNER", "EDITOR"].includes(userRole)) {
+        return res.status(400).json({
           error: "L'utente non ha i permessi per aggiungere l'anime",
         });
-        return;
       }
       //* Aggiorna (upsert) la tabella Anime con i dettagli dell'anime
       Anime.animeUpsert({
@@ -426,14 +424,7 @@ export const addMemberRequest = (req: Request, res: Response) => {
   }
 
   try {
-    db.prepare(
-      `
-        INSERT INTO 'SharedListInvitation' (shared_list_id, sender_user_id, invited_user_id)
-        VALUES (?, ?, ?)
-      `,
-    ).run(Number(listId), userId, memberId);
-
-    // SharedList.insertUser(Number(listId), memberId, "MEMBER");
+    SharedList.insertUserInvitation(Number(listId), userId, memberId);
 
     return res.status(200).json({ message: "Member invited" });
   } catch (error) {
@@ -454,13 +445,7 @@ export const acceptSharedListRequest = (req: Request, res: Response) => {
   }
 
   try {
-    db.prepare(
-      `
-        UPDATE 'SharedListInvitation'
-        SET status = 'ACCEPTED'
-        WHERE shared_list_id = ? AND invited_user_id = ?
-      `,
-    ).run(Number(listId), userId);
+    SharedList.updateUserInvitation(Number(listId), "ACCEPTED", userId);
 
     SharedList.insertUser(Number(listId), userId, "MEMBER");
 
@@ -479,12 +464,7 @@ export const declineSharedListRequest = (req: Request, res: Response) => {
   const { listId } = req.params;
 
   try {
-    db.prepare(
-      `
-        DELETE FROM 'SharedListInvitation'
-        WHERE shared_list_id = ? AND invited_user_id = ? AND status = 'PENDING'
-      `,
-    ).run(Number(listId), userId);
+    SharedList.deleteUserInvitation(Number(listId), userId, "PENDING");
 
     return res.status(200).json({ message: "Declined Request" });
   } catch (error) {
@@ -500,12 +480,7 @@ export const cancelSharedListRequest = (req: Request, res: Response) => {
   const { listId, userId } = req.params;
 
   try {
-    db.prepare(
-      `
-        DELETE FROM 'SharedListInvitation'
-        WHERE shared_list_id = ? AND invited_user_id = ? AND status = 'PENDING'
-      `,
-    ).run(Number(listId), userId);
+    SharedList.deleteUserInvitation(Number(listId), Number(userId), "PENDING");
 
     return res.status(200).json({ message: "Cancelled Request" });
   } catch (error) {
@@ -520,29 +495,52 @@ export const cancelSharedListRequest = (req: Request, res: Response) => {
 export const removeMember = (req: Request, res: Response) => {
   const { listId, userId } = req.params;
 
-  try {
-    db.transaction(() => {
-      db.prepare(
-        `DELETE FROM 'Shared List User' WHERE shared_list_id = ? AND user_id = ?`,
-      ).run(listId, userId);
-
-      db.prepare(
-        `DELETE FROM 'Shared List Progress' WHERE shared_list_id = ? AND user_id = ?`,
-      ).run(listId, userId);
-
-      db.prepare(
-        `DELETE FROM 'SharedListInvitation' WHERE shared_list_id = ? AND invited_user_id = ?`,
-      ).run(listId, userId);
-    })();
-
-    return res.status(200).json({ message: "Member removed" });
-  } catch (error) {
-    console.error(error);
+  if (!listId || !userId) {
+    return res.status(400).json({ message: "Missing params" });
   }
 
-  return res.status(500).json({
-    message: "INTERNAL SERVER ERROR",
-  });
+  try {
+    const memberRole = SharedList.getUserRole(
+      Number(listId),
+      Number(userId),
+    )?.role;
+
+    if (!memberRole) {
+      return res.status(404).json({ message: "Member not found in this list" });
+    }
+
+    db.transaction(() => {
+      if (memberRole === "OWNER") {
+        const totalMembers = SharedList.findMembersCount(Number(listId));
+
+        if (totalMembers > 1) {
+          SharedList.updateNewOwner(Number(listId), Number(userId));
+        } else {
+          SharedList.deleteList(Number(listId));
+          return; // Usciamo dalla transazione perché la lista non esiste più
+        }
+      }
+
+      SharedList.deleteUser(Number(listId), Number(userId));
+
+      //* Forse i progressi potrei lasciarli
+      // db.prepare(
+      //   `DELETE FROM 'Shared List Progress' WHERE shared_list_id = ? AND user_id = ?`,
+      // ).run(Number(listId), Number(userId));
+
+      SharedList.deleteUserInvitation(
+        Number(listId),
+        Number(userId),
+        "ACCEPTED",
+      );
+    })();
+
+    return res.status(200).json({ message: "Member removed successfully" });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({ message: "INTERNAL SERVER ERROR" });
+  }
 };
 
 export const getPendingMembers = (req: Request, res: Response) => {
@@ -552,20 +550,10 @@ export const getPendingMembers = (req: Request, res: Response) => {
   }
 
   try {
-    const sharedListPendingMembers = db
-      .prepare(
-        `
-        SELECT 
-          u.user_id as userId, 
-          u.username as username, 
-          u.avatar as avatar
-        FROM 'SharedListInvitation' i
-        JOIN 'User' u ON i.invited_user_id = u.user_id
-        WHERE i.shared_list_id = ? AND i.status = 'PENDING'
-        ORDER BY i.created_at DESC
-      `,
-      )
-      .all(listId) as InvitedUser[];
+    const sharedListPendingMembers = SharedList.findAllInvitedUsers(
+      Number(listId),
+      "PENDING",
+    );
 
     return res.status(200).json({
       data: sharedListPendingMembers,
@@ -579,14 +567,6 @@ export const getPendingMembers = (req: Request, res: Response) => {
   });
 };
 
-export interface SharedListInvitation {
-  sharedListId: number;
-  sharedListName: string;
-  senderUserId: number;
-  senderUsername: string;
-  senderAvatar: string;
-}
-
 export const getInvites = (req: Request, res: Response) => {
   const userId = res.locals.userId;
 
@@ -596,24 +576,7 @@ export const getInvites = (req: Request, res: Response) => {
       members: SharedListMember[];
     }[] = [];
 
-    const sharedLists = db
-      .prepare(
-        `
-        SELECT 
-          i.shared_list_id as sharedListId,
-          l.shared_list_name as sharedListName,
-          u.user_id as senderUserId,
-          u.username as senderUsername,
-          u.avatar as senderAvatar
-        FROM 'SharedListInvitation' i
-        JOIN 'Shared List' l ON i.shared_list_id = l.shared_list_id
-        JOIN 'User' u ON i.sender_user_id = u.user_id
-        WHERE i.invited_user_id = @userId
-          AND i.status = 'PENDING'
-        ORDER BY i.created_at DESC
-      `,
-      )
-      .all({ userId: userId }) as SharedListInvitation[];
+    const sharedLists = SharedList.findAllUserInvitations(userId, "PENDING");
 
     sharedLists.forEach((list) => {
       sharedListsInfo.push({
@@ -629,4 +592,66 @@ export const getInvites = (req: Request, res: Response) => {
   return res.status(500).json({
     message: "INTERNAL SERVER ERROR",
   });
+};
+
+export const updateMemberRole = (req: Request, res: Response) => {
+  const currentUserId = res.locals.userId;
+  const { listId, userId } = req.params;
+  const { newRole } = req.body;
+
+  if (!["EDITOR", "MEMBER"].includes(newRole)) {
+    return res
+      .status(400)
+      .json({ message: "Invalid role. Must be 'EDITOR' or 'MEMBER'" });
+  }
+
+  if (!listId || !userId) {
+    return res.status(400).json({ message: "Missing params" });
+  }
+
+  try {
+    const requesterRole = SharedList.getUserRole(
+      Number(listId),
+      Number(userId),
+    )?.role;
+
+    if (requesterRole !== "OWNER") {
+      return res
+        .status(403)
+        .json({ message: "Only the OWNER can change member roles" });
+    }
+
+    SharedList.updateUserRole(Number(listId), Number(userId), newRole);
+
+    return res
+      .status(200)
+      .json({ message: `Role updated to ${newRole} successfully` });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "INTERNAL SERVER ERROR" });
+  }
+};
+
+export const updateSharedListMessage = (req: Request, res: Response) => {
+  const { listId } = req.params;
+  let { message } = req.body;
+
+  if (!listId) {
+    return res.status(400).json({ message: "Missing params" });
+  }
+
+  try {
+    if (message === undefined || message === null) {
+      message = null;
+    } else {
+      message = message.trim();
+    }
+
+    SharedList.updateMessage(Number(listId), message);
+
+    return res.status(200).json({ message: "Message updated" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "INTERNAL SERVER ERROR" });
+  }
 };

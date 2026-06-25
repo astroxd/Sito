@@ -45,4 +45,10 @@ export class FriendshipService {
       `friends/decline/${friendId}`,
     );
   }
+
+  removeFriend(friendId: number) {
+    return this.apiService.delete<{ message: string }>(
+      `friends/remove/${friendId}`,
+    );
+  }
 }

@@ -22,6 +22,7 @@ export interface PrivateAnime {
   animeId: number;
   status: AnimeStatus;
   addedOn?: string;
+  updatedAt?: string;
 }
 
 export interface PrivateAnimeApiRes {

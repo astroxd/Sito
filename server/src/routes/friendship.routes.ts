@@ -5,6 +5,7 @@ import {
   addFriendRequest,
   deleteFriendRequest,
   getFriendsAndRequests,
+  removeFriend,
   searchFriends,
   searchUsers,
 } from "../controllers/friendship.controller";
@@ -17,5 +18,6 @@ router.get("/friends/search", searchUsers);
 router.post("/friends/request", addFriendRequest);
 router.post("/friends/accept", acceptFriendRequest);
 router.delete("/friends/decline/:senderUserId", deleteFriendRequest);
+router.delete("/friends/remove/:friendId", removeFriend);
 
 export default router;

@@ -2,6 +2,7 @@ import db from "../config/database";
 import { Anime } from "./anime.model";
 
 export type SharedListRole = "OWNER" | "EDITOR" | "MEMBER";
+export type SharedListInvitationStatus = "PENDING" | "ACCEPTED";
 
 interface SharedListUser {
   sharedListId: number;
@@ -56,6 +57,14 @@ export interface AnimeProgress {
   currentEpisode: number;
   animeId: number;
   updatedAt: string;
+}
+
+export interface SharedListInvitation {
+  sharedListId: number;
+  sharedListName: string;
+  senderUserId: number;
+  senderUsername: string;
+  senderAvatar: string;
 }
 
 export const SharedList = {
@@ -234,7 +243,7 @@ export const SharedList = {
           WHERE u.shared_list_id = ? AND u.user_id = ?
         `,
       )
-      .get(listId, userId) as number | undefined;
+      .get(listId, userId) as { role: SharedListRole } | undefined;
   },
 
   addSharedAnime: (listId: number, animeId: number) => {
@@ -274,5 +283,151 @@ export const SharedList = {
         VALUES (?, ?, ?)
       `,
     ).run(listId, userId, role);
+  },
+
+  insertUserInvitation: (
+    listId: number,
+    senderUserId: number,
+    invitedUserId: number,
+  ) => {
+    db.prepare(
+      `
+        INSERT INTO 'SharedListInvitation' (shared_list_id, sender_user_id, invited_user_id)
+        VALUES (?, ?, ?)
+      `,
+    ).run(Number(listId), senderUserId, invitedUserId);
+  },
+
+  updateUserInvitation: (
+    listId: number,
+    status: SharedListInvitationStatus,
+    invitedUserId: number,
+  ) => {
+    db.prepare(
+      `
+        UPDATE 'SharedListInvitation'
+        SET status = ?
+        WHERE shared_list_id = ? AND invited_user_id = ?
+      `,
+    ).run(status, Number(listId), invitedUserId);
+  },
+
+  deleteUserInvitation: (
+    listId: number,
+    invitedUserId: number,
+    status: SharedListInvitationStatus,
+  ) => {
+    db.prepare(
+      `
+        DELETE FROM 'SharedListInvitation'
+        WHERE shared_list_id = ? AND invited_user_id = ? AND status = ?
+      `,
+    ).run(Number(listId), invitedUserId, status);
+  },
+
+  findMembersCount: (listId: number) => {
+    return db
+      .prepare(
+        `
+          SELECT COUNT(*) as count FROM 'Shared List User' 
+          WHERE shared_list_id = ?
+        `,
+      )
+      .get(listId) as number | 0;
+  },
+
+  updateNewOwner: (listId: number, userId: number) => {
+    db.prepare(
+      `
+        UPDATE 'Shared List User'
+        SET role = 'OWNER'
+        WHERE shared_list_id = ?
+          AND user_id = (
+            SELECT user_id FROM 'Shared List User'
+            WHERE shared_list_id = ? AND user_id != ?
+            ORDER BY joined_at ASC
+            LIMIT 1
+          )
+      `,
+    ).run(listId, listId, userId);
+  },
+
+  deleteList: (listId: number) => {
+    db.prepare(
+      `
+        DELETE FROM 'Shared List' 
+        WHERE shared_list_id = ?
+      `,
+    ).run(listId);
+  },
+
+  deleteUser: (listId: number, userId: number) => {
+    db.prepare(
+      `
+        DELETE FROM 'Shared List User'
+         WHERE shared_list_id = ? AND user_id = ?
+      `,
+    ).run(listId, userId);
+  },
+
+  findAllInvitedUsers: (listId: number, status: SharedListInvitationStatus) => {
+    return db
+      .prepare(
+        `
+          SELECT 
+            u.user_id as userId, 
+            u.username as username, 
+            u.avatar as avatar
+          FROM 'SharedListInvitation' i
+          JOIN 'User' u ON i.invited_user_id = u.user_id
+          WHERE i.shared_list_id = ? AND i.status = ?
+          ORDER BY i.created_at DESC
+      `,
+      )
+      .all(listId, status) as InvitedUser[];
+  },
+
+  findAllUserInvitations: (
+    userId: number,
+    status: SharedListInvitationStatus,
+  ) => {
+    return db
+      .prepare(
+        `
+          SELECT 
+            i.shared_list_id as sharedListId,
+            l.shared_list_name as sharedListName,
+            u.user_id as senderUserId,
+            u.username as senderUsername,
+            u.avatar as senderAvatar
+          FROM 'SharedListInvitation' i
+          JOIN 'Shared List' l ON i.shared_list_id = l.shared_list_id
+          JOIN 'User' u ON i.sender_user_id = u.user_id
+          WHERE i.invited_user_id = ?
+            AND i.status = ?
+          ORDER BY i.created_at DESC
+      `,
+      )
+      .all(userId, status) as SharedListInvitation[];
+  },
+
+  updateUserRole: (listId: number, userId: number, role: SharedListRole) => {
+    db.prepare(
+      `
+        UPDATE 'Shared List User'
+        SET role = ?
+        WHERE shared_list_id = ? AND user_id = ? AND role != 'OWNER'
+    `,
+    ).run(role, listId, userId);
+  },
+
+  updateMessage: (listId: number, message: string) => {
+    db.prepare(
+      `
+        UPDATE 'Shared List'
+        SET message = ?
+        WHERE shared_list_id = ?
+    `,
+    ).run(message, listId);
   },
 };

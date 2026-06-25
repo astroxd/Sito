@@ -6,6 +6,8 @@ import {
   addAnimeToList,
   updateAnimeList,
   deleteAnimeFromList,
+  getUserAnimesProgress,
+  updateUserProgress,
 } from "../controllers/lists.controller";
 
 const router = Router();
@@ -29,5 +31,8 @@ router.patch("/list/entrie", updateAnimeList);
 
 //* Rimuove un anime dalla lista privata
 router.delete("/list/entrie/:animeId", deleteAnimeFromList);
+
+router.get("/list/:status/progress", getUserAnimesProgress);
+router.post("/list/:status/progress/entry/:animeId", updateUserProgress);
 
 export default router;

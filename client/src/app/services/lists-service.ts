@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import {
   AnimeStatus,
+  ListedAnime,
   ListedAnimeApiRes,
   PrivateAnimeApiRes,
 } from '../models/List';
@@ -65,5 +66,15 @@ export class ListsService {
       animeId,
       status,
     });
+  }
+
+  getUserProgress(status: AnimeStatus) {
+    return this.apiService.get<{ data: ListedAnime[] }>(
+      `list/${status}/progress`,
+    );
+  }
+
+  addWatchedEpisode(animeId: number, status = AnimeStatus.Watching) {
+    return this.apiService.post(`list/${status}/progress/entry/${animeId}`, {});
   }
 }

@@ -21,24 +21,37 @@
         <div class="leader-message-container widget">
           <div class="leader-message-header">
             <span>Leader Message</span>
-            <span>icona</span>
+            <button (click)="focusOnInput(messageInput)">Icona</button>
           </div>
           <div class="leader-message-content">
-            <input type="text" name="message" [value]="sharedList()?.message" />
+            <input
+              #messageInput
+              type="text"
+              name="message"
+              [(ngModel)]="listMessage"
+              (blur)="updateMessage()"
+              (keydown.enter)="updateMessage()"
+              [disabled]="!isLeader()"
+              maxlength="255"
+            />
           </div>
-          <div class="list-actions">
+          <div
+            class="list-actions"
+            [style]="!isOwner() && !isEditor() ? 'display: none;' : ''"
+          >
             <div class="action">
+              @if (isOwner()) {
+
               <app-add-member-button
                 [sharedListId]="listId"
                 [sharedListMembers]="sharedListMembersSet()"
                 [sharedListInvited]="invitedMembersSet()"
                 (onAdd)="getPendingMembers()"
               />
-              <!-- <button class="primary-btn">
-                <span>icon</span>
-                Add Member
-              </button> -->
+              }
             </div>
+            @if (isOwner() || isEditor()) {
+
             <div class="editor-buttons">
               <app-add-anime-button
                 [sharedListId]="listId"
@@ -46,6 +59,7 @@
                 (onAdd)="loadData()"
               />
             </div>
+            }
           </div>
         </div>
         <div class="section-header">
@@ -173,19 +187,38 @@
                     alt=""
                   />
                 </ion-avatar>
-                <ion-label>{{member.username}}</ion-label>
+                <ion-label
+                  >{{member.username}}{{member.id === ownerId() ? '(OWNER)':
+                  ''}}</ion-label
+                >
                 <span>{{member.totalEpisodes}}</span>
                 @if(member.id === authService.user()?.id){
                 <ion-button
                   slot="end"
                   style="margin-left: 1rem"
-                  (click)="removeMember(member.id)"
+                  (click)="leave()"
                   >Leave</ion-button
                 >
-                }@else if(isOwner() ){
-                <ion-button slot="end" style="margin-left: 1rem" color="success"
-                  >Make Editor</ion-button
+                }@else if(isOwner() ) { @if (member.role === 'MEMBER') {
+                <ion-button
+                  size="small"
+                  fill="clear"
+                  color="primary"
+                  (click)="changeRole(member.id, 'EDITOR')"
                 >
+                  Make Editor
+                </ion-button>
+                } @else if (member.role === 'EDITOR') {
+                <ion-button
+                  size="small"
+                  fill="clear"
+                  color="warning"
+                  (click)="changeRole(member.id, 'MEMBER')"
+                >
+                  Demote to Member
+                </ion-button>
+                }
+
                 <ion-button
                   slot="end"
                   style="margin-left: 1rem"

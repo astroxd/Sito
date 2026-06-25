@@ -33,9 +33,9 @@ CREATE TABLE `Anime`(
 );
 
 CREATE TABLE `Watched Episodes`(
-    `user_id` BIGINT UNSIGNED NOT NULL,
-    `anime_id` BIGINT UNSIGNED NOT NULL,
-    `last_episode_watched` BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    `user_id` INTEGER NOT NULL,
+    `anime_id` INTEGER NOT NULL,
+    `last_episode_watched` INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY(`user_id`, `anime_id`)
     CONSTRAINT fk_user
         FOREIGN KEY (`user_id`) REFERENCES `User`(`user_id`) ON DELETE CASCADE
@@ -181,6 +181,7 @@ CREATE TABLE `Private Anime`(
     `anime_id` INTEGER NOT NULL,
     `status` TEXT NOT NULL DEFAULT 'WATCHING',
     `added_on` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY(`user_id`, `anime_id`)
 
     CONSTRAINT fk_user

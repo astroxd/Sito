@@ -8,11 +8,13 @@ export interface SharedList {
   members: SharedListMember[];
 }
 
+export type SharedListRole = 'OWNER' | 'EDITOR' | 'MEMBER';
+
 export interface SharedListMember {
   id: number;
   username: string;
   avatar: string;
-  role: number;
+  role: SharedListRole;
   totalEpisodes: number;
   length: number;
 }

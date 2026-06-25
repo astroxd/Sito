@@ -11,6 +11,13 @@ export interface User {
   refresh_token?: string;
 }
 
+export interface FoundUser {
+  userId: number;
+  username: string;
+  avatar: string;
+  count: number;
+}
+
 export const User = {
   findByEmail: (email: string) => {
     return db
@@ -34,6 +41,20 @@ export const User = {
         "SELECT user_id AS id, email, username, avatar, banner FROM User WHERE refresh_token = ?",
       )
       .get(refreshToken) as User | undefined;
+  },
+
+  searchByUsername: (userId: number, username: string, perPage, offset = 0) => {
+    return db
+      .prepare(
+        `
+            SELECT u.user_id as userId, u.username, u.avatar, COUNT(*) OVER() as count
+            FROM 'User' u
+            WHERE u.user_id != ? AND u.username COLLATE UTF8_GENERAL_CI LIKE @query
+            LIMIT ?
+            OFFSET ?
+        `,
+      )
+      .all(userId, perPage, offset, { query: username + "%" }) as FoundUser[];
   },
 
   createUser: (

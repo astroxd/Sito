@@ -1,0 +1,46 @@
+<ion-row>
+  <ion-col>
+    <div class="section-header">
+      <div class="section-title">
+        <h5>Up Next</h5>
+      </div>
+    </div>
+    <div class="anime-carousel-container widget">
+      @if (3 > 0) {
+        <ul class="anime-carousel">
+          @for (uProgress of userProgress(); track $index) {
+            @if (uProgress.lastEpisodeWatched !== uProgress.animeEpisodes) {
+              @let progress =
+                uProgress.lastEpisodeWatched / uProgress.animeEpisodes;
+              <li class="anime-episode-card">
+                <div class="anime-episode-card-image">
+                  <img
+                    [src]="uProgress.animeCover"
+                    [alt]="uProgress.animeTitle"
+                  />
+                  <button
+                    class="primary-btn"
+                    (click)="addEpisode(uProgress.animeId)"
+                  >
+                    +
+                  </button>
+                </div>
+                <div class="anime-progress">
+                  <ion-progress-bar
+                    [value]="progress"
+                    class="progress"
+                  ></ion-progress-bar>
+                </div>
+                <span>Mark Ep: {{ uProgress.lastEpisodeWatched + 1 }}</span>
+              </li>
+            }
+          }
+        </ul>
+      } @else {
+        <div class="no-results">
+          <span>You haven't started an anime yet</span>
+        </div>
+      }
+    </div>
+  </ion-col>
+</ion-row>

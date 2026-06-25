@@ -15,6 +15,8 @@ import {
   getInvites,
   cancelSharedListRequest,
   removeMember,
+  updateMemberRole,
+  updateSharedListMessage,
 } from "../controllers/sharedLists.controller";
 
 const router = Router();
@@ -54,4 +56,6 @@ router.delete("/shared-list/:listId/remove/:userId", removeMember);
 
 router.get("/shared-list/:listId/pending", getPendingMembers);
 
+router.patch("/shared-list/:listId/member/:userId/role", updateMemberRole);
+router.patch("/shared-list/:listId/message", updateSharedListMessage);
 export default router;

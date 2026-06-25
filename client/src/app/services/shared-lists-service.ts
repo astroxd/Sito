@@ -7,6 +7,7 @@ import {
   SharedListInfo,
   SharedListInvitationResApi,
   SharedListResApi,
+  SharedListRole,
   SharedListUserProgressResApi,
 } from '../models/SharedList';
 import { map, tap } from 'rxjs';
@@ -146,5 +147,20 @@ export class SharedListsService {
 
   removeMember(listId: number, memberId: number) {
     return this.apiService.delete(`shared-list/${listId}/remove/${memberId}`);
+  }
+
+  updateMemberRole(listId: number, memberId: number, newRole: SharedListRole) {
+    return this.apiService.patch(
+      `shared-list/${listId}/member/${memberId}/role`,
+      {
+        newRole,
+      },
+    );
+  }
+
+  updateMessage(listId: number, newMessage: string) {
+    return this.apiService.patch(`shared-list/${listId}/message`, {
+      message: newMessage,
+    });
   }
 }

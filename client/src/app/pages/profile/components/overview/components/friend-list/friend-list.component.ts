@@ -230,4 +230,16 @@ export class FriendListComponent implements OnInit {
       )
       .subscribe();
   }
+
+  removeFriend(friendId: number) {
+    this.friendshipService
+      .removeFriend(friendId)
+      .pipe(
+        finalize(() => this.loadFriendsAndRequest()),
+        tap((res) => {
+          console.log(res.message);
+        }),
+      )
+      .subscribe();
+  }
 }

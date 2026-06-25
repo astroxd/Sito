@@ -12,7 +12,10 @@
       Add friend
     </button>
   </div>
-  <ol class="friend-container">
+  <ol
+    class="friend-container"
+    [style]="pendingRequests().length <= 0 ? 'display: none;' : ''"
+  >
     <div>Requests</div>
     <div class="container">
       @for (pending of pendingRequests(); track $index) {
@@ -46,7 +49,9 @@
     </div>
   </ol>
   <ol class="friend-container" style="margin-top: 6px">
-    <div>Friends</div>
+    <div [style]="pendingRequests().length <= 0 ? 'display: none;' : ''">
+      Friends
+    </div>
     <div class="container">
       @for (friend of friends(); track $index) {
         <li>
@@ -54,6 +59,9 @@
             <img [src]="friend.friendAvatar" [alt]="friend.friendUsername" />
             <span>{{ friend.friendUsername }}</span>
           </div>
+          <ion-button size="small" (click)="removeFriend(friend.friendUserId)"
+            >Remove</ion-button
+          >
         </li>
       }
     </div>

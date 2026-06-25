@@ -31,12 +31,21 @@ import {
 } from '@ionic/angular/standalone';
 import { AuthService } from 'src/app/services/auth-service';
 import { APIService } from 'src/app/services/apiservice';
-import { finalize, map, share, tap } from 'rxjs';
-import { ActivatedRoute } from '@angular/router';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  finalize,
+  map,
+  share,
+  Subject,
+  tap,
+} from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   SharedList,
   SharedListAnimeProgress,
   SharedListInfo,
+  SharedListRole,
   SharedListUserProgress,
 } from 'src/app/models/SharedList';
 import { SharedListsService } from 'src/app/services/shared-lists-service';
@@ -66,9 +75,8 @@ import { FoundUser } from 'src/app/models/Friendship';
     IonLabel,
     IonList,
     IonAvatar,
-    IonButtons,
+
     IonButton,
-    IonModal,
     AddAnimeButtonComponent,
     AddMemberButtonComponent,
   ],
@@ -78,6 +86,7 @@ export class SharedListPage implements OnInit {
   private apiService = inject(APIService);
   private sharedListsService = inject(SharedListsService);
   private activeRoute = inject(ActivatedRoute);
+  private router = inject(Router);
 
   onAdd = output();
 
@@ -112,8 +121,27 @@ export class SharedListPage implements OnInit {
   );
 
   isOwner = computed(
-    () => this.sharedList()?.userId === this.authService.user()?.id,
+    () =>
+      this.sharedList()?.members.find((m) => m.role === 'OWNER')?.id ===
+      this.authService.user()?.id,
   );
+
+  ownerId = computed(
+    () => this.sharedList()?.members.find((m) => m.role === 'OWNER')?.id,
+  );
+
+  isEditor = computed(
+    () =>
+      this.sharedList()?.members.find(
+        (m) => m.id === this.authService.user()?.id,
+      )?.role === 'EDITOR',
+  );
+
+  isLeader = computed(
+    () => this.sharedList()?.members[0].id === this.authService.user()?.id,
+  );
+
+  listMessage = '';
 
   constructor() {
     //TODO togli effect tanto se sono qui sono loggato
@@ -143,6 +171,7 @@ export class SharedListPage implements OnInit {
       .subscribe(({ data: sharedList }) => {
         console.log(sharedList);
         this.sharedList.set(sharedList);
+        this.listMessage = sharedList.message ?? '';
       });
     this.getPendingMembers();
   }
@@ -218,9 +247,30 @@ export class SharedListPage implements OnInit {
   leave() {
     this.sharedListsService
       .removeMember(this.listId!, this.authService.user()?.id!)
+      .pipe(
+        finalize(() => {
+          console.log('Navitae');
+          this.router.navigate(['/profile']);
+        }),
+      )
       .subscribe();
+  }
+  changeRole(memberId: number, newRole: SharedListRole) {
+    this.sharedListsService
+      .updateMemberRole(this.listId!, memberId, newRole)
+      .pipe(finalize(() => this.loadSharedList()))
+      .subscribe();
+  }
 
-    // naviga al profilo
-    // Se l'owner quitta?
+  updateMessage() {
+    if (this.listMessage === this.sharedList()?.message) return;
+
+    this.sharedListsService
+      .updateMessage(this.listId!, this.listMessage)
+      .subscribe();
+  }
+
+  focusOnInput(inputElement: HTMLInputElement) {
+    inputElement.focus();
   }
 }

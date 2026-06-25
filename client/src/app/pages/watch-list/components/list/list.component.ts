@@ -58,29 +58,18 @@ export class ListComponent implements OnInit {
 
   ngOnInit() {}
 
-  // loadAnimes(page: number = 1) {
-  //   this.apiService
-  //     .get<ListedAnimeApiRes>(
-  //       `lists/${this.authService.user()?.id}/${this.status()}/${page}`,
-  //     )
-  //     .pipe(tap((val) => console.log(val)))
-  //     .subscribe((res) => {
-  //       this.listedAnimes.set([...this.listedAnimes(), ...res.data]);
-  //       this.listedAnimesInfo.set(res);
-  //     });
-  // }
-
   onSearch(event: Event) {
     const query = (event.target as HTMLInputElement).value;
     this.searchSubject.next(query);
   }
 
-  searchAnimes(query?: string, page?: number) {
+  searchAnimes(query?: string, page = 1) {
     this.listsService
       .searchAnimes(this.status(), query, page)
       .subscribe((res) => {
+        console.log(res);
         if (page === 1) {
-          this.listedAnimes.set([...res.data]);
+          this.listedAnimes.set(res.data);
         } else {
           this.listedAnimes.set([...this.listedAnimes(), ...res.data]);
         }

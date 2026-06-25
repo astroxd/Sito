@@ -11,6 +11,7 @@ import {
 
 import { AnimeStatus } from 'src/app/models/List';
 import { ListComponent } from './components/list/list.component';
+import { KeepWatchingComponent } from './components/keep-watching/keep-watching.component';
 
 @Component({
   selector: 'app-watch-list',
@@ -26,6 +27,7 @@ import { ListComponent } from './components/list/list.component';
     FormsModule,
     IonGrid,
     ListComponent,
+    KeepWatchingComponent,
   ],
 })
 export class WatchListPage implements OnInit {
