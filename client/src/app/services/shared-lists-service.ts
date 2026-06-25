@@ -5,12 +5,15 @@ import {
   SharedList,
   SharedListAnimeProgressResApi,
   SharedListInfo,
+  SharedListInvitationResApi,
   SharedListResApi,
   SharedListUserProgressResApi,
 } from '../models/SharedList';
 import { map, tap } from 'rxjs';
 import { Anime } from '../models/Anime';
 import { AnimeDetail } from '../models/AnimeDetails';
+import { FoundUser } from '../models/Friendship';
+import { list } from 'ionicons/icons';
 
 @Injectable({
   providedIn: 'root',
@@ -35,6 +38,12 @@ export class SharedListsService {
     );
   }
 
+  loadInvites() {
+    return this.apiService.get<SharedListInvitationResApi>(
+      'shared-lists/invite',
+    );
+  }
+
   createSharedList(sharedListName: string) {
     return this.apiService.post('shared-list', { name: sharedListName });
   }
@@ -47,6 +56,12 @@ export class SharedListsService {
           console.log(val);
         }),
       );
+  }
+
+  getPendingMembers(sharedListId: number) {
+    return this.apiService.get<{ data: FoundUser[] }>(
+      `shared-list/${sharedListId}/pending`,
+    );
   }
 
   getUserSharedAnimeProgress(sharedListId: number) {
@@ -107,5 +122,29 @@ export class SharedListsService {
         animeId?: number;
       }[];
     }>(`shared-list/entrie/${animeId}`);
+  }
+
+  inviteMember(listId: number, invitedUserId: number) {
+    return this.apiService.post(`shared-list/${listId}/member`, {
+      memberId: invitedUserId,
+    });
+  }
+
+  acceptInvite(listId: number) {
+    return this.apiService.post(`shared-list/${listId}/accept`, {});
+  }
+
+  declineInvite(listId: number) {
+    return this.apiService.delete(`shared-list/${listId}/decline`);
+  }
+
+  cancelInvite(listId: number, invitedUserId: number) {
+    return this.apiService.delete(
+      `shared-list/${listId}/cancel/${invitedUserId}`,
+    );
+  }
+
+  removeMember(listId: number, memberId: number) {
+    return this.apiService.delete(`shared-list/${listId}/remove/${memberId}`);
   }
 }

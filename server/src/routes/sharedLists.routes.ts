@@ -8,11 +8,19 @@ import {
   updateSharedUserProgress,
   addSharedAnime,
   getAllSharedListsWithAnimeId,
+  addMemberRequest,
+  acceptSharedListRequest,
+  declineSharedListRequest,
+  getPendingMembers,
+  getInvites,
+  cancelSharedListRequest,
+  removeMember,
 } from "../controllers/sharedLists.controller";
 
 const router = Router();
 
 router.get("/shared-lists", getSharedLists);
+router.get("/shared-lists/invite", getInvites);
 router.post("/shared-list", createSharedList);
 
 //* Informazioni lista specifica, chiamata quando carica shared-list.page
@@ -37,5 +45,13 @@ router.post("/shared-list/:listId/entrie", addSharedAnime);
 //* se l'anime è presente il campo "animeId" !== null
 //* se l'anime non è presente il campo "animeId" === null
 router.get("/shared-list/entrie/:animeId", getAllSharedListsWithAnimeId);
+
+router.post("/shared-list/:listId/member", addMemberRequest);
+router.post("/shared-list/:listId/accept", acceptSharedListRequest);
+router.delete("/shared-list/:listId/decline", declineSharedListRequest);
+router.delete("/shared-list/:listId/cancel/:userId", cancelSharedListRequest);
+router.delete("/shared-list/:listId/remove/:userId", removeMember);
+
+router.get("/shared-list/:listId/pending", getPendingMembers);
 
 export default router;

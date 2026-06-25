@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import {
   AnimeProgress,
+  InvitedUser,
   SharedList,
   SharedListAnime,
   SharedListMember,
@@ -59,8 +60,8 @@ export const createSharedList = (req: Request, res: Response) => {
 };
 
 export const getSharedList = (req: Request, res: Response) => {
-  const { listId } = req.params;
   const userId = res.locals.userId;
+  const { listId } = req.params;
   if (!listId) {
     return res.status(400).json({ message: "Missing params" });
   }
@@ -410,6 +411,221 @@ export const getAllSharedListsWithAnimeId = (req: Request, res: Response) => {
     console.error(error);
   }
 
+  return res.status(500).json({
+    message: "INTERNAL SERVER ERROR",
+  });
+};
+
+export const addMemberRequest = (req: Request, res: Response) => {
+  const userId = res.locals.userId;
+  const { listId } = req.params;
+  const { memberId } = req.body;
+
+  if (!listId) {
+    return res.status(400).json({ error: "Missing params" });
+  }
+
+  try {
+    db.prepare(
+      `
+        INSERT INTO 'SharedListInvitation' (shared_list_id, sender_user_id, invited_user_id)
+        VALUES (?, ?, ?)
+      `,
+    ).run(Number(listId), userId, memberId);
+
+    // SharedList.insertUser(Number(listId), memberId, "MEMBER");
+
+    return res.status(200).json({ message: "Member invited" });
+  } catch (error) {
+    console.error(error);
+  }
+
+  return res.status(500).json({
+    message: "INTERNAL SERVER ERROR",
+  });
+};
+
+export const acceptSharedListRequest = (req: Request, res: Response) => {
+  const userId = res.locals.userId;
+  const { listId } = req.params;
+
+  if (!listId) {
+    return res.status(400).json({ message: "Missing Params" });
+  }
+
+  try {
+    db.prepare(
+      `
+        UPDATE 'SharedListInvitation'
+        SET status = 'ACCEPTED'
+        WHERE shared_list_id = ? AND invited_user_id = ?
+      `,
+    ).run(Number(listId), userId);
+
+    SharedList.insertUser(Number(listId), userId, "MEMBER");
+
+    return res.status(200).json({ message: "Member joined" });
+  } catch (error) {
+    console.error(error);
+  }
+
+  return res.status(500).json({
+    message: "INTERNAL SERVER ERROR",
+  });
+};
+
+export const declineSharedListRequest = (req: Request, res: Response) => {
+  const userId = res.locals.userId;
+  const { listId } = req.params;
+
+  try {
+    db.prepare(
+      `
+        DELETE FROM 'SharedListInvitation'
+        WHERE shared_list_id = ? AND invited_user_id = ? AND status = 'PENDING'
+      `,
+    ).run(Number(listId), userId);
+
+    return res.status(200).json({ message: "Declined Request" });
+  } catch (error) {
+    console.error(error);
+  }
+
+  return res.status(500).json({
+    message: "INTERNAL SERVER ERROR",
+  });
+};
+
+export const cancelSharedListRequest = (req: Request, res: Response) => {
+  const { listId, userId } = req.params;
+
+  try {
+    db.prepare(
+      `
+        DELETE FROM 'SharedListInvitation'
+        WHERE shared_list_id = ? AND invited_user_id = ? AND status = 'PENDING'
+      `,
+    ).run(Number(listId), userId);
+
+    return res.status(200).json({ message: "Cancelled Request" });
+  } catch (error) {
+    console.error(error);
+  }
+
+  return res.status(500).json({
+    message: "INTERNAL SERVER ERROR",
+  });
+};
+
+export const removeMember = (req: Request, res: Response) => {
+  const { listId, userId } = req.params;
+
+  try {
+    db.transaction(() => {
+      db.prepare(
+        `DELETE FROM 'Shared List User' WHERE shared_list_id = ? AND user_id = ?`,
+      ).run(listId, userId);
+
+      db.prepare(
+        `DELETE FROM 'Shared List Progress' WHERE shared_list_id = ? AND user_id = ?`,
+      ).run(listId, userId);
+
+      db.prepare(
+        `DELETE FROM 'SharedListInvitation' WHERE shared_list_id = ? AND invited_user_id = ?`,
+      ).run(listId, userId);
+    })();
+
+    return res.status(200).json({ message: "Member removed" });
+  } catch (error) {
+    console.error(error);
+  }
+
+  return res.status(500).json({
+    message: "INTERNAL SERVER ERROR",
+  });
+};
+
+export const getPendingMembers = (req: Request, res: Response) => {
+  const { listId } = req.params;
+  if (!listId) {
+    return res.status(400).json({ message: "Missing params" });
+  }
+
+  try {
+    const sharedListPendingMembers = db
+      .prepare(
+        `
+        SELECT 
+          u.user_id as userId, 
+          u.username as username, 
+          u.avatar as avatar
+        FROM 'SharedListInvitation' i
+        JOIN 'User' u ON i.invited_user_id = u.user_id
+        WHERE i.shared_list_id = ? AND i.status = 'PENDING'
+        ORDER BY i.created_at DESC
+      `,
+      )
+      .all(listId) as InvitedUser[];
+
+    return res.status(200).json({
+      data: sharedListPendingMembers,
+    });
+  } catch (error) {
+    console.error(error);
+  }
+
+  return res.status(500).json({
+    message: "INTERNAL SERVER ERROR",
+  });
+};
+
+export interface SharedListInvitation {
+  sharedListId: number;
+  sharedListName: string;
+  senderUserId: number;
+  senderUsername: string;
+  senderAvatar: string;
+}
+
+export const getInvites = (req: Request, res: Response) => {
+  const userId = res.locals.userId;
+
+  try {
+    let sharedListsInfo: {
+      sharedList: SharedListInvitation;
+      members: SharedListMember[];
+    }[] = [];
+
+    const sharedLists = db
+      .prepare(
+        `
+        SELECT 
+          i.shared_list_id as sharedListId,
+          l.shared_list_name as sharedListName,
+          u.user_id as senderUserId,
+          u.username as senderUsername,
+          u.avatar as senderAvatar
+        FROM 'SharedListInvitation' i
+        JOIN 'Shared List' l ON i.shared_list_id = l.shared_list_id
+        JOIN 'User' u ON i.sender_user_id = u.user_id
+        WHERE i.invited_user_id = @userId
+          AND i.status = 'PENDING'
+        ORDER BY i.created_at DESC
+      `,
+      )
+      .all({ userId: userId }) as SharedListInvitation[];
+
+    sharedLists.forEach((list) => {
+      sharedListsInfo.push({
+        sharedList: list,
+        members: SharedList.findAllMembersByListId(list.sharedListId),
+      });
+    });
+
+    return res.status(200).json({ data: sharedListsInfo });
+  } catch (error) {
+    console.error(error);
+  }
   return res.status(500).json({
     message: "INTERNAL SERVER ERROR",
   });

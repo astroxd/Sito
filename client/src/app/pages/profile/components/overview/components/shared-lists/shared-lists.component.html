@@ -116,5 +116,11 @@
     @for (sharedList of sharedLists(); track $index) {
       <app-shared-list [sharedList]="sharedList" />
     }
+    @for (invitation of sharedListInvitations(); track $index) {
+      <app-shared-list-invitation
+        [invitation]="invitation"
+        (onAction)="reloadSharedListsAndInvites()"
+      />
+    }
   </div>
 </div>

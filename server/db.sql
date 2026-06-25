@@ -283,3 +283,22 @@ CREATE TABLE `Friendship` (
     
     CONSTRAINT check_status CHECK (`status` IN ('PENDING', 'ACCEPTED'))
 );
+
+
+CREATE TABLE `SharedListInvitation` (
+    `shared_list_id` INTEGER NOT NULL,
+    `sender_user_id` INTEGER NOT NULL,
+    `invited_user_id` INTEGER NOT NULL,
+    `status` TEXT NOT NULL DEFAULT 'PENDING',
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`shared_list_id`, `invited_user_id`),
+    
+    CONSTRAINT fk_invitation_list
+        FOREIGN KEY (`shared_list_id`) REFERENCES `Shared List`(`shared_list_id`) ON DELETE CASCADE,
+    CONSTRAINT fk_invitation_sender
+        FOREIGN KEY (`sender_user_id`) REFERENCES `User`(`user_id`) ON DELETE CASCADE,
+    CONSTRAINT fk_invitation_invited
+        FOREIGN KEY (`invited_user_id`) REFERENCES `User`(`user_id`) ON DELETE CASCADE,
+        
+    CONSTRAINT check_status CHECK (`status` IN ('PENDING', 'ACCEPTED'))
+);

@@ -1,65 +1,6 @@
-<div class="widget">
-  <div class="section-header">
-    <div class="section-title">
-      <h5>Friends</h5>
-    </div>
-    <button
-      class="primary-btn"
-      style="display: inline"
-      id="open-modal"
-      (click)="openModal()"
-    >
-      Add friend
-    </button>
-  </div>
-  <ol class="friend-container">
-    <div>Requests</div>
-    <div class="container">
-      @for (pending of pendingRequests(); track $index) {
-        <li>
-          <div>
-            <img [src]="pending.friendAvatar" [alt]="pending.friendUsername" />
-            <span>{{ pending.friendUsername }}</span>
-          </div>
-          <div>
-            @if (pending.isIncoming) {
-              <ion-button
-                color="success"
-                fill="clear"
-                (click)="acceptFriendRequest(pending.friendUserId)"
-                >Accept
-              </ion-button>
-              <ion-button
-                color="danger"
-                fill="clear"
-                (click)="declineFriendRequest(pending.friendUserId)"
-                >Decline
-              </ion-button>
-            } @else {
-              <ion-button color="warning" fill="clear" disabled>
-                Sent
-              </ion-button>
-            }
-          </div>
-        </li>
-      }
-    </div>
-  </ol>
-  <ol class="friend-container" style="margin-top: 6px">
-    <div>Friends</div>
-    <div class="container">
-      @for (friend of friends(); track $index) {
-        <li>
-          <div>
-            <img [src]="friend.friendAvatar" [alt]="friend.friendUsername" />
-            <span>{{ friend.friendUsername }}</span>
-          </div>
-        </li>
-      }
-    </div>
-  </ol>
-</div>
-
+<button class="primary-btn" id="open-modal" (click)="openModal()">
+  Add Member
+</button>
 <ion-modal>
   <ng-template>
     <ion-header>
@@ -83,16 +24,34 @@
       </ion-item>
 
       <ion-list>
-        @for (user of searchedUsers(); track $index) {
-          @let relation = friendsAndPendingMap().get(user.userId);
+        @for (friend of searchedFriends(); track $index) {
+          <!-- @let relation = friendsAndPendingMap().get(user.userId); -->
           <ion-item>
             <ion-avatar slot="start" style="margin-right: 8px">
-              <img [src]="user.avatar" [alt]="user.username" />
+              <img [src]="friend.friendAvatar" [alt]="friend.friendUsername" />
             </ion-avatar>
-            <ion-label>{{ user.username }}</ion-label>
-
+            <ion-label>{{ friend.friendUsername }}</ion-label>
             <div slot="end">
-              @if (relation) {
+              @if (sharedListMembers().has(friend.friendUserId)) {
+                <ion-button color="success" disabled>
+                  <!-- <ion-icon name="checkmark-done-outline" slot="start"></ion-icon> -->
+                  Already in
+                </ion-button>
+              } @else if (sharedListInvited().has(friend.friendUserId)) {
+                <ion-button color="warning" disabled>
+                  <!-- <ion-icon name="time-outline" slot="start"></ion-icon> -->
+                  Invited
+                </ion-button>
+              } @else {
+                <ion-button
+                  color="primary"
+                  (click)="invite(friend.friendUserId)"
+                >
+                  <!-- <ion-icon name="mail-open-outline" slot="start"></ion-icon> -->
+                  Invite
+                </ion-button>
+              }
+              <!-- @if (relation) {
                 @if (relation.status === "ACCEPTED") {
                   <ion-button color="success" fill="outline" disabled>
                     Friends
@@ -124,7 +83,7 @@
                 >
                   Add
                 </ion-button>
-              }
+              } -->
             </div>
           </ion-item>
         }

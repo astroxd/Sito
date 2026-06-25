@@ -28,10 +28,16 @@
           </div>
           <div class="list-actions">
             <div class="action">
-              <button class="primary-btn">
+              <app-add-member-button
+                [sharedListId]="listId"
+                [sharedListMembers]="sharedListMembersSet()"
+                [sharedListInvited]="invitedMembersSet()"
+                (onAdd)="getPendingMembers()"
+              />
+              <!-- <button class="primary-btn">
                 <span>icon</span>
                 Add Member
-              </button>
+              </button> -->
             </div>
             <div class="editor-buttons">
               <app-add-anime-button
@@ -169,7 +175,41 @@
                 </ion-avatar>
                 <ion-label>{{member.username}}</ion-label>
                 <span>{{member.totalEpisodes}}</span>
+                @if(member.id === authService.user()?.id){
+                <ion-button
+                  slot="end"
+                  style="margin-left: 1rem"
+                  (click)="removeMember(member.id)"
+                  >Leave</ion-button
+                >
+                }@else if(isOwner() ){
+                <ion-button slot="end" style="margin-left: 1rem" color="success"
+                  >Make Editor</ion-button
+                >
+                <ion-button
+                  slot="end"
+                  style="margin-left: 1rem"
+                  (click)="removeMember(member.id)"
+                  >Kick</ion-button
+                >
+                }
               </ion-item>
+              } @for (invited of invitedMembers(); track $index) {
+              <ion-item
+                [lines]="$index+1 === sharedList()?.members?.length ? 'none' : 'full'"
+              >
+                <ion-avatar>
+                  <img
+                    src="https://static.vecteezy.com/system/resources/thumbnails/032/176/191/small/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg"
+                    alt=""
+                  />
+                </ion-avatar>
+                <ion-label>{{invited.username}}</ion-label>
+                <ion-button slot="end" (click)="cancelInvite(invited.userId)">
+                  Cancel
+                </ion-button>
+              </ion-item>
+
               }
             </ion-list>
           </div>

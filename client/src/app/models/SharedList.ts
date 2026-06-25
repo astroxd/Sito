@@ -73,3 +73,19 @@ export interface SharedListAnimeProgress {
 export interface SharedListAnimeProgressResApi {
   data: SharedListAnimeProgress[];
 }
+
+export interface SharedListInvitation {
+  sharedList: {
+    sharedListId: number;
+    sharedListName: string;
+    senderUserId: number;
+    senderUsername: string;
+    senderAvatar: string;
+  };
+
+  members: SharedListMember[];
+}
+
+export interface SharedListInvitationResApi {
+  data: SharedListInvitation[];
+}

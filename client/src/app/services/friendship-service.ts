@@ -1,6 +1,10 @@
 import { inject, Injectable } from '@angular/core';
 import { APIService } from './apiservice';
-import { FoundUsersApiRes, FriendsResponse } from '../models/Friendship';
+import {
+  FoundUsersApiRes,
+  FriendsResponse,
+  FriendUsersApiRes,
+} from '../models/Friendship';
 
 @Injectable({
   providedIn: 'root',
@@ -15,6 +19,12 @@ export class FriendshipService {
   searchFriends(name = '', page = 1) {
     return this.apiService.get<FoundUsersApiRes>(
       `friends/search?q=${name}&page=${page}`,
+    );
+  }
+
+  searchAmongFriends(name = '', page = 1) {
+    return this.apiService.get<FriendUsersApiRes>(
+      `friends/my/search?q=${name}&page=${page}`,
     );
   }
 

@@ -1,10 +1,18 @@
 import db from "../config/database";
 import { Anime } from "./anime.model";
 
+export type SharedListRole = "OWNER" | "EDITOR" | "MEMBER";
+
 interface SharedListUser {
   sharedListId: number;
   userId: number;
-  role: number;
+  role: SharedListRole;
+}
+
+export interface InvitedUser {
+  userId: number;
+  username: string;
+  avatar: string;
 }
 
 export interface SharedList {
@@ -20,7 +28,7 @@ export interface SharedListMember {
   id: number;
   username: string;
   avatar: string;
-  role: number;
+  role: SharedListRole;
   totalEpisodes: number;
   length: number;
 }
@@ -85,6 +93,7 @@ export const SharedList = {
     userId: number,
     sharedListName: string,
     message?: string,
+    role: SharedListRole = "OWNER",
   ) => {
     const sharedListId = db
       .prepare(
@@ -94,7 +103,7 @@ export const SharedList = {
 
     db.prepare(
       "INSERT INTO 'Shared List User' (shared_list_id, user_id, role) VALUES (?, ?, ?)",
-    ).run(sharedListId, userId, 0);
+    ).run(sharedListId, userId, role);
   },
 
   findByListId: (listId: number, userId: number) => {
@@ -252,5 +261,18 @@ export const SharedList = {
         WHERE u.user_id = ?`,
       )
       .all(animeId, userId);
+  },
+
+  insertUser: (
+    listId: number,
+    userId: number,
+    role: SharedListRole = "MEMBER",
+  ) => {
+    db.prepare(
+      `
+        INSERT INTO 'Shared List User' (shared_list_id, user_id, role) 
+        VALUES (?, ?, ?)
+      `,
+    ).run(listId, userId, role);
   },
 };

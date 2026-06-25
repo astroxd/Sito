@@ -13,6 +13,7 @@ import { finalize, map, pipe, share, tap } from 'rxjs';
 import {
   SharedList,
   SharedListInfo,
+  SharedListInvitation,
   SharedListResApi,
 } from 'src/app/models/SharedList';
 import { APIService } from 'src/app/services/apiservice';
@@ -36,6 +37,7 @@ import {
 } from '@ionic/angular/standalone';
 import { OverlayEventDetail } from '@ionic/core/components';
 import { SharedListsService } from 'src/app/services/shared-lists-service';
+import { SharedListInvitationComponent } from './components/shared-list-invitation/shared-list-invitation.component';
 @Component({
   selector: 'app-profile-shared-lists',
   templateUrl: './shared-lists.component.html',
@@ -58,6 +60,7 @@ import { SharedListsService } from 'src/app/services/shared-lists-service';
     IonListHeader,
     IonAvatar,
     IonIcon,
+    SharedListInvitationComponent,
   ],
 })
 export class SharedListsComponent implements OnInit {
@@ -65,11 +68,13 @@ export class SharedListsComponent implements OnInit {
   private apiService = inject(APIService);
   private sharedListsService = inject(SharedListsService);
   sharedLists = signal<SharedListInfo[]>([]);
+  sharedListInvitations = signal<SharedListInvitation[]>([]);
 
   constructor() {
     effect(() => {
       if (this.authService.user()) {
         this.loadSharedList();
+        this.loadInvites();
       }
     });
   }
@@ -108,5 +113,17 @@ export class SharedListsComponent implements OnInit {
     });
   }
 
+  loadInvites() {
+    this.sharedListsService.loadInvites().subscribe((data) => {
+      console.log(data.data);
+      this.sharedListInvitations.set(data.data);
+    });
+  }
+
+  reloadSharedListsAndInvites() {
+    console.log('reload');
+    this.loadSharedList();
+    this.loadInvites();
+  }
   ngOnInit() {}
 }

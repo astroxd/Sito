@@ -2,6 +2,7 @@ export interface FriendUser {
   friendUserId: number;
   friendUsername: string;
   friendAvatar: string;
+  count?: number;
 }
 
 export type FriendshipRequestStatus = 'PENDING' | 'ACCEPTED';
@@ -22,6 +23,13 @@ export interface FoundUser {
 
 export interface FoundUsersApiRes {
   data: FoundUser[];
+  page: number;
+  perPage: number;
+  hasNextPage: boolean;
+}
+
+export interface FriendUsersApiRes {
+  data: FriendUser[];
   page: number;
   perPage: number;
   hasNextPage: boolean;

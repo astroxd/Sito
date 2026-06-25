@@ -5,6 +5,7 @@ export interface FriendUser {
   friendUserId: number;
   friendUsername: string;
   friendAvatar: string;
+  count?: number;
 }
 
 export type FriendshipRequestStatus = "PENDING" | "ACCEPTED";
@@ -65,6 +66,40 @@ export const getFriendsAndRequests = (req: Request, res: Response) => {
     console.error(error);
   }
 
+  return res.status(500).json({
+    message: "INTERNAL SERVER ERROR",
+  });
+};
+
+export const searchFriends = (req: Request, res: Response) => {
+  const userId = res.locals.userId;
+  console.log("SEARCGIN");
+  try {
+    const { q, page } = req.query;
+    const p = parseInt((page as string) ?? 1);
+    const offset = (p - 1) * perPage;
+
+    const friends = db
+      .prepare(
+        `
+        SELECT u.user_id as friendUserId, u.username as friendUsername, u.avatar as friendAvatar, COUNT(*) OVER() as count
+        FROM 'Friendship' f
+        JOIN 'User' u ON (u.user_id = f.user_id_1 OR u.user_id = f.user_id_2) AND u.user_id != @currentUserId
+        WHERE (f.user_id_1 = @currentUserId OR f.user_id_2 = @currentUserId) AND f.status = 'ACCEPTED'
+          AND u.username COLLATE UTF8_GENERAL_CI LIKE @query
+        LIMIT ?
+        OFFSET ?
+    `,
+      )
+      .all(perPage, offset, {
+        currentUserId: userId,
+        query: q + "%",
+      }) as FriendUser[];
+
+    return res.status(200).json({ data: friends });
+  } catch (error) {
+    console.error(error);
+  }
   return res.status(500).json({
     message: "INTERNAL SERVER ERROR",
   });

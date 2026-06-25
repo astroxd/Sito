@@ -1,5 +1,19 @@
+.section-header {
+  margin-bottom: 1rem;
+}
 .friend-container {
-  // margin-inline: 20px;
+  > div:first-child {
+    margin-bottom: 10px;
+    color: var(--text-secondary);
+    font-weight: 700;
+    border-bottom: 1px solid var(--text-secondary);
+    padding-block: 4px;
+  }
+
+  .container {
+    max-height: 10rem;
+    overflow-y: scroll;
+  }
 }
 
 .friend-container li {

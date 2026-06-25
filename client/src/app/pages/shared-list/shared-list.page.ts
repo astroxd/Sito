@@ -41,6 +41,8 @@ import {
 } from 'src/app/models/SharedList';
 import { SharedListsService } from 'src/app/services/shared-lists-service';
 import { AddAnimeButtonComponent } from './components/add-anime-button/add-anime-button.component';
+import { AddMemberButtonComponent } from './components/add-member-button/add-member-button.component';
+import { FoundUser } from 'src/app/models/Friendship';
 
 @Component({
   selector: 'app-shared-list',
@@ -68,10 +70,11 @@ import { AddAnimeButtonComponent } from './components/add-anime-button/add-anime
     IonButton,
     IonModal,
     AddAnimeButtonComponent,
+    AddMemberButtonComponent,
   ],
 })
 export class SharedListPage implements OnInit {
-  private authService = inject(AuthService);
+  authService = inject(AuthService);
   private apiService = inject(APIService);
   private sharedListsService = inject(SharedListsService);
   private activeRoute = inject(ActivatedRoute);
@@ -89,6 +92,12 @@ export class SharedListPage implements OnInit {
   //* Shared animes with progress of all member
   sharedListAnimes = signal<SharedListAnimeProgress[]>([]);
 
+  invitedMembers = signal<FoundUser[]>([]);
+
+  invitedMembersSet = computed(
+    () => new Set(this.invitedMembers().map((member) => member.userId)),
+  );
+
   sharedListAnimesSet = computed(
     () =>
       new Set(
@@ -96,6 +105,14 @@ export class SharedListPage implements OnInit {
           (animeProgress) => animeProgress.anime.animeId,
         ),
       ),
+  );
+
+  sharedListMembersSet = computed(
+    () => new Set(this.sharedList()?.members.map((member) => member.id)),
+  );
+
+  isOwner = computed(
+    () => this.sharedList()?.userId === this.authService.user()?.id,
   );
 
   constructor() {
@@ -127,6 +144,16 @@ export class SharedListPage implements OnInit {
         console.log(sharedList);
         this.sharedList.set(sharedList);
       });
+    this.getPendingMembers();
+  }
+
+  getPendingMembers() {
+    this.sharedListsService
+      .getPendingMembers(this.listId!)
+      .subscribe(({ data: data }) => {
+        console.log(data);
+        this.invitedMembers.set(data);
+      });
   }
 
   getSharedAnimesProgress() {
@@ -156,12 +183,44 @@ export class SharedListPage implements OnInit {
           console.log(val);
         }),
         finalize(() => {
-          this.getUserSharedAnimeProgress();
-          this.getSharedAnimesProgress();
+          this.loadData();
         }),
       )
       .subscribe((res: any) => {
         // this.userSharedAnimesProgress.set(res.data);
       });
+  }
+
+  removeMember(memberId: number) {
+    this.sharedListsService
+      .removeMember(this.listId!, memberId)
+      .pipe(
+        finalize(() => {
+          this.loadData();
+          this.loadSharedList();
+        }),
+      )
+      .subscribe();
+  }
+
+  cancelInvite(userId: number) {
+    this.sharedListsService
+      .cancelInvite(this.listId!, userId)
+      .pipe(
+        finalize(() => {
+          this.loadData();
+          this.loadSharedList();
+        }),
+      )
+      .subscribe();
+  }
+
+  leave() {
+    this.sharedListsService
+      .removeMember(this.listId!, this.authService.user()?.id!)
+      .subscribe();
+
+    // naviga al profilo
+    // Se l'owner quitta?
   }
 }
