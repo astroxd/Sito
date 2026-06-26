@@ -7,7 +7,7 @@ import {
 } from '../models/List';
 import { APIService } from './apiservice';
 import { tap } from 'rxjs';
-import { AnimeDetails } from './anime-details';
+
 import { AnimeDetail } from '../models/AnimeDetails';
 
 @Injectable({

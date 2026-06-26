@@ -2,7 +2,6 @@ import express from "express";
 import path from "node:path";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import db from "./config/database";
 import "dotenv/config";
 
 import globalRoutes from "./routes/index";
