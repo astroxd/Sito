@@ -75,10 +75,10 @@ import { FoundUser } from 'src/app/models/Friendship';
     IonLabel,
     IonList,
     IonAvatar,
-
     IonButton,
     AddAnimeButtonComponent,
     AddMemberButtonComponent,
+    IonButtons,
   ],
 })
 export class SharedListPage implements OnInit {
@@ -272,5 +272,17 @@ export class SharedListPage implements OnInit {
 
   focusOnInput(inputElement: HTMLInputElement) {
     inputElement.focus();
+  }
+
+  removeAnime(animeId: number) {
+    console.log(animeId);
+    this.sharedListsService
+      .removeAnimeFromSharedList(this.listId!, animeId)
+      .pipe(
+        finalize(() => {
+          this.loadData();
+        }),
+      )
+      .subscribe();
   }
 }

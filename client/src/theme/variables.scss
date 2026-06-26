@@ -70,6 +70,10 @@
   ion-input {
     --highlight-color-valid: var(--ion-color-primary);
   }
+
+  ion-button {
+    --color: var(--text-primary);
+  }
 }
 
 ion-grid {

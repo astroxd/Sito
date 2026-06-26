@@ -148,21 +148,14 @@
                   <span> No one started this anime yet </span>
                 </div>
                 }
+                <div class="anime-action">
+                  <ion-button (click)="removeAnime(animeProgress.anime.animeId)"
+                    >Remove</ion-button
+                  >
+                </div>
               </div>
             </ion-accordion>
             }
-            <!-- <ion-accordion>
-              <ion-item slot="header">
-                <ion-label>Second Accordion</ion-label>
-              </ion-item>
-              <div class="ion-padding" slot="content">Second Content</div>
-            </ion-accordion>
-            <ion-accordion>
-              <ion-item slot="header">
-                <ion-label>Third Accordion</ion-label>
-              </ion-item>
-              <div class="ion-padding" slot="content">Third Content</div>
-            </ion-accordion> -->
           </ion-accordion-group>
         </div>
       </ion-col>

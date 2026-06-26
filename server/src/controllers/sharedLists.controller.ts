@@ -383,8 +383,8 @@ export const addSharedAnime = (req: Request, res: Response) => {
       const userRole = SharedList.getUserRole(Number(listId), userId)?.role;
       console.log(userRole);
       if (!userRole || !["OWNER", "EDITOR"].includes(userRole)) {
-        return res.status(400).json({
-          error: "L'utente non ha i permessi per aggiungere l'anime",
+        return res.status(403).json({
+          message: "L'utente non ha i permessi per aggiungere l'anime",
         });
       }
       //* Aggiorna (upsert) la tabella Anime con i dettagli dell'anime
@@ -401,6 +401,36 @@ export const addSharedAnime = (req: Request, res: Response) => {
       SharedList.addSharedAnime(Number(listId), animeId);
     })();
     return res.status(200).json({ message: "Added" });
+  } catch (error) {
+    console.error(error);
+  }
+  return res.status(500).json({
+    message: "INTERNAL SERVER ERROR",
+  });
+};
+
+export const removeSharedAnime = (req: Request, res: Response) => {
+  const userId = res.locals.userId;
+
+  const { listId, animeId } = req.params;
+
+  if (!listId || !animeId) {
+    return res.status(400).json({ message: "MISSING PARAMS" });
+  }
+
+  try {
+    //* Ottieni Ruolo utente
+    const userRole = SharedList.getUserRole(Number(listId), userId)?.role;
+
+    if (!userRole || !["OWNER", "EDITOR"].includes(userRole)) {
+      return res.status(403).json({
+        message: "L'utente non ha i permessi per rimuover l'anime",
+      });
+    }
+
+    SharedList.deleteSharedAnime(Number(listId), Number(animeId));
+
+    return res.status(200).json({ message: "Anime Removed" });
   } catch (error) {
     console.error(error);
   }

@@ -115,6 +115,7 @@ export const trackWatchTime = (
   const addedMinutes = episodeDiff * episodeDuration;
 
   db.transaction(() => {
+    console.log(userId, addedMinutes);
     Statistics.updateUserTotalTime(userId, addedMinutes);
 
     Statistics.updateDailyWatchtime(userId, addedMinutes);

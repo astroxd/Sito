@@ -117,6 +117,12 @@ export class SharedListsService {
       .pipe();
   }
 
+  removeAnimeFromSharedList(sharedListId: number, animeId: number) {
+    return this.apiService.delete(
+      `shared-list/${sharedListId}/entrie/${animeId}`,
+    );
+  }
+
   getSharedListsWithAnimeId(animeId: number) {
     return this.apiService.get<{
       data: {

@@ -115,7 +115,7 @@ export const Statistics = {
         VALUES (?, DATE('now'), MAX(0, ?))
         ON CONFLICT(user_id, date) DO UPDATE SET watchtime = MAX(0, watchtime + ?)
       `,
-    ).run(userId, deltaMinutes);
+    ).run(userId, deltaMinutes, deltaMinutes);
   },
 
   updateUserGenres: (

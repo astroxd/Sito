@@ -17,6 +17,7 @@ import {
   removeMember,
   updateMemberRole,
   updateSharedListMessage,
+  removeSharedAnime,
 } from "../controllers/sharedLists.controller";
 
 const router = Router();
@@ -42,6 +43,8 @@ router.post(
 
 //* Aggiungi anime a lista condivisa
 router.post("/shared-list/:listId/entrie", addSharedAnime);
+//* Rimuovi anime da lista condivisa
+router.delete("/shared-list/:listId/entrie/:animeId", removeSharedAnime);
 
 //* Ritorna tutte le liste condivise dell'utente
 //* se l'anime è presente il campo "animeId" !== null

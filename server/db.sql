@@ -160,14 +160,16 @@ CREATE TABLE `Shared List Progress`(
         `user_id`,
         `anime_id`
     ),
-    CONSTRAINT fk_shared_list
-        FOREIGN KEY (`shared_list_id`) REFERENCES `Shared List`(`shared_list_id`) ON DELETE CASCADE,
- 
+   
     CONSTRAINT fk_user
         FOREIGN KEY (`user_id`) REFERENCES `User`(`user_id`) ON DELETE CASCADE,
     
     CONSTRAINT fk_anime
-        FOREIGN KEY (`anime_id`) REFERENCES `Anime`(`anime_id`) ON DELETE CASCADE
+        FOREIGN KEY (`anime_id`) REFERENCES `Anime`(`anime_id`) ON DELETE CASCADE,
+    
+    CONSTRAINT fk_shared_list_anime_composite
+        FOREIGN KEY (`shared_list_id`, `anime_id`) 
+        REFERENCES `Shared List Anime`(`shared_list_id`, `anime_id`) ON DELETE CASCADE
 );
 
 -- 3. Copia i dati dalla vecchia alla nuova

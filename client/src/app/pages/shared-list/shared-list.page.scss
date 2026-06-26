@@ -172,6 +172,15 @@
         }
       }
     }
+    .anime-action {
+      display: flex;
+      margin-top: 1rem;
+      justify-content: end;
+
+      ion-button {
+        --color: var(--text-primary);
+      }
+    }
   }
 }
 .no-results {

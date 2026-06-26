@@ -257,6 +257,17 @@ export const SharedList = {
       .run(listId, animeId).lastInsertRowid;
   },
 
+  deleteSharedAnime: (listId: number, animeId: number) => {
+    return db
+      .prepare(
+        `
+        DELETE FROM 'Shared List Anime'
+        WHERE shared_list_id = ? AND anime_id = ?
+      `,
+      )
+      .run(listId, animeId);
+  },
+
   findAllWithAnimeId: (animeId: number, userId: number) => {
     return db
       .prepare<
