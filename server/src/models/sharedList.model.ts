@@ -1,5 +1,6 @@
 import db from "../config/database";
 import { Anime } from "./anime.model";
+const serverUrl = "http://localhost:3001";
 
 export type SharedListRole = "OWNER" | "EDITOR" | "MEMBER";
 export type SharedListInvitationStatus = "PENDING" | "ACCEPTED";
@@ -82,7 +83,7 @@ export const SharedList = {
   },
 
   findAllMembersByListId: (listId: number) => {
-    return db
+    const foundMembers = db
       .prepare(
         `
             SELECT User.user_id as id, User.avatar, User.username, u.role, IFNULL(SUM(p.current_episode), 0) as totalEpisodes, COUNT(*) OVER() AS length 
@@ -96,6 +97,15 @@ export const SharedList = {
         `,
       )
       .all(listId) as SharedListMember[];
+
+    return foundMembers.map((member) => {
+      return {
+        ...member,
+        avatar: member.avatar
+          ? `${serverUrl}/static/avatar/${member.avatar}`
+          : `https://api.dicebear.com/9.x/initials/svg?seed=${member.username}`,
+      };
+    });
   },
 
   createWithUserId: (
@@ -159,7 +169,7 @@ export const SharedList = {
   },
 
   findAnimeProgress: (listId: number, animeId: number) => {
-    return db
+    const foundProgress = db
       .prepare(
         ` 
           SELECT User.username, User.avatar, p.current_episode as currentEpisode, p.anime_id as animeId, p.updated_at as updatedAt 
@@ -171,6 +181,14 @@ export const SharedList = {
           `,
       )
       .all({ listId, animeId }) as AnimeProgress[];
+    return foundProgress.map((member) => {
+      return {
+        ...member,
+        avatar: member.avatar
+          ? `${serverUrl}/static/avatar/${member.avatar}`
+          : `https://api.dicebear.com/9.x/initials/svg?seed=${member.username}`,
+      };
+    });
   },
 
   findUserAnimeProgressByAnimeId: (
@@ -382,7 +400,7 @@ export const SharedList = {
   },
 
   findAllInvitedUsers: (listId: number, status: SharedListInvitationStatus) => {
-    return db
+    const foundUsers = db
       .prepare(
         `
           SELECT 
@@ -396,13 +414,22 @@ export const SharedList = {
       `,
       )
       .all(listId, status) as InvitedUser[];
+
+    return foundUsers.map((user) => {
+      return {
+        ...user,
+        avatar: user.avatar
+          ? `${serverUrl}/static/avatar/${user.avatar}`
+          : `https://api.dicebear.com/9.x/initials/svg?seed=${user.username}`,
+      };
+    });
   },
 
   findAllUserInvitations: (
     userId: number,
     status: SharedListInvitationStatus,
   ) => {
-    return db
+    const foundInvitation = db
       .prepare(
         `
           SELECT 
@@ -420,6 +447,15 @@ export const SharedList = {
       `,
       )
       .all(userId, status) as SharedListInvitation[];
+
+    return foundInvitation.map((sender) => {
+      return {
+        ...sender,
+        senderAvatar: sender.senderAvatar
+          ? `${serverUrl}/static/avatar/${sender.senderAvatar}`
+          : `https://api.dicebear.com/9.x/initials/svg?seed=${sender.senderUsername}`,
+      };
+    });
   },
 
   updateUserRole: (listId: number, userId: number, role: SharedListRole) => {

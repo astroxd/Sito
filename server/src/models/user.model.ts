@@ -5,7 +5,7 @@ export interface User {
   email: string;
   username: string;
   password?: string;
-  avatar: string;
+  avatar?: string;
   banner?: string;
   created_on?: string;
   refresh_token?: string;
@@ -18,33 +18,66 @@ export interface FoundUser {
   count: number;
 }
 
+const serverUrl = "http://localhost:3001";
+
 export const User = {
   findByEmail: (email: string) => {
-    return db
+    const foundUser = db
       .prepare(
         "SELECT user_id AS id, email, username, avatar, banner FROM User WHERE email = ?",
       )
       .get(email) as User | undefined;
+
+    if (foundUser !== undefined) {
+      return {
+        ...foundUser,
+        avatar: foundUser.avatar
+          ? `${serverUrl}/static/avatar/${foundUser.avatar}`
+          : `https://api.dicebear.com/9.x/initials/svg?seed=${foundUser.username}`,
+      };
+
+      return foundUser;
+    }
   },
 
   findByUsername: (username: string) => {
-    return db
+    const foundUser = db
       .prepare(
         "SELECT user_id AS id, email, username, avatar, banner FROM User WHERE username = ?",
       )
       .get(username) as User | undefined;
+
+    if (foundUser !== undefined) {
+      return {
+        ...foundUser,
+        avatar: foundUser.avatar
+          ? `${serverUrl}/static/avatar/${foundUser.avatar}`
+          : `https://api.dicebear.com/9.x/initials/svg?seed=${foundUser.username}`,
+      };
+    }
+    return foundUser;
   },
 
   findByRefreshToken: (refreshToken: string) => {
-    return db
+    const foundUser = db
       .prepare(
         "SELECT user_id AS id, email, username, avatar, banner FROM User WHERE refresh_token = ?",
       )
       .get(refreshToken) as User | undefined;
+
+    if (foundUser !== undefined) {
+      return {
+        ...foundUser,
+        avatar: foundUser.avatar
+          ? `${serverUrl}/static/avatar/${foundUser.avatar}`
+          : `https://api.dicebear.com/9.x/initials/svg?seed=${foundUser.username}`,
+      };
+    }
+    return foundUser;
   },
 
   searchByUsername: (userId: number, username: string, perPage, offset = 0) => {
-    return db
+    const foundUsers = db
       .prepare(
         `
             SELECT u.user_id as userId, u.username, u.avatar, COUNT(*) OVER() as count
@@ -55,6 +88,15 @@ export const User = {
         `,
       )
       .all(userId, perPage, offset, { query: username + "%" }) as FoundUser[];
+
+    return foundUsers.map((user) => {
+      return {
+        ...user,
+        avatar: user.avatar
+          ? `${serverUrl}/static/avatar/${user.avatar}`
+          : `https://api.dicebear.com/9.x/initials/svg?seed=${user.username}`,
+      };
+    });
   },
 
   createUser: (
@@ -63,16 +105,16 @@ export const User = {
     username: string,
     avatar?: string,
   ) => {
-    if (!avatar) {
-      avatar = `https://api.dicebear.com/9.x/initials/svg?seed=${username}`;
-    }
+    // if (!avatar) {
+    //   avatar = `https://api.dicebear.com/9.x/initials/svg?seed=${username}`;
+    // }
 
     const result = db
       .prepare(
         `INSERT INTO User(email, password, username, avatar, banner)
                         VALUES(?,?,?,?,?)`,
       )
-      .run(email, password, username, avatar, "");
+      .run(email, password, username, avatar ?? null, "");
 
     return result.lastInsertRowid;
   },

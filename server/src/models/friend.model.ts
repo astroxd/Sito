@@ -1,4 +1,5 @@
 import db from "../config/database";
+const serverUrl = "http://localhost:3001";
 
 export interface FriendUser {
   friendUserId: number;
@@ -21,7 +22,7 @@ export interface FriendsResponse {
 
 export const Friendship = {
   findAllFriendship: (userId: number) => {
-    return db
+    const foundFriendship = db
       .prepare(
         `
             SELECT f.sender_user_id as senderUserId, f.status, u.user_id as friendUserId, u.username as friendUsername, u.avatar as friendAvatar 
@@ -31,6 +32,15 @@ export const Friendship = {
         `,
       )
       .all({ currentUserId: userId }) as FriendshipRecord[];
+
+    return foundFriendship.map((user) => {
+      return {
+        ...user,
+        friendAvatar: user.friendAvatar
+          ? `${serverUrl}/static/avatar/${user.friendAvatar}`
+          : `https://api.dicebear.com/9.x/initials/svg?seed=${user.friendUsername}`,
+      };
+    });
   },
 
   findFriendishipByName: (
@@ -40,7 +50,7 @@ export const Friendship = {
     perPage: number,
     offset = 0,
   ) => {
-    return db
+    const foundFriendship = db
       .prepare(
         `
             SELECT u.user_id as friendUserId, u.username as friendUsername, u.avatar as friendAvatar, COUNT(*) OVER() as count
@@ -59,6 +69,15 @@ export const Friendship = {
         limit: perPage,
         offset,
       }) as FriendUser[];
+
+    return foundFriendship.map((user) => {
+      return {
+        ...user,
+        friendAvatar: user.friendAvatar
+          ? `${serverUrl}/static/avatar/${user.friendAvatar}`
+          : `https://api.dicebear.com/9.x/initials/svg?seed=${user.friendUsername}`,
+      };
+    });
   },
 
   addFriend: (

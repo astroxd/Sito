@@ -38,6 +38,8 @@ import { AddMemberButtonComponent } from './components/add-member-button/add-mem
 import { FoundUser } from 'src/app/models/Friendship';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faEdit } from '@fortawesome/free-regular-svg-icons';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
+
 @Component({
   selector: 'app-shared-list',
   templateUrl: './shared-list.page.html',
@@ -69,6 +71,7 @@ export class SharedListPage implements OnInit {
   private activeRoute = inject(ActivatedRoute);
   private router = inject(Router);
   faEdit = faEdit;
+  faPlus = faPlus;
 
   onAdd = output();
 

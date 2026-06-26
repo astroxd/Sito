@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { TabsPage } from './tabs.page';
 import { AnimeDetailsPage } from '../pages/anime-details/anime-details.page';
 import { authGuard } from '../guards/auth-guard';
+import { sharedListGuard } from '../guards/shared-list-guard';
 
 export const routes: Routes = [
   {
@@ -82,7 +83,7 @@ export const routes: Routes = [
           import('../pages/shared-list/shared-list.page').then(
             (m) => m.SharedListPage,
           ),
-        canActivate: [authGuard],
+        canActivate: [authGuard, sharedListGuard],
       },
 
       {

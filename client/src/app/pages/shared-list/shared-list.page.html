@@ -72,7 +72,7 @@
                   [alt]="userProgress.animeTitle"
                 />
                 <button class="primary-btn" (click)="addEpisode(userProgress)">
-                  +
+                  <fa-icon [icon]="faPlus"></fa-icon>
                 </button>
               </div>
               <div class="anime-progress">
@@ -95,10 +95,10 @@
           }
         </div>
         <div class="anime-progress-container">
-          <ion-accordion-group [value]="['static-panel']" expand="inset">
+          <ion-accordion-group expand="inset">
             @for (animeProgress of sharedListAnimes(); track $index) {
 
-            <ion-accordion value="static-panel" [value]="$index">
+            <ion-accordion [value]="$index">
               <ion-item slot="header">
                 <img
                   [src]="animeProgress.anime.animeCover"
@@ -115,10 +115,7 @@
                   animeProgress.anime.animeEpisodes;
                   <li class="user-progress">
                     <div class="user-info">
-                      <img
-                        src="https://static.vecteezy.com/system/resources/thumbnails/032/176/191/small/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg"
-                        alt=""
-                      />
+                      <img [src]="progress.avatar" [alt]="progress.username" />
                       <span>{{progress.username}}</span>
                     </div>
                     <div class="progress">
@@ -138,12 +135,14 @@
                 <div class="no-results">
                   <span> No one started this anime yet </span>
                 </div>
-                }
+                } @if(isEditor() || isOwner()){
+
                 <div class="anime-action">
                   <ion-button (click)="removeAnime(animeProgress.anime.animeId)"
                     >Remove</ion-button
                   >
                 </div>
+                }
               </div>
             </ion-accordion>
             }
@@ -168,10 +167,8 @@
                 <ion-avatar>
                   <img [src]="member.avatar" [alt]="member.username" />
                 </ion-avatar>
-                <ion-label
-                  >{{member.username}}{{member.id === ownerId() ? '(OWNER)':
-                  ''}}</ion-label
-                >
+
+                <ion-label>{{member.username}} {{member.role}}</ion-label>
                 <span>{{member.totalEpisodes}}</span>
                 @if(member.id === authService.user()?.id){
                 <ion-button

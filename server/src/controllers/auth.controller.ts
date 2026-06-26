@@ -59,6 +59,7 @@ export const register = (req: Request, res: Response) => {
 
 export const login = (req: Request, res: Response) => {
   const { email, password } = req.body;
+
   if (!email || !password) {
     return res.status(400).json({ message: "Missing params" });
   }
@@ -89,6 +90,7 @@ export const login = (req: Request, res: Response) => {
 
     return res.status(200).json({
       user,
+
       accessToken: accessToken,
     });
   } catch (error) {
@@ -136,7 +138,9 @@ export const session = (req: Request, res: Response) => {
 
     if (!user) return res.sendStatus(401);
 
-    return res.json({ user });
+    return res.json({
+      user,
+    });
   } catch (error) {
     return res.status(401).json({ message: "Invalid Token" });
   }

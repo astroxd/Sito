@@ -64,7 +64,9 @@ export class AuthService {
     console.log('INIT SESSION');
     this.refreshToken().subscribe({
       next: () => this.loadUser(),
-      error: () => this.setUser(null),
+      error: () => {
+        (this.setUser(null), this.setToken(null));
+      },
     });
   }
 
@@ -122,6 +124,6 @@ export class AuthService {
   }
 
   isAuthenticated() {
-    return this.user() ? true : false;
+    return this.user() !== null && this.user() !== undefined;
   }
 }

@@ -49,6 +49,10 @@ export class RegisterPage implements OnInit {
     this.registerFormControl.resetForm();
   }
 
+  ngOnDestroy() {
+    this.registerFormControl.resetForm();
+  }
+
   onSubmit() {
     this.registerFormControl.register();
   }

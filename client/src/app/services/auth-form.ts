@@ -131,7 +131,7 @@ class LoginForm {
     },
     password: {
       required: 'La password è obbligatoria.',
-      minlength: 'La password deve contenere almeno 6 caratteri.',
+      minlength: 'La password deve contenere almeno 8 caratteri.',
       maxlength: 'La password non può superare i 50 caratteri.',
     },
   };

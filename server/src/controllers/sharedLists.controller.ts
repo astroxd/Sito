@@ -165,6 +165,10 @@ export const updateSharedUserProgress = (req: Request, res: Response) => {
     return res.status(400).json({ message: "Missing params" });
   }
 
+  if (SharedList.findByListId(Number(listId), userId) === undefined) {
+    return res.status(403).json({ message: "User not authorized" });
+  }
+
   try {
     db.transaction(() => {
       const watchedEpisode = User.findLastEpisodeWatchedByAnimeId(
@@ -581,9 +585,10 @@ export const updateMemberRole = (req: Request, res: Response) => {
   try {
     const requesterRole = SharedList.getUserRole(
       Number(listId),
-      Number(userId),
+      Number(currentUserId),
     )?.role;
 
+    console.log(requesterRole);
     if (requesterRole !== "OWNER") {
       return res
         .status(403)
