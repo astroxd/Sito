@@ -56,6 +56,9 @@ export class SearchPage {
 
   searchOptions = signal<SearchOptions | null>(null);
 
+  //* used to signal search bar to clean all the inputs
+  cleanupTrigger = signal<boolean>(false);
+
   //* sortOption and page are detached from options because i need to update them
   //* specifically in searchResultPage
   sortOption = signal(
@@ -105,5 +108,9 @@ export class SearchPage {
           });
       }
     });
+  }
+
+  ionViewDidLeave() {
+    this.cleanupTrigger.set(true);
   }
 }

@@ -28,14 +28,12 @@ import { NgClass } from '@angular/common';
     IonToolbar,
     IonTitle,
     IonButtons,
-
     IonButton,
     IonContent,
     IonSpinner,
     IonGrid,
     IonRow,
     IonCol,
-
     IonProgressBar,
     IonBadge,
     NgClass,
@@ -60,7 +58,6 @@ export class BadgesComponent implements OnInit {
 
   constructor() {
     this.apiService.get<UserBadgeResApi>('my-badges').subscribe((data) => {
-      console.log(data.data);
       this.badges.set(data.data);
 
       this.unlockedBadges.set(

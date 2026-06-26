@@ -23,9 +23,7 @@
     }
     @if (listedAnimesInfo().hasNextPage) {
       <div class="show-more">
-        <span (click)="searchAnimes('', listedAnimesInfo().page + 1)"
-          >Show More</span
-        >
+        <span (click)="loadMore()">Show More</span>
       </div>
     }
 

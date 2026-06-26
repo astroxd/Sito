@@ -7,7 +7,7 @@
         </div>
         <div class="order-by">
           <span>Order by:</span>
-          <select [formControl]="inputSort" [disabled]="isLoading()">
+          <select [formControl]="inputSort">
             @for (sort of sortOptions; track $index) {
             <option [value]="sort.name">{{ sort.showName }}</option>
             }

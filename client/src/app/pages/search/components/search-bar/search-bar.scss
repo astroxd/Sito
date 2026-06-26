@@ -51,10 +51,6 @@
   color: var(--text-primary);
 }
 
-/* .search-bar .search-bar-icon svg {
-  color: var(--text-primary);
-} */
-
 .search-bar .tags-menu {
   margin-top: 20px;
   display: flex;
@@ -63,7 +59,7 @@
   color: var(--active);
   font-size: 18px;
 }
-.search-bar .tags-menu > svg {
+.search-bar .tags-menu .ng-fa-icon:first-child {
   margin-right: 20px;
   margin-top: 6px;
 }

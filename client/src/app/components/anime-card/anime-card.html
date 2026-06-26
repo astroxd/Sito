@@ -22,7 +22,7 @@
   <div class="anime-card-image">
     <a [routerLink]="['/anime', anime()!.id]">
       <img
-        [src]=" anime()!.coverImage?.large "
+        [src]=" anime()!.coverImage.large "
         [alt]=" anime()!.title.english "
       />
       <div class="anime-card-image-overlay episodes">
@@ -30,7 +30,7 @@
         anime()!.nextAiringEpisode,anime()!.episodes)}}
       </div>
       <div class="anime-card-image-overlay view">
-        <!-- <fa-icon [icon]="faEye"></fa-icon> -->
+        <fa-icon [icon]="faEye"></fa-icon>
         {{ anime()!.popularity.toLocaleString('en-US') }}
       </div>
     </a>
@@ -45,7 +45,7 @@
     </ul>
     <h5 class="ellipsis">
       <a [routerLink]="['/anime', anime()!.id]">
-        {{ anime()!.title.english ?? anime()!.title.romaji ?? 'No Title' }}
+        {{ anime()!.title.english ?? anime()!.title.romaji }}
       </a>
     </h5>
   </div>

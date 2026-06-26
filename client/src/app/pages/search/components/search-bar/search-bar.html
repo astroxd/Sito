@@ -19,7 +19,7 @@
             [formControl]="inputSearch"
           />
           <button class="search-bar-icon" type="submit">
-            <ion-icon name="search-outline"></ion-icon>
+            <fa-icon [icon]="faSearch"></fa-icon>
           </button>
         </form>
       </ion-col>
@@ -62,26 +62,27 @@
       <div class="tags-menu">
         <ion-row>
           <ion-col>
+            <fa-icon [icon]="faTags"></fa-icon>
             <div class="tags-list">
               @for (genre of genres(); track $index) {
               <div class="tag no-hover" (click)="deleteGenre(genre)">
                 <span>{{ genre.showName }}</span>
-                <ion-icon name="close-outline"></ion-icon>
+                <fa-icon [icon]="faTimes"></fa-icon>
               </div>
               } @for (year of year(); track $index) {
               <div class="tag no-hover" (click)="deleteYear(year)">
                 <span>{{ year.showName }}</span>
-                <ion-icon name="close-outline"></ion-icon>
+                <fa-icon [icon]="faTimes"></fa-icon>
               </div>
               } @for (format of formats(); track $index) {
               <div class="tag no-hover" (click)="deleteFormat(format)">
                 <span>{{ format.showName }}</span>
-                <ion-icon name="close-outline"></ion-icon>
+                <fa-icon [icon]="faTimes"></fa-icon>
               </div>
               } @for (status of status(); track $index) {
               <div class="tag no-hover" (click)="deleteStatus(status)">
                 <span>{{ status.showName }}</span>
-                <ion-icon name="close-outline"></ion-icon>
+                <fa-icon [icon]="faTimes"></fa-icon>
               </div>
               }
             </div>

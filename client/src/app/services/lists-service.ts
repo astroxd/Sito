@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import {
   AnimeStatus,
   ListedAnime,
@@ -15,6 +15,12 @@ import { AnimeDetail } from '../models/AnimeDetails';
 })
 export class ListsService {
   private apiService = inject(APIService);
+
+  listShouldRefetch = signal(false);
+
+  setListShouldRefetech(value: boolean) {
+    this.listShouldRefetch.set(value);
+  }
 
   getListedAnimes(status: AnimeStatus, page = 1) {
     return this.apiService.get<ListedAnimeApiRes>(`lists/${status}/${page}`);

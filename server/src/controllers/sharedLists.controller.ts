@@ -305,9 +305,20 @@ export const updateSharedUserProgress = (req: Request, res: Response) => {
       }
       SharedList.updateAnimeLastActivity(Number(listId), Number(animeId));
 
-      // 4. AGGIORNAMENTO PROGRESSO PRIVATO DA SOLO (watchedEpisodes)
+      //* SE non è nella lista privata, aggiungo come ultimo episodio visto quello appena segnato
+      //* e aggiorno le statistiche
+      //* ALTRIMENTI update l'ultimo episodio visto e aggiorno la statistica di una sola puntata
       if (!watchedEpisode) {
-        User.insertAnimeIntoWatchedEpisodes(userId, Number(animeId));
+        User.insertAnimeIntoWatchedEpisodes(
+          userId,
+          Number(animeId),
+          newCurrentEpisode,
+        );
+        trackWatchTime(
+          userId,
+          newCurrentEpisode,
+          anime?.animeAvgEpisodeDuration!,
+        );
       } else {
         const lastWatchedPrivate = watchedEpisode?.lastEpisodeWatched || 0;
         if (lastWatchedPrivate < newCurrentEpisode) {
@@ -318,6 +329,8 @@ export const updateSharedUserProgress = (req: Request, res: Response) => {
             newCurrentEpisode,
           );
         }
+        //* Aggiornamento statistiche
+        trackWatchTime(userId, 1, anime?.animeAvgEpisodeDuration ?? 0);
       }
 
       // 5. GESTIONE STATI AUTOMATICA
@@ -345,8 +358,7 @@ export const updateSharedUserProgress = (req: Request, res: Response) => {
           }
         }
       }
-      //* Aggiornamento statistiche
-      trackWatchTime(userId, 1, anime?.animeAvgEpisodeDuration ?? 0);
+
       checkAndUnlockBadges(userId);
     })();
     return res.status(200).json({ message: "Updated Progress" });

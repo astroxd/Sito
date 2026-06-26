@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { APIService } from './apiservice';
-import { AuthService } from './auth-service';
+
 import {
   SharedList,
   SharedListAnimeProgressResApi,
@@ -12,9 +12,8 @@ import {
 } from '../models/SharedList';
 import { map, tap } from 'rxjs';
 import { Anime } from '../models/Anime';
-import { AnimeDetail } from '../models/AnimeDetails';
+
 import { FoundUser } from '../models/Friendship';
-import { list } from 'ionicons/icons';
 
 @Injectable({
   providedIn: 'root',
@@ -85,6 +84,13 @@ export class SharedListsService {
           console.log(val);
         }),
       );
+  }
+
+  updateUserAnimeProgress(sharedListId: number, animeId: number) {
+    return this.apiService.post(
+      `shared-list/${sharedListId}/progress/entrie/${animeId}`,
+      {},
+    );
   }
 
   addAnimeToSharedList(sharedListId: number, anime: Anime) {

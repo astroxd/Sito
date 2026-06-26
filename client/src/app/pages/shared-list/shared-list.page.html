@@ -1,15 +1,4 @@
-<!-- <ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>sharedList</ion-title>
-  </ion-toolbar>
-</ion-header> -->
-
 <ion-content class="ion-padding">
-  <!-- <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">sharedList</ion-title>
-    </ion-toolbar>
-  </ion-header> -->
   <div class="section-header page-header">
     <div class="section-title">
       <h4>{{sharedList()?.name}}</h4>
@@ -21,7 +10,9 @@
         <div class="leader-message-container widget">
           <div class="leader-message-header">
             <span>Leader Message</span>
-            <button (click)="focusOnInput(messageInput)">Icona</button>
+            <button class="primary-btn" (click)="focusOnInput(messageInput)">
+              <fa-icon [icon]="faEdit"></fa-icon>
+            </button>
           </div>
           <div class="leader-message-content">
             <input
@@ -175,10 +166,7 @@
               >
                 <span class="rank">{{`#${$index+1}`}}</span>
                 <ion-avatar>
-                  <img
-                    src="https://static.vecteezy.com/system/resources/thumbnails/032/176/191/small/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg"
-                    alt=""
-                  />
+                  <img [src]="member.avatar" [alt]="member.username" />
                 </ion-avatar>
                 <ion-label
                   >{{member.username}}{{member.id === ownerId() ? '(OWNER)':
@@ -225,10 +213,7 @@
                 [lines]="$index+1 === sharedList()?.members?.length ? 'none' : 'full'"
               >
                 <ion-avatar>
-                  <img
-                    src="https://static.vecteezy.com/system/resources/thumbnails/032/176/191/small/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg"
-                    alt=""
-                  />
+                  <img [src]="invited.avatar" [alt]="invited.username" />
                 </ion-avatar>
                 <ion-label>{{invited.username}}</ion-label>
                 <ion-button slot="end" (click)="cancelInvite(invited.userId)">

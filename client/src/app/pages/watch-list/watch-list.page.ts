@@ -32,7 +32,9 @@ import { KeepWatchingComponent } from './components/keep-watching/keep-watching.
 })
 export class WatchListPage implements OnInit {
   public readonly AnimeStatus = AnimeStatus;
-  constructor() {}
+  constructor() {
+    console.log('CONSTR');
+  }
 
   ngOnInit() {}
 }

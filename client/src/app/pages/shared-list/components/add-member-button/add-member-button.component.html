@@ -33,57 +33,17 @@
             <ion-label>{{ friend.friendUsername }}</ion-label>
             <div slot="end">
               @if (sharedListMembers().has(friend.friendUserId)) {
-                <ion-button color="success" disabled>
-                  <!-- <ion-icon name="checkmark-done-outline" slot="start"></ion-icon> -->
-                  Already in
-                </ion-button>
+                <ion-button color="success" disabled> Already in </ion-button>
               } @else if (sharedListInvited().has(friend.friendUserId)) {
-                <ion-button color="warning" disabled>
-                  <!-- <ion-icon name="time-outline" slot="start"></ion-icon> -->
-                  Invited
-                </ion-button>
+                <ion-button color="warning" disabled> Invited </ion-button>
               } @else {
                 <ion-button
                   color="primary"
                   (click)="invite(friend.friendUserId)"
                 >
-                  <!-- <ion-icon name="mail-open-outline" slot="start"></ion-icon> -->
                   Invite
                 </ion-button>
               }
-              <!-- @if (relation) {
-                @if (relation.status === "ACCEPTED") {
-                  <ion-button color="success" fill="outline" disabled>
-                    Friends
-                  </ion-button>
-                } @else if (relation.status === "PENDING") {
-                  @if (relation.isIncoming) {
-                    <ion-button
-                      color="success"
-                      fill="clear"
-                      (click)="acceptFriendRequest(user.userId)"
-                      >Accept
-                    </ion-button>
-                    <ion-button
-                      color="danger"
-                      fill="clear"
-                      (click)="declineFriendRequest(user.userId)"
-                      >Decline
-                    </ion-button>
-                  } @else {
-                    <ion-button color="warning" fill="clear" disabled>
-                      Sent
-                    </ion-button>
-                  }
-                }
-              } @else {
-                <ion-button
-                  color="primary"
-                  (click)="sendFriendRequest(user.userId)"
-                >
-                  Add
-                </ion-button>
-              } -->
             </div>
           </ion-item>
         }

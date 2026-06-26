@@ -1,12 +1,9 @@
 <a class="widget" [routerLink]="['/shared', sharedList().sharedList.id]">
   <span class="widget-title">{{ sharedList().sharedList.name }}</span>
-  <span class="widget-subtitle">Group Member</span>
+  <span class="widget-subtitle">Group Members</span>
   <div class="avatar-container">
     @for (member of sharedList().members; track $index) {
-      <img
-        src="https://static.vecteezy.com/system/resources/thumbnails/032/176/191/small/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg"
-        alt=""
-      />
+      <img [src]="member.avatar" [alt]="member.avatar" />
     }
     @if (sharedList().sharedListMembersNumber > 3) {
       <div class="stacked-avatar">
@@ -14,16 +11,13 @@
       </div>
     }
   </div>
-  <span class="widget-subtitle">Classifica Interna</span>
+  <span class="widget-subtitle">Leaderboard</span>
   <ol class="leaderboard-container">
     @for (member of sharedList().members; track $index) {
       @if ($index < 3) {
         <li>
           <span class="position">{{ $index + 1 }}</span>
-          <img
-            src="https://static.vecteezy.com/system/resources/thumbnails/032/176/191/small/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg"
-            alt=""
-          />
+          <img [src]="member.avatar" [alt]="member.avatar" />
           <span>{{ member.username }}</span>
         </li>
       }

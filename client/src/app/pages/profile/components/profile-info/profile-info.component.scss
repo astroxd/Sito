@@ -19,6 +19,16 @@
   align-items: center;
   position: relative;
   margin-block: 1rem;
+
+  .flex-container {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+
+    .primary-btn {
+      padding: 4px 15px;
+    }
+  }
 }
 
 .profile-info img {

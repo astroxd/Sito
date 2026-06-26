@@ -11,6 +11,7 @@ export interface SearchOptions {
   seasonYear?: string;
   format_in?: string[];
   status_in?: string;
+  season?: string;
 }
 
 export interface QueryOptions {

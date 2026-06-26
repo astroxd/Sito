@@ -69,7 +69,7 @@ export class TimeChartComponent implements OnInit {
         title: { display: true, text: 'Minutes' },
         ticks: {
           precision: 0,
-          stepSize: 20,
+          stepSize: 200,
         },
       },
     },

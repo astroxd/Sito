@@ -23,16 +23,19 @@
   color: var(--text-secondary);
 }
 .badge .badge-rank.bronze {
-  color: #cd7f32;
+  color: var(--bronze);
 }
 .badge .badge-rank.silver {
-  color: silver;
+  color: var(--silver);
 }
 .badge .badge-rank.gold {
-  color: gold;
+  color: var(--gold);
 }
 .badge .badge-rank.platinum {
-  color: #4ee2ec;
+  color: var(--platinum);
+}
+.badge .badge-rank.secret {
+  color: var(--secret);
 }
 
 /** Small devices (landscape phones, greater than 768px) */
@@ -95,20 +98,20 @@
     }
   }
   &.rank-bronze {
-    border-bottom: 4px solid #cd7f32;
+    border-bottom: 4px solid var(--bronze);
   }
   &.rank-silver {
-    border-bottom: 4px solid #c0c0c0;
+    border-bottom: 4px solid var(--silver);
   }
   &.rank-gold {
-    border-bottom: 4px solid #ffd700;
+    border-bottom: 4px solid var(--gold);
   }
   &.rank-platinum {
-    border-bottom: 4px solid #4ee2ec;
-    box-shadow: 0 0 8px rgba(229, 228, 226, 0.3);
+    border-bottom: 4px solid var(--platinum);
+    // box-shadow: 0 0 8px rgba(229, 228, 226, 0.3);
   }
   &.rank-secret {
-    border-bottom: 4px solid #a020f0;
+    border-bottom: 4px solid var(--secret);
   }
 }
 

@@ -23,16 +23,9 @@ import {
   IonInfiniteScroll,
   IonInfiniteScrollContent,
   IonAvatar,
-  IonIcon,
 } from '@ionic/angular/standalone';
 import { IonInfiniteScrollCustomEvent } from '@ionic/core';
-import {
-  debounceTime,
-  distinctUntilChanged,
-  finalize,
-  Subject,
-  tap,
-} from 'rxjs';
+import { debounceTime, distinctUntilChanged, finalize, Subject } from 'rxjs';
 import {
   FoundUser,
   FriendUser,
@@ -60,7 +53,6 @@ import { FriendshipService } from 'src/app/services/friendship-service';
     IonInfiniteScroll,
     IonInfiniteScrollContent,
     IonAvatar,
-    IonIcon,
   ],
   templateUrl: './friend-list.component.html',
   styleUrls: ['./friend-list.component.scss'],
@@ -144,7 +136,6 @@ export class FriendListComponent implements OnInit {
 
   loadFriendsAndRequest() {
     if (this.authService.user()) {
-      console.log('Loading');
       this.friendshipService.getFriends().subscribe(({ data }) => {
         console.log(data);
         this.pendingRequests.set(data.pending);
@@ -159,8 +150,6 @@ export class FriendListComponent implements OnInit {
     isNewQuery = false,
     infiniteEvent?: IonInfiniteScrollCustomEvent<void>,
   ) {
-    console.log(query);
-
     this.friendshipService.searchFriends(query.trim(), page).subscribe({
       next: ({ data, hasNextPage }) => {
         const foundUsers = data;
@@ -198,48 +187,28 @@ export class FriendListComponent implements OnInit {
   sendFriendRequest(newFriendId: number) {
     this.friendshipService
       .addFriend(newFriendId)
-      .pipe(
-        finalize(() => this.loadFriendsAndRequest()),
-        tap((res) => {
-          console.log(res.message);
-        }),
-      )
+      .pipe(finalize(() => this.loadFriendsAndRequest()))
       .subscribe();
   }
 
   acceptFriendRequest(senderUserId: number) {
     this.friendshipService
       .acceptFriend(senderUserId)
-      .pipe(
-        finalize(() => this.loadFriendsAndRequest()),
-        tap((res) => {
-          console.log(res.message);
-        }),
-      )
+      .pipe(finalize(() => this.loadFriendsAndRequest()))
       .subscribe();
   }
 
   declineFriendRequest(newFriendId: number) {
     this.friendshipService
       .declineFriend(newFriendId)
-      .pipe(
-        finalize(() => this.loadFriendsAndRequest()),
-        tap((res) => {
-          console.log(res.message);
-        }),
-      )
+      .pipe(finalize(() => this.loadFriendsAndRequest()))
       .subscribe();
   }
 
   removeFriend(friendId: number) {
     this.friendshipService
       .removeFriend(friendId)
-      .pipe(
-        finalize(() => this.loadFriendsAndRequest()),
-        tap((res) => {
-          console.log(res.message);
-        }),
-      )
+      .pipe(finalize(() => this.loadFriendsAndRequest()))
       .subscribe();
   }
 }

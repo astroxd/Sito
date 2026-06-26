@@ -4,9 +4,12 @@
       <h5>{{ sectionName() }}</h5>
     </div>
     <div class="section-button-all">
-      <a href="">
+      <a
+        [routerLink]="navigationTarget().url"
+        [queryParams]="navigationTarget().params"
+      >
         View All
-        <!-- <fa-icon [icon]="faLongArrowAltRight" /> -->
+        <fa-icon [icon]="faLongArrowAltRight" />
       </a>
     </div>
   </div>

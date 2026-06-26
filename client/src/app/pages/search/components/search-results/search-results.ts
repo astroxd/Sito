@@ -3,7 +3,7 @@ import { Component, computed, effect, input, model } from '@angular/core';
 import { AnimeCard } from '../../../../components/anime-card/anime-card';
 import { IonRow, IonCol, IonSpinner } from '@ionic/angular/standalone';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { SearchOption, SearchResultsData } from '../../../../models/Search';
+import { SearchResultsData } from '../../../../models/Search';
 import { sortOptions } from 'src/app/helpers/animeSearchOptions';
 @Component({
   selector: 'app-search-results',
@@ -31,6 +31,14 @@ export class SearchResults {
       if (this.inputSort.value !== parentValue) {
         //  emitEvent: false, valueChangesSubscription doesn't fire
         this.inputSort.setValue(parentValue, { emitEvent: false });
+      }
+    });
+
+    effect(() => {
+      if (this.isLoading()) {
+        this.inputSort.disable();
+      } else {
+        this.inputSort.enable();
       }
     });
 

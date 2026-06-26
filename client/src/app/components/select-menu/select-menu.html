@@ -12,21 +12,19 @@
         <span class="tag">{{ `+${selectedOptions().length - 1}` }}</span>
         }
       </div>
-      <!-- <fa-icon [icon]="faChevronDown" /> -->
+      <fa-icon [icon]="faChevronDown" />
     </div>
   </div>
   <div class="select-menu" [class]="showMenu() ? 'show' : ''">
     <ul>
       @for (option of options(); track $index) {
-      <li (click)="addToSelection(option)">{{ option.showName }}</li>
-      }
-      <!-- <li
-        [className]="this.selectedOptions().some((object) => object?.name === option.name) ? 'selected' : ''"
+      <li
         (click)="addToSelection(option)"
+        [class.selected]="isSelected(option.name)"
       >
         {{ option.showName }}
       </li>
-      } -->
+      }
     </ul>
   </div>
 </div>

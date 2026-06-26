@@ -24,7 +24,7 @@ export class GetAnimes {
           },
         }) => media,
       ),
-    ) as Observable<Anime>;
+    ) as Observable<Anime[]>;
   }
 
   GetTrendingNowAnimes() {

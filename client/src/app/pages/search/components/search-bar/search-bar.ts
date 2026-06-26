@@ -3,14 +3,13 @@ import {
   effect,
   inject,
   model,
+  OnDestroy,
   OnInit,
   signal,
   untracked,
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { IonRow, IonCol, IonIcon } from '@ionic/angular/standalone';
-import { addIcons } from 'ionicons';
-import { searchOutline, closeOutline } from 'ionicons/icons';
 
 import { SelectMenu } from '../../../../components/select-menu/select-menu';
 import {
@@ -26,10 +25,19 @@ import {
 } from '../../../../helpers/animeSearchOptions';
 import { SearchOption, SearchOptions } from '../../../../models/Search';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faSearch, faTags, faTimes } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-search-bar',
-  imports: [ReactiveFormsModule, SelectMenu, IonRow, IonCol, IonIcon],
+  imports: [
+    ReactiveFormsModule,
+    SelectMenu,
+    IonRow,
+    IonCol,
+    IonIcon,
+    FontAwesomeModule,
+  ],
   templateUrl: './search-bar.html',
   styleUrl: './search-bar.scss',
 })
@@ -55,19 +63,20 @@ export class SearchBar implements OnInit {
   formatOptions = formatOptions;
   statusOptions = statusOptions;
 
+  faSearch = faSearch;
+  faTags = faTags;
+  faTimes = faTimes;
+
   searchOptions = model<SearchOptions | null>({});
   page = model<number>(1);
   sort = model<string>(sortOptions[0].name);
   queryParamOptions = model({});
 
-  // searchModel = signal({
-  //   search: this.activatedRoute.snapshot.queryParamMap.get('query') ?? '',
-  // });
-
   inputSearch = new FormControl(
     this.activatedRoute.snapshot.queryParamMap.get('query') ?? '',
   );
-  // searchForm = form(this.searchModel);
+
+  cleanupTrigger = model<boolean>(false);
 
   onSubmit(event: Event) {
     event.preventDefault();
@@ -94,14 +103,22 @@ export class SearchBar implements OnInit {
   status = signal(
     getStatus(this.routeSnapshot.queryParamMap.get('status') || ''),
   );
+  season = signal(this.routeSnapshot.queryParamMap.get('season') || '');
 
   private firstRender = true;
   constructor() {
-    addIcons({ searchOutline, closeOutline });
-
     effect(() => {
       this.search();
       this.firstRender = false;
+    });
+    effect(() => {
+      if (this.cleanupTrigger()) {
+        console.log('CLEANUP');
+
+        this.season.set('');
+
+        this.cleanupTrigger.set(false);
+      }
     });
   }
 
@@ -125,6 +142,7 @@ export class SearchBar implements OnInit {
         this.year.set([]);
         this.formats.set([]);
         this.status.set([]);
+        this.season.set('');
         //* The signals update trigger the @search() function
       }
     });
@@ -136,11 +154,13 @@ export class SearchBar implements OnInit {
       seasonYear: this.year()[0]?.name ?? '',
       format_in: this.formats().map((option: any) => option.name),
       status_in: this.status()[0]?.name ?? '',
+      season: this.season(),
     };
 
     console.log(searchOptions);
 
     for (const [key, param] of Object.entries(searchOptions)) {
+      console.log(key, param);
       if (param.length <= 0) {
         delete searchOptions[key as keyof SearchOptions];
       }
@@ -164,6 +184,7 @@ export class SearchBar implements OnInit {
         .map((format) => format.name)
         .join(','),
       status: this.status()[0]?.name ?? '',
+      season: this.season(),
     };
 
     //* remove empty values, prevent url like query=&genres=&year=
@@ -176,6 +197,7 @@ export class SearchBar implements OnInit {
     //* resets page number when query changes or any filter is added/removed
     if (!this.firstRender) {
       this.page.set(1);
+      this.season.set('');
       // this.sort.set(sortOptions[0].name);
     }
     this.queryParamOptions.set(params);

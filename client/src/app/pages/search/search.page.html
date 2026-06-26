@@ -10,13 +10,14 @@
       <ion-title size="large">Search</ion-title>
     </ion-toolbar>
   </ion-header>
-  <!-- <section class="search-page"> -->
+
   <ion-grid>
     <app-search-bar
       [(searchOptions)]="searchOptions"
       [(sort)]="sortOption"
       [(page)]="page"
       [(queryParamOptions)]="paramOptions"
+      [(cleanupTrigger)]="cleanupTrigger"
     />
     <app-search-results
       [searchResults]="searchResults()"

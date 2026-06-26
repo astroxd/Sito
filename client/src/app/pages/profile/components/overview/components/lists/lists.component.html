@@ -7,8 +7,7 @@
       <div class="section-button-all">
         <a routerLink="/watchlist">
           View All
-          <!-- <fa-icon [icon]="faLongArrowAltRight" /> -->
-          <!-- <ion-icon name="arrowForwardOutline" /> -->
+          <fa-icon [icon]="faLongArrowAltRight" />
         </a>
       </div>
     </div>
@@ -25,7 +24,7 @@
         [class.active]="status() === AnimeStatus.Completed"
         (click)="status.set(AnimeStatus.Completed)"
       >
-        Completati
+        Completed
       </div>
       <div
         class="widget-navigation-item"
@@ -43,7 +42,7 @@
             : anime.lastEpisodeWatched / anime.animeEpisodes;
         <a [routerLink]="['/anime', anime.animeId]">
           <li class="list-anime">
-            <img [src]="anime.animeCover" alt="`${anime.animeTitle} image`" />
+            <img [src]="anime.animeCover" [alt]="`${anime.animeTitle} image`" />
             <div class="list-anime-info">
               <span class="list-anime-title ellipsis">{{
                 anime.animeTitle

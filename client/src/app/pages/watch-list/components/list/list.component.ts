@@ -6,14 +6,13 @@ import {
   OnInit,
   signal,
 } from '@angular/core';
-import { debounceTime, Subject, tap } from 'rxjs';
+import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import {
   AnimeStatus,
   ListedAnime,
   ListedAnimeApiRes,
 } from 'src/app/models/List';
 
-import { APIService } from 'src/app/services/apiservice';
 import { AuthService } from 'src/app/services/auth-service';
 import { IonRow, IonCol } from '@ionic/angular/standalone';
 import { AnimeCard } from 'src/app/components/anime-card/anime-card';
@@ -43,6 +42,8 @@ export class ListComponent implements OnInit {
   });
 
   private searchSubject = new Subject<string>();
+  private query = '';
+  private page = 1;
 
   constructor() {
     effect(() => {
@@ -51,9 +52,24 @@ export class ListComponent implements OnInit {
       }
     });
 
-    this.searchSubject.pipe(debounceTime(300)).subscribe((query) => {
-      this.searchAnimes(query);
+    effect(() => {
+      if (
+        this.listsService.listShouldRefetch() &&
+        this.status() === AnimeStatus.Completed
+      ) {
+        this.listsService.setListShouldRefetech(false);
+        this.page = 1;
+        this.searchAnimes(this.query, this.page, true);
+      }
     });
+
+    this.searchSubject
+      .pipe(debounceTime(300), distinctUntilChanged())
+      .subscribe((query) => {
+        this.query = query;
+        this.page = 1;
+        this.searchAnimes(query, 1, true);
+      });
   }
 
   ngOnInit() {}
@@ -61,19 +77,27 @@ export class ListComponent implements OnInit {
   onSearch(event: Event) {
     const query = (event.target as HTMLInputElement).value;
     this.searchSubject.next(query);
+    this.query = query;
+    this.page = 1;
   }
 
-  searchAnimes(query?: string, page = 1) {
+  searchAnimes(query = '', page = 1, isNewQuery = false) {
     this.listsService
       .searchAnimes(this.status(), query, page)
       .subscribe((res) => {
-        console.log(res);
-        if (page === 1) {
+        if (isNewQuery) {
           this.listedAnimes.set(res.data);
         } else {
-          this.listedAnimes.set([...this.listedAnimes(), ...res.data]);
+          this.listedAnimes.update((currentAnimes) => [
+            ...currentAnimes,
+            ...res.data,
+          ]);
         }
         this.listedAnimesInfo.set(res);
       });
+  }
+
+  loadMore() {
+    this.searchAnimes(this.query, ++this.page);
   }
 }

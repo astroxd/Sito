@@ -7,16 +7,12 @@ import {
   ViewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
-import { list } from 'ionicons/icons';
-import { finalize, map, pipe, share, tap } from 'rxjs';
+import { finalize } from 'rxjs';
 import {
-  SharedList,
   SharedListInfo,
   SharedListInvitation,
-  SharedListResApi,
 } from 'src/app/models/SharedList';
-import { APIService } from 'src/app/services/apiservice';
+
 import { AuthService } from 'src/app/services/auth-service';
 import { SharedListComponent } from './components/shared-list/shared-list.component';
 import {
@@ -29,13 +25,7 @@ import {
   IonContent,
   IonItem,
   IonInput,
-  IonList,
-  IonLabel,
-  IonListHeader,
-  IonAvatar,
-  IonIcon,
 } from '@ionic/angular/standalone';
-import { OverlayEventDetail } from '@ionic/core/components';
 import { SharedListsService } from 'src/app/services/shared-lists-service';
 import { SharedListInvitationComponent } from './components/shared-list-invitation/shared-list-invitation.component';
 @Component({
@@ -44,7 +34,6 @@ import { SharedListInvitationComponent } from './components/shared-list-invitati
   styleUrls: ['./shared-lists.component.scss'],
   imports: [
     FormsModule,
-    RouterLink,
     SharedListComponent,
     IonModal,
     IonHeader,
@@ -55,17 +44,11 @@ import { SharedListInvitationComponent } from './components/shared-list-invitati
     IonContent,
     IonItem,
     IonInput,
-    IonList,
-    IonLabel,
-    IonListHeader,
-    IonAvatar,
-    IonIcon,
     SharedListInvitationComponent,
   ],
 })
 export class SharedListsComponent implements OnInit {
   private authService = inject(AuthService);
-  private apiService = inject(APIService);
   private sharedListsService = inject(SharedListsService);
   sharedLists = signal<SharedListInfo[]>([]);
   sharedListInvitations = signal<SharedListInvitation[]>([]);
@@ -83,7 +66,15 @@ export class SharedListsComponent implements OnInit {
   name!: string;
   cancel() {
     this.modal.dismiss(null, 'cancel');
-    this.name = '';
+  }
+
+  async openModal() {
+    this.modal.present();
+
+    const dismiss = this.modal.onDidDismiss();
+    dismiss.finally(() => {
+      this.name = '';
+    });
   }
 
   confirm() {
@@ -96,15 +87,6 @@ export class SharedListsComponent implements OnInit {
         }),
       )
       .subscribe();
-
-    this.name = '';
-  }
-
-  onWillDismiss(event: CustomEvent<OverlayEventDetail>) {
-    if (event.detail.role === 'confirm') {
-      // this.message = `Hello, ${event.detail.data}!`;
-      console.log('testmodal' + this.name);
-    }
   }
 
   loadSharedList() {
@@ -121,7 +103,6 @@ export class SharedListsComponent implements OnInit {
   }
 
   reloadSharedListsAndInvites() {
-    console.log('reload');
     this.loadSharedList();
     this.loadInvites();
   }

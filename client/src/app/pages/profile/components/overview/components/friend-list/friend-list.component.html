@@ -76,6 +76,9 @@
           <ion-button (click)="cancel()">Cancel</ion-button>
         </ion-buttons>
         <ion-title class="ion-text-center">Search users</ion-title>
+        <ion-buttons slot="end">
+          <ion-button disabled style="opacity: 0">HIDDEN</ion-button>
+        </ion-buttons>
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
@@ -114,7 +117,6 @@
                       >Accept
                     </ion-button>
                     <ion-button
-                      color="danger"
                       fill="clear"
                       (click)="declineFriendRequest(user.userId)"
                       >Decline

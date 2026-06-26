@@ -6,15 +6,11 @@ import {
   OnInit,
   output,
   signal,
-  ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   IonContent,
-  IonHeader,
-  IonTitle,
-  IonToolbar,
   IonRow,
   IonGrid,
   IonCol,
@@ -25,26 +21,14 @@ import {
   IonLabel,
   IonList,
   IonAvatar,
-  IonModal,
-  IonButtons,
   IonButton,
 } from '@ionic/angular/standalone';
 import { AuthService } from 'src/app/services/auth-service';
-import { APIService } from 'src/app/services/apiservice';
-import {
-  debounceTime,
-  distinctUntilChanged,
-  finalize,
-  map,
-  share,
-  Subject,
-  tap,
-} from 'rxjs';
+import { finalize, tap } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   SharedList,
   SharedListAnimeProgress,
-  SharedListInfo,
   SharedListRole,
   SharedListUserProgress,
 } from 'src/app/models/SharedList';
@@ -52,7 +36,8 @@ import { SharedListsService } from 'src/app/services/shared-lists-service';
 import { AddAnimeButtonComponent } from './components/add-anime-button/add-anime-button.component';
 import { AddMemberButtonComponent } from './components/add-member-button/add-member-button.component';
 import { FoundUser } from 'src/app/models/Friendship';
-
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faEdit } from '@fortawesome/free-regular-svg-icons';
 @Component({
   selector: 'app-shared-list',
   templateUrl: './shared-list.page.html',
@@ -60,9 +45,6 @@ import { FoundUser } from 'src/app/models/Friendship';
   standalone: true,
   imports: [
     IonContent,
-    IonHeader,
-    IonTitle,
-    IonToolbar,
     CommonModule,
     FormsModule,
     IonRow,
@@ -78,15 +60,15 @@ import { FoundUser } from 'src/app/models/Friendship';
     IonButton,
     AddAnimeButtonComponent,
     AddMemberButtonComponent,
-    IonButtons,
+    FontAwesomeModule,
   ],
 })
 export class SharedListPage implements OnInit {
   authService = inject(AuthService);
-  private apiService = inject(APIService);
   private sharedListsService = inject(SharedListsService);
   private activeRoute = inject(ActivatedRoute);
   private router = inject(Router);
+  faEdit = faEdit;
 
   onAdd = output();
 
@@ -202,11 +184,8 @@ export class SharedListPage implements OnInit {
   }
 
   addEpisode(userProgress: SharedListUserProgress) {
-    this.apiService
-      .post(
-        `shared-list/${this.listId}/progress/entrie/${userProgress.animeId}`,
-        {},
-      )
+    this.sharedListsService
+      .updateUserAnimeProgress(this.listId!, userProgress.animeId)
       .pipe(
         tap((val) => {
           console.log(val);
@@ -215,9 +194,7 @@ export class SharedListPage implements OnInit {
           this.loadData();
         }),
       )
-      .subscribe((res: any) => {
-        // this.userSharedAnimesProgress.set(res.data);
-      });
+      .subscribe();
   }
 
   removeMember(memberId: number) {
