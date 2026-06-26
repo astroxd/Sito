@@ -12,6 +12,7 @@ import { User } from "../models/user.model";
 import { List, AnimeStatus } from "../models/list.model";
 import { Anime } from "../models/anime.model";
 import { trackWatchTime, updateGenreStats } from "./statistics.controller";
+import { checkAndUnlockBadges } from "./badge.controller";
 
 export const getSharedLists = (req: Request, res: Response) => {
   const userId = res.locals.userId;
@@ -344,8 +345,9 @@ export const updateSharedUserProgress = (req: Request, res: Response) => {
           }
         }
       }
-      // Aggiornamento statistiche
+      //* Aggiornamento statistiche
       trackWatchTime(userId, 1, anime?.animeAvgEpisodeDuration ?? 0);
+      checkAndUnlockBadges(userId);
     })();
     return res.status(200).json({ message: "Updated Progress" });
   } catch (error) {

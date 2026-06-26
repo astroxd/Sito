@@ -8,38 +8,27 @@
     </div>
   </div>
   <div class="badge-container">
-    <div class="badge">
-      <img
-        src="https://static.vecteezy.com/system/resources/thumbnails/032/176/191/small/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg"
-        alt=""
-      />
-      <span class="badge-name">Otaku</span>
-      <span class="badge-rank platinum">Platinum</span>
-    </div>
-    <div class="badge">
-      <img
-        src="https://static.vecteezy.com/system/resources/thumbnails/032/176/191/small/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg"
-        alt=""
-      />
-      <span class="badge-name">Otaku</span>
-      <span class="badge-rank gold">Gold</span>
-    </div>
-    <div class="badge">
-      <img
-        src="https://static.vecteezy.com/system/resources/thumbnails/032/176/191/small/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg"
-        alt=""
-      />
-      <span class="badge-name">Otaku</span>
-      <span class="badge-rank silver">Silver</span>
-    </div>
-    <div class="badge">
-      <img
-        src="https://static.vecteezy.com/system/resources/thumbnails/032/176/191/small/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg"
-        alt=""
-      />
-      <span class="badge-name">Otaku</span>
-      <span class="badge-rank bronze">Bronze</span>
-    </div>
+    @for (badge of unlockedBadges(); track badge.id) {
+      <div class="badge">
+        <img
+          [src]="badge.imageUrl"
+          [alt]="badge.title"
+          [class]="badge.unlocked ? '' : 'locked'"
+        />
+        <span class="badge-title">{{ badge.title }}</span>
+        <span
+          class="badge-rank"
+          [ngClass]="{
+            bronze: badge.highestRankUnlocked === 'BRONZE',
+            silver: badge.highestRankUnlocked === 'SILVER',
+            gold: badge.highestRankUnlocked === 'GOLD',
+            platinum: badge.highestRankUnlocked === 'PLATINUM',
+            secret: badge.highestRankUnlocked === 'SECRET' && badge.isSecret,
+          }"
+          >{{ badge.highestRankUnlocked }}</span
+        >
+      </div>
+    }
   </div>
 </div>
 
@@ -47,12 +36,12 @@
   <ng-template>
     <ion-header>
       <ion-toolbar>
-        <ion-title>I tuoi Badge</ion-title>
+        <ion-buttons slot="start">
+          <ion-button (click)="cancel()"> cancel </ion-button>
+        </ion-buttons>
+        <ion-title class="ion-text-center">Your Badges</ion-title>
         <ion-buttons slot="end">
-          <ion-button (click)="cancel()">
-            cancel
-            <!-- <ion-icon slot="icon-only" name="close"></ion-icon> -->
-          </ion-button>
+          <ion-button disabled="true" style="opacity: 0">HIDDEN</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -60,7 +49,7 @@
     <ion-content class="ion-padding">
       @if (isLoading()) {
         <div class="ion-text-center ion-padding">
-          <ion-spinner color="danger"></ion-spinner>
+          <ion-spinner></ion-spinner>
           <p>Sintonizzando i server di Crunchyroll...</p>
         </div>
       } @else {
@@ -68,43 +57,32 @@
           <ion-row>
             @for (badge of badges(); track badge.id) {
               <ion-col size="6" size-md="4">
-                <ion-card
-                  [classList]="{
+                <div
+                  class="badge-card"
+                  [ngClass]="{
                     'badge-locked': !badge.unlocked,
-                    'badge-secret': badge.isSecret && !badge.unlocked,
                     'rank-bronze': badge.highestRankUnlocked === 'BRONZE',
                     'rank-silver': badge.highestRankUnlocked === 'SILVER',
                     'rank-gold': badge.highestRankUnlocked === 'GOLD',
                     'rank-platinum': badge.highestRankUnlocked === 'PLATINUM',
-                    'rank-secret': badge.highestRankUnlocked === 'SECRET',
+                    'rank-secret':
+                      badge.highestRankUnlocked === 'SECRET' && badge.isSecret,
                   }"
                 >
-                  <ion-card-content class="ion-text-center">
-                    <div class="badge-icon-container">
-                      @if (badge.isSecret && !badge.unlocked) {
-                        <!-- <ion-icon
-                          name="help-circle-outline"
-                          class="badge-icon text-muted"
-                        ></ion-icon> -->
-                        <span>test</span>
-                      } @else {
-                        <!-- <ion-icon name="trophy" class="badge-icon"></ion-icon> -->
-                        <span>immagine</span>
-                      }
-                    </div>
-
-                    <ion-card-title class="badge-title">{{
-                      badge.title
-                    }}</ion-card-title>
-                    <p class="badge-description ion-hide-sm-down">
+                  <div class="badge-content">
+                    <span class="badge-title">{{ badge.title }}</span>
+                    <img
+                      class="badge-img"
+                      [src]="badge.imageUrl"
+                      [alt]="badge.title"
+                    />
+                    <p class="badge-description ellipsis">
                       {{ badge.description }}
                     </p>
-
                     @if (badge.nextRank) {
-                      <div class="progress-container ion-margin-top">
+                      <div class="progress-container">
                         <ion-progress-bar
                           [value]="badge.progressPercentage / 100"
-                          color="danger"
                         ></ion-progress-bar>
                         <div class="progress-text">
                           {{ badge.currentValue }}/{{ badge.nextRankThreshold }}
@@ -115,8 +93,8 @@
                         >MAX</ion-badge
                       >
                     }
-                  </ion-card-content>
-                </ion-card>
+                  </div>
+                </div>
               </ion-col>
             }
           </ion-row>

@@ -9,32 +9,29 @@
   align-items: center;
 }
 
-.badge img {
-  width: 128px;
-  margin-bottom: 1rem;
+.badge img.locked {
+  filter: grayscale(100%);
+  opacity: 0.4;
 }
 
-.badge .badge-name {
-  font-size: 20px;
+.badge .badge-title {
+  text-align: center;
+  font-size: 14px;
 }
 .badge .badge-rank {
   font-size: 14px;
   color: var(--text-secondary);
 }
 .badge .badge-rank.bronze {
-  font-size: 14px;
   color: #cd7f32;
 }
 .badge .badge-rank.silver {
-  font-size: 14px;
   color: silver;
 }
 .badge .badge-rank.gold {
-  font-size: 14px;
   color: gold;
 }
 .badge .badge-rank.platinum {
-  font-size: 14px;
   color: #4ee2ec;
 }
 
@@ -45,86 +42,73 @@
   }
 }
 
-ion-card {
-  margin: 4px;
-  border-radius: 12px;
+.badge-card {
   background-color: var(--bg-ternary);
-}
+  border-radius: 12px;
+  height: 18rem;
+  margin-bottom: calc(0.75rem * 2);
 
-// 🎯 Gestione dell'immagine del badge
-.badge-image-container {
-  width: 70px;
-  height: 70px;
-  margin: 10px auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  &.badge-locked {
+    .badge-img {
+      filter: grayscale(100%);
+      opacity: 0.4;
+    }
+  }
 
-  .badge-img {
-    width: 100%;
+  .badge-content {
     height: 100%;
-    object-fit: contain; // Mantiene le proporzioni dell'immagine senza tagliarla
-    border-radius: 50%; // Rende l'immagine tonda se vuoi un effetto medaglia
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 12px 6px;
+
+    .badge-title {
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .badge-img {
+      width: 100%;
+      object-fit: contain;
+      border-radius: 50%;
+    }
+
+    .badge-description {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: normal;
+    }
+    .progress-container {
+      width: 100%;
+      ion-progress-bar {
+        border-radius: 50px;
+      }
+
+      .progress-text {
+        font-size: 12px;
+        margin-top: 2px;
+        color: var(--text-primary);
+        text-align: center;
+      }
+    }
   }
-}
-
-.badge-title {
-  font-size: 0.95rem !important;
-  font-weight: bold;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.badge-description {
-  font-size: 0.75rem;
-  color: var(--ion-color-step-600);
-  margin-top: 4px;
-  min-height: 32px;
-}
-
-// 🔒 EFFETTO BIANCO E NERO SULLE IMMAGINI BLOCCATE
-.badge-locked {
-  .badge-img {
-    filter: grayscale(100%); // Trasforma l'immagine del badge in bianco e nero
-    opacity: 0.4; // La rende semi-trasparente
+  &.rank-bronze {
+    border-bottom: 4px solid #cd7f32;
   }
-}
-
-// 🕵️‍♂️ Sfondo zebrato per i badge segreti bloccati
-.badge-secret {
-  background: repeating-linear-gradient(
-    45deg,
-    rgba(0, 0, 0, 0.01),
-    rgba(0, 0, 0, 0.01) 10px,
-    rgba(0, 0, 0, 0.03) 10px,
-    rgba(0, 0, 0, 0.03) 20px
-  );
-}
-
-// Bordi colorati in basso alla card in base al Rank per dare un tocco di luce
-.rank-bronze {
-  border-bottom: 4px solid #cd7f32;
-}
-.rank-silver {
-  border-bottom: 4px solid #c0c0c0;
-}
-.rank-gold {
-  border-bottom: 4px solid #ffd700;
-}
-.rank-platinum {
-  border-bottom: 4px solid #e5e4e2;
-  box-shadow: 0 0 8px rgba(229, 228, 226, 0.3);
-}
-.rank-secret {
-  border-bottom: 4px solid #a020f0;
-}
-
-.progress-container {
-  .progress-text {
-    font-size: 0.7rem;
-    margin-top: 2px;
-    color: var(--ion-color-step-500);
+  &.rank-silver {
+    border-bottom: 4px solid #c0c0c0;
+  }
+  &.rank-gold {
+    border-bottom: 4px solid #ffd700;
+  }
+  &.rank-platinum {
+    border-bottom: 4px solid #4ee2ec;
+    box-shadow: 0 0 8px rgba(229, 228, 226, 0.3);
+  }
+  &.rank-secret {
+    border-bottom: 4px solid #a020f0;
   }
 }
 

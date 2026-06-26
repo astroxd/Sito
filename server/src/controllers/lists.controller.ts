@@ -4,6 +4,7 @@ import { Anime } from "../models/anime.model";
 import db from "../config/database";
 import { User } from "../models/user.model";
 import { trackWatchTime, updateGenreStats } from "./statistics.controller";
+import { checkAndUnlockBadges } from "./badge.controller";
 
 const perPage = 6;
 
@@ -149,8 +150,11 @@ export const addAnimeToList = (req: Request, res: Response) => {
           ? genres.map((g: string) => g.trim())
           : [];
 
-        // Incrementiamo i generi dell'utente (+1)
+        //* Aumento il count dei generi dell'anime appena finito
         updateGenreStats(userId, genresArray, "INCREMENT");
+
+        //* Controllo se ha sbloccato dei badge
+        checkAndUnlockBadges(userId);
       }
 
       //* Aggiungo l'anime in watched Episodes perché così mi spunta sul profilo,
@@ -202,6 +206,7 @@ export const updateAnimeList = (req: Request, res: Response) => {
           );
         }
 
+        //* Aumento il count dei generi dell'anime appena finito
         updateGenreStats(userId, genresArray, "INCREMENT");
       } else if (
         animeStatus === AnimeStatus.Watching &&
@@ -216,9 +221,12 @@ export const updateAnimeList = (req: Request, res: Response) => {
             animeInfo.animeAvgEpisodeDuration,
           );
         }
+        //* Abbasso il count dei generi dell'anime appena
         updateGenreStats(userId, genresArray, "DECREMENT");
       }
 
+      //* Controllo se ha sbloccato dei badge
+      checkAndUnlockBadges(userId);
       List.updateAnimeStatus(userId, animeId, animeStatus);
     })();
 
@@ -354,7 +362,6 @@ export const updateUserProgress = (req: Request, res: Response) => {
       return res.status(200).json({ message: "Already completed or in par" });
     }
 
-    // Usiamo una transazione per essere sicuri che entrambi gli update vadano a buon fine insieme
     db.transaction(() => {
       if (anime.animeAvgEpisodeDuration) {
         trackWatchTime(userId, 1, anime.animeAvgEpisodeDuration);
@@ -373,6 +380,8 @@ export const updateUserProgress = (req: Request, res: Response) => {
       } else if (privateAnime?.status !== AnimeStatus.Completed) {
         calculatedStatus = AnimeStatus.Watching;
       }
+      checkAndUnlockBadges(userId);
+
       List.updateAnimeStatus(userId, Number(animeId), calculatedStatus!);
     })();
 
@@ -381,13 +390,12 @@ export const updateUserProgress = (req: Request, res: Response) => {
       currentEpisode: newCurrentEpisode,
     });
   } catch (error) {
-    console.error("Errore aggiornamento progresso privato:", error);
+    console.error(error);
     return res.status(500).json({ message: "INTERNAL SERVER ERROR" });
   }
 };
 
 export const syncAnime = (req: Request, res: Response) => {
-  const userId = res.locals.userId;
   const { anime } = req.body;
   if (!anime) {
     return res.status(400).json({ message: "Missing Params" });
@@ -396,17 +404,16 @@ export const syncAnime = (req: Request, res: Response) => {
   try {
     const { id, idMal, title, coverImage, episodes, duration, genres } = anime;
 
-    db.transaction(() => {
-      Anime.animeUpsert({
-        animeId: id,
-        animeMalId: idMal,
-        animeTitle: title,
-        animeCover: coverImage,
-        animeEpisodes: episodes,
-        animeAvgEpisodeDuration: duration,
-        animeGenres: Array.isArray(genres) ? genres.join(",") : "",
-      });
-    })();
+    Anime.animeUpsert({
+      animeId: id,
+      animeMalId: idMal,
+      animeTitle: title,
+      animeCover: coverImage,
+      animeEpisodes: episodes,
+      animeAvgEpisodeDuration: duration,
+      animeGenres: Array.isArray(genres) ? genres.join(",") : "",
+    });
+
     return res.status(200).json({ message: "Anime Sync" });
   } catch (error) {
     console.log(error);
@@ -458,6 +465,8 @@ export const updateLastWatchedEpisode = (req: Request, res: Response) => {
         List.updateAnimeStatus(userId, Number(animeId), AnimeStatus.Completed);
         updateGenreStats(userId, genresArray, "INCREMENT");
       }
+
+      checkAndUnlockBadges(userId);
     })();
 
     return res.status(200).json({ message: "Updated" });

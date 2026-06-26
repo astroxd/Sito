@@ -5,6 +5,7 @@ export interface UserBadge {
   title: string;
   description: string;
   category: 'GENRE' | 'TIME' | 'SPECIAL';
+  image: string;
   imageUrl: string;
   isSecret: boolean;
   unlocked: boolean;

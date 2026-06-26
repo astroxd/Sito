@@ -1,9 +1,11 @@
 import express from "express";
-import Database, { RunResult, SqliteError } from "better-sqlite3";
+import path from "node:path";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import db from "./config/database";
 import "dotenv/config";
+
+import globalRoutes from "./routes/index";
 
 const app = express();
 
@@ -16,6 +18,8 @@ app.use(
     credentials: true,
   }),
 );
+
+app.use("/static", express.static(path.join(__dirname, "..", "static")));
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
@@ -40,8 +44,6 @@ app.get("/user/:userId", (req, res) => {
   console.log("Get User: ", user);
   res.send({ user: user });
 });
-
-import globalRoutes from "./routes/index";
 
 app.use("/", globalRoutes);
 
