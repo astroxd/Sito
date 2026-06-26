@@ -1,36 +1,56 @@
+@if(listedAnime()){
 <div class="anime-card">
   <div class="anime-card-image">
-    <a href="">
-      <img src="{{ anime().coverImage?.large }}" alt="{{ anime().title }}" />
+    <a [routerLink]="['/anime', listedAnime()!.animeId]">
+      <img
+        [src]="listedAnime()!.animeCover"
+        [alt]="listedAnime()!.animeTitle"
+      />
+    </a>
+  </div>
+  <div class="anime-card-text">
+    <h5 class="ellipsis">
+      <a [routerLink]="['/anime', listedAnime()!.animeId]">
+        {{ listedAnime()!.animeTitle}}
+      </a>
+    </h5>
+  </div>
+</div>
+
+}@else if (anime()) {
+<div class="anime-card">
+  <div class="anime-card-image">
+    <a [routerLink]="['/anime', anime()!.id]">
+      <img
+        [src]=" anime()!.coverImage.large "
+        [alt]=" anime()!.title.english "
+      />
       <div class="anime-card-image-overlay episodes">
-        {{
-          (anime().status === 'FINISHED'
-            ? (anime().episodes ?? '?')
-            : (anime().nextAiringEpisode?.episode ?? '?')) +
-            ' / ' +
-            (anime().episodes ?? '?')
-        }}
+        {{ getEpisodes(anime()!.status,
+        anime()!.nextAiringEpisode,anime()!.episodes)}}
       </div>
       <div class="anime-card-image-overlay view">
         <fa-icon [icon]="faEye"></fa-icon>
-        {{ anime().popularity }}
+        {{ anime()!.popularity.toLocaleString('en-US') }}
       </div>
     </a>
   </div>
   <div class="anime-card-text">
     <ul>
-      @if (anime().genres) {
-        @for (genre of anime().genres; track $index) {
-          <li>
-            <a href="">{{ genre }}</a>
-          </li>
-        }
-      }
+      @if (anime()!.genres) { @for (genre of anime()!.genres; track $index) {
+      <li>
+        <a [routerLink]="['/search']" [queryParams]="{genres: genre}"
+          >{{ genre }}</a
+        >
+      </li>
+      } }
     </ul>
-    <h5>
-      <a href="">
-        {{ anime().title.english ?? anime().title.romaji ?? 'No Title' }}
+    <h5 class="ellipsis">
+      <a [routerLink]="['/anime', anime()!.id]">
+        {{ anime()!.title.english ?? anime()!.title.romaji }}
       </a>
     </h5>
   </div>
 </div>
+
+}

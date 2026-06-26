@@ -1,0 +1,58 @@
+<button class="primary-btn" id="open-modal" (click)="openModal()">
+  Add Member
+</button>
+<ion-modal>
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-button (click)="cancel()">Cancel</ion-button>
+        </ion-buttons>
+        <ion-title class="ion-text-center">Search Friends</ion-title>
+        <ion-buttons slot="end">
+          <ion-button disabled style="opacity: 0">HIDDEN</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <ion-item>
+        <ion-input
+          label="Enter Friend Name"
+          labelPlacement="stacked"
+          type="text"
+          placeholder="Do you have friends?"
+          [(ngModel)]="name"
+          (input)="onSearch($event)"
+        ></ion-input>
+      </ion-item>
+
+      <ion-list>
+        @for (friend of searchedFriends(); track $index) {
+          <ion-item>
+            <ion-avatar slot="start" style="margin-right: 8px">
+              <img [src]="friend.friendAvatar" [alt]="friend.friendUsername" />
+            </ion-avatar>
+            <ion-label>{{ friend.friendUsername }}</ion-label>
+            <div slot="end">
+              @if (sharedListMembers().has(friend.friendUserId)) {
+                <ion-button color="success" disabled> Already in </ion-button>
+              } @else if (sharedListInvited().has(friend.friendUserId)) {
+                <ion-button color="warning" disabled> Invited </ion-button>
+              } @else {
+                <ion-button
+                  color="primary"
+                  (click)="invite(friend.friendUserId)"
+                >
+                  Invite
+                </ion-button>
+              }
+            </div>
+          </ion-item>
+        }
+      </ion-list>
+      <ion-infinite-scroll (ionInfinite)="onIonInfinite($event)">
+        <ion-infinite-scroll-content></ion-infinite-scroll-content>
+      </ion-infinite-scroll>
+    </ion-content>
+  </ng-template>
+</ion-modal>

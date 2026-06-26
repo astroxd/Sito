@@ -1,0 +1,23 @@
+.side-anime-card:hover .title {
+  text-decoration: none;
+}
+.side-anime-card .episode-number {
+  color: var(--active);
+}
+
+.side-anime-card {
+  .add {
+    position: absolute;
+    right: 0;
+    margin: 1rem;
+  }
+
+  .watched {
+    position: absolute;
+    right: 0;
+    margin: 1rem;
+    padding: 4px 8px;
+    background-color: var(--grey);
+    border-radius: 4px;
+  }
+}

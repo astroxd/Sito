@@ -1,0 +1,25 @@
+<div class="widget">
+  <span class="widget-title">{{ invitation().sharedList.sharedListName }}</span>
+  <span class="widget-subtitle">Group Members</span>
+  <div class="avatar-container">
+    @for (member of invitation().members; track $index) {
+      <img [src]="member.avatar" [alt]="member.username" />
+    }
+    @if (invitation().members.length > 3) {
+      <div class="stacked-avatar">+{{ invitation().members.length - 3 }}</div>
+    }
+  </div>
+  <div class="inviter-info">
+    <img
+      [src]="invitation().sharedList.senderAvatar"
+      [alt]="invitation().sharedList.senderUsername"
+    />
+    <span class="widget-subtitle"
+      >{{ invitation().sharedList.senderUsername }} ti ha invitato</span
+    >
+  </div>
+  <div class="actions">
+    <ion-button (click)="accept()">Accetta</ion-button>
+    <ion-button fill="outline" (click)="decline()">Rifiuta</ion-button>
+  </div>
+</div>

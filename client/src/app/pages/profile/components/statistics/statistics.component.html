@@ -1,0 +1,10 @@
+<ion-row>
+  <ion-col size="12" size-md="8">
+    <app-profile-info />
+    <app-genres-chart [genres]="genres()" />
+    <app-time-chart [dailyHistory]="dailyHistory()" />
+  </ion-col>
+  <ion-col size="12" size-md="4">
+    <app-total-time [totalTime]="totalWatchTime()" />
+  </ion-col>
+</ion-row>

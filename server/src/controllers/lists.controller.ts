@@ -1,0 +1,512 @@
+import { Request, Response } from "express";
+import { AnimeStatus, List } from "../models/list.model";
+import { Anime } from "../models/anime.model";
+import db from "../config/database";
+import { User } from "../models/user.model";
+import { trackWatchTime, updateGenreStats } from "./statistics.controller";
+import { checkAndUnlockBadges } from "./badge.controller";
+
+const perPage = 6;
+
+export const getList = (req: Request, res: Response) => {
+  const userId = res.locals.userId;
+  const { status, page } = req.params;
+
+  if (!status || !page || Number(page) < 1) {
+    return res.status(400).json({ message: "Missing Params" });
+  }
+
+  try {
+    const animeStatus = (status as string).toUpperCase() as AnimeStatus;
+    if (!Object.values(AnimeStatus).includes(animeStatus)) {
+      return res.status(400).json({ message: "Status not valid" });
+    }
+
+    const offset = (Number(page) - 1) * perPage;
+
+    const list = List.findAllByStatus(userId, animeStatus, perPage, offset);
+    console.log(list);
+
+    let hasNextPage = false;
+
+    if (list.length > 0) {
+      hasNextPage = list[0].length! > Number(page) * perPage;
+    }
+
+    return res.status(200).json({
+      data: list,
+      page: Number(page),
+      perPage: perPage,
+      hasNextPage,
+    });
+  } catch (error) {
+    console.error(error);
+  }
+
+  return res.status(500).json({
+    message: "INTERNAL SERVER ERROR",
+  });
+};
+
+export const searchInList = (req: Request, res: Response) => {
+  const userId = res.locals.userId;
+  const { status } = req.params;
+
+  if (!status) {
+    return res.status(400).json({ message: "Missing Params" });
+  }
+  try {
+    const animeStatus = (status as string).toUpperCase() as AnimeStatus;
+    if (!Object.values(AnimeStatus).includes(animeStatus)) {
+      return res.status(400).json({ message: "Status not valid" });
+    }
+
+    const { q, page } = req.query;
+    const p = parseInt((page as string) ?? 1);
+    const offset = (p - 1) * perPage;
+
+    const list = List.findByAnimeTitle(
+      userId,
+      animeStatus,
+      perPage,
+      offset,
+      String(q),
+    );
+
+    console.log(list);
+
+    let hasNextPage = false;
+
+    if (list.length > 0) {
+      hasNextPage = list[0].length! > p * perPage;
+    }
+
+    return res.status(200).json({ data: list, page: p, perPage, hasNextPage });
+  } catch (error) {
+    console.error(error);
+  }
+
+  return res.status(500).json({
+    message: "INTERNAL SERVER ERROR",
+  });
+};
+
+export const getAnimeInList = (req: Request, res: Response) => {
+  const userId = res.locals.userId;
+  const { animeId } = req.params;
+
+  if (!animeId) {
+    return res.status(400).json({ message: "Missing Params" });
+  }
+
+  try {
+    const listedAnime = List.findPrivateAnimeByAnimeId(userId, Number(animeId));
+
+    return res.status(200).json({ data: listedAnime ?? null });
+  } catch (error) {
+    console.error(error);
+  }
+
+  return res.status(500).json({
+    message: "INTERNAL SERVER ERROR",
+  });
+};
+
+export const addAnimeToList = (req: Request, res: Response) => {
+  const userId = res.locals.userId;
+  const { status, anime } = req.body;
+  if (!status || !anime) {
+    return res.status(400).json({ message: "Missing Params" });
+  }
+
+  try {
+    const animeStatus = (status as string).toUpperCase() as AnimeStatus;
+    if (!Object.values(AnimeStatus).includes(animeStatus)) {
+      return res.status(400).json({ message: "Status not valid" });
+    }
+
+    const { id, idMal, title, coverImage, episodes, duration, genres } = anime;
+
+    db.transaction(() => {
+      Anime.animeUpsert({
+        animeId: id,
+        animeMalId: idMal,
+        animeTitle: title,
+        animeCover: coverImage,
+        animeEpisodes: episodes,
+        animeAvgEpisodeDuration: duration,
+        animeGenres: Array.isArray(genres) ? genres.join(",") : "",
+      });
+
+      List.insertPrivateAnime(userId, id, status);
+
+      if (animeStatus === AnimeStatus.Completed) {
+        const totalAnimeMinutes = (episodes ?? 0) * (duration ?? 0);
+        if (totalAnimeMinutes > 0) {
+          trackWatchTime(userId, episodes, duration);
+        }
+
+        const genresArray = Array.isArray(genres)
+          ? genres.map((g: string) => g.trim())
+          : [];
+
+        //* Aumento il count dei generi dell'anime appena finito
+        updateGenreStats(userId, genresArray, "INCREMENT");
+
+        //* Controllo se ha sbloccato dei badge
+        checkAndUnlockBadges(userId);
+      }
+
+      //* Aggiungo l'anime in watched Episodes perché così mi spunta sul profilo,
+      //* in sharedList non lo faccio senno mi spunterebbero sul profilo tutti gli anime delle shared list,
+      //* invece lì li aggiungo quando effettivamente segno la puntata
+      User.insertAnimeIntoWatchedEpisodes(userId, id, 0);
+    })();
+    return res
+      .status(200)
+      .json({ message: "Added Anime to list successfully" });
+  } catch (error) {
+    console.log(error);
+  }
+
+  return res.status(500).json({
+    message: "INTERNAL SERVER ERROR",
+  });
+};
+
+export const updateAnimeList = (req: Request, res: Response) => {
+  const userId = res.locals.userId;
+  const { animeId, status } = req.body;
+
+  try {
+    const animeStatus = (status as string).toUpperCase() as AnimeStatus;
+    if (!Object.values(AnimeStatus).includes(animeStatus)) {
+      return res.status(400).json({ message: "Status not valid" });
+    }
+
+    db.transaction(() => {
+      const oldStatus = List.findPrivateAnimeByAnimeId(userId, animeId)?.status;
+      const currentProgress =
+        User.findLastEpisodeWatchedByAnimeId(userId, animeId)
+          ?.lastEpisodeWatched ?? 0;
+      const animeInfo = Anime.findAnimeById(animeId);
+
+      const genresArray = animeInfo?.animeGenres
+        ? animeInfo.animeGenres.split(",").map((g) => g.trim())
+        : [];
+
+      if (animeStatus === AnimeStatus.Completed) {
+        if (animeInfo?.animeEpisodes && animeInfo.animeAvgEpisodeDuration) {
+          const episodeDiff = animeInfo?.animeEpisodes - currentProgress;
+
+          trackWatchTime(
+            userId,
+            episodeDiff,
+            animeInfo.animeAvgEpisodeDuration,
+          );
+        }
+
+        //* Aumento il count dei generi dell'anime appena finito
+        updateGenreStats(userId, genresArray, "INCREMENT");
+      } else if (
+        animeStatus === AnimeStatus.Watching &&
+        oldStatus === AnimeStatus.Completed
+      ) {
+        if (animeInfo?.animeEpisodes && animeInfo.animeAvgEpisodeDuration) {
+          const episodeDiff = currentProgress - animeInfo?.animeEpisodes;
+
+          trackWatchTime(
+            userId,
+            episodeDiff,
+            animeInfo.animeAvgEpisodeDuration,
+          );
+        }
+        //* Abbasso il count dei generi dell'anime appena
+        updateGenreStats(userId, genresArray, "DECREMENT");
+      }
+
+      //* Controllo se ha sbloccato dei badge
+      checkAndUnlockBadges(userId);
+      List.updateAnimeStatus(userId, animeId, animeStatus);
+    })();
+
+    res.status(200).json({ message: "Updated Anime list" });
+    return;
+  } catch (error) {
+    console.log(error);
+  }
+
+  return res.status(500).json({
+    message: "INTERNAL SERVER ERROR",
+  });
+};
+
+export const deleteAnimeFromList = (req: Request, res: Response) => {
+  const userId = res.locals.userId;
+  const { animeId } = req.params;
+
+  try {
+    db.transaction(() => {
+      const oldStatus = List.findPrivateAnimeByAnimeId(
+        userId,
+        Number(animeId),
+      )?.status;
+      const currentProgress =
+        User.findLastEpisodeWatchedByAnimeId(userId, Number(animeId))
+          ?.lastEpisodeWatched ?? 0;
+      const animeInfo = Anime.findAnimeById(Number(animeId));
+
+      const genresArray = animeInfo?.animeGenres
+        ? animeInfo.animeGenres.split(",").map((g) => g.trim())
+        : [];
+
+      if (animeInfo && animeInfo.animeAvgEpisodeDuration) {
+        let episodesToSubtract = 0;
+
+        if (oldStatus === AnimeStatus.Completed) {
+          episodesToSubtract = animeInfo.animeEpisodes!;
+
+          updateGenreStats(userId, genresArray, "DECREMENT");
+        } else {
+          episodesToSubtract = currentProgress;
+        }
+
+        if (episodesToSubtract > 0) {
+          trackWatchTime(
+            userId,
+            -episodesToSubtract,
+            animeInfo.animeAvgEpisodeDuration,
+          );
+        }
+      }
+
+      List.deleteByAnimeId(userId, Number(animeId));
+
+      User.deleteFromWatchingByAnimeId(userId, Number(animeId));
+    })();
+
+    res.status(200).json({ message: "Deleted Anime from list" });
+    return;
+  } catch (error) {
+    console.log(error);
+  }
+
+  return res.status(500).json({
+    message: "INTERNAL SERVER ERROR",
+  });
+};
+
+export const getUserAnimesProgress = (req: Request, res: Response) => {
+  const userId = res.locals.userId;
+
+  const { status } = req.params;
+
+  try {
+    const animeStatus = (status as string).toUpperCase() as AnimeStatus;
+    if (!Object.values(AnimeStatus).includes(animeStatus)) {
+      return res.status(400).json({ message: "Status not valid" });
+    }
+    const userAnimesProgress = List.findAnimesProgressByUserId(
+      userId,
+      animeStatus,
+    );
+
+    return res.status(200).json({ data: userAnimesProgress });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "INTERNAL SERVER ERROR",
+    });
+  }
+};
+
+export const updateUserProgress = (req: Request, res: Response) => {
+  const userId = res.locals.userId;
+  const { animeId } = req.params;
+
+  try {
+    const anime = Anime.findAnimeById(Number(animeId));
+    if (!anime?.animeEpisodes) {
+      return res
+        .status(404)
+        .json({ message: "No anime found in local catalog" });
+    }
+    const maxEpisodes = anime.animeEpisodes;
+
+    const watchedEpisode = User.findLastEpisodeWatchedByAnimeId(
+      userId,
+      Number(animeId),
+    );
+
+    const privateAnime = List.findPrivateAnimeByAnimeId(
+      userId,
+      Number(animeId),
+    );
+
+    const genresArray = anime?.animeGenres
+      ? anime.animeGenres.split(",").map((g) => g.trim())
+      : [];
+
+    let newCurrentEpisode = 1; //* Default se è la prima volta che clicca l'anime
+
+    if (watchedEpisode?.lastEpisodeWatched) {
+      newCurrentEpisode = watchedEpisode.lastEpisodeWatched + 1;
+    }
+
+    if (newCurrentEpisode > maxEpisodes) {
+      return res.status(200).json({ message: "Already completed or in par" });
+    }
+
+    db.transaction(() => {
+      if (anime.animeAvgEpisodeDuration) {
+        trackWatchTime(userId, 1, anime.animeAvgEpisodeDuration);
+      }
+
+      //* Update privato
+      User.updateLastWatchedEpisode(userId, Number(animeId), newCurrentEpisode);
+
+      //* Update stato anime
+      let calculatedStatus = privateAnime?.status;
+      if (newCurrentEpisode === maxEpisodes) {
+        calculatedStatus = AnimeStatus.Completed;
+        updateGenreStats(userId, genresArray, "INCREMENT");
+      } else if (privateAnime?.status !== AnimeStatus.Completed) {
+        calculatedStatus = AnimeStatus.Watching;
+      }
+      checkAndUnlockBadges(userId);
+
+      List.updateAnimeStatus(userId, Number(animeId), calculatedStatus!);
+    })();
+
+    return res.status(200).json({
+      message: "Private progress updated successfully",
+      currentEpisode: newCurrentEpisode,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "INTERNAL SERVER ERROR" });
+  }
+};
+
+export const syncAnime = (req: Request, res: Response) => {
+  const { anime } = req.body;
+  if (!anime) {
+    return res.status(400).json({ message: "Missing Params" });
+  }
+
+  try {
+    const { id, idMal, title, coverImage, episodes, duration, genres } = anime;
+
+    if (!id || !idMal || !title || !coverImage || !episodes || !duration) {
+      return res.status(400).json({ message: "Mising Params" });
+    }
+
+    Anime.animeUpsert({
+      animeId: id,
+      animeMalId: idMal,
+      animeTitle: title,
+      animeCover: coverImage,
+      animeEpisodes: episodes,
+      animeAvgEpisodeDuration: duration,
+      animeGenres: Array.isArray(genres) ? genres.join(",") : "",
+    });
+
+    return res.status(200).json({ message: "Anime Sync" });
+  } catch (error) {
+    console.log(error);
+  }
+
+  return res.status(500).json({
+    message: "INTERNAL SERVER ERROR",
+  });
+};
+
+export const updateLastWatchedEpisode = (req: Request, res: Response) => {
+  const userId = res.locals.userId;
+  const { animeId, episodeTarget } = req.body;
+
+  if (!animeId || episodeTarget === undefined || episodeTarget === null) {
+    return res.status(400).json({ message: "Missing Params" });
+  }
+
+  try {
+    db.transaction(() => {
+      const privateAnime = List.findPrivateAnimeByAnimeId(
+        userId,
+        Number(animeId),
+      );
+
+      const anime = Anime.findAnimeById(Number(animeId));
+      const genresArray = anime?.animeGenres
+        ? anime.animeGenres.split(",").map((g) => g.trim())
+        : [];
+
+      const currentProgress =
+        User.findLastEpisodeWatchedByAnimeId(userId, Number(animeId))
+          ?.lastEpisodeWatched ?? 0;
+
+      const episodeDiff = episodeTarget - currentProgress;
+      if (episodeDiff !== 0 && anime && anime.animeAvgEpisodeDuration) {
+        trackWatchTime(userId, episodeDiff, anime.animeAvgEpisodeDuration);
+      }
+
+      User.updateLastWatchedEpisode(userId, animeId, episodeTarget);
+
+      if (
+        privateAnime &&
+        anime &&
+        anime.animeEpisodes &&
+        episodeTarget >= anime.animeEpisodes &&
+        anime.animeEpisodes > 0
+      ) {
+        List.updateAnimeStatus(userId, Number(animeId), AnimeStatus.Completed);
+        updateGenreStats(userId, genresArray, "INCREMENT");
+      }
+
+      checkAndUnlockBadges(userId);
+    })();
+
+    return res.status(200).json({ message: "Updated" });
+  } catch (error) {
+    console.error(error);
+  }
+
+  return res.status(500).json({
+    message: "INTERNAL SERVER ERROR",
+  });
+};
+
+export const getLastWatchedEpisode = (req: Request, res: Response) => {
+  const userId = res.locals.userId;
+  const { animeId } = req.params;
+
+  if (!animeId) {
+    return res.status(400).json({ message: "Missing Params" });
+  }
+
+  try {
+    console.log(animeId);
+
+    const lastEpisodeWatched = User.findLastEpisodeWatchedByAnimeId(
+      userId,
+      Number(animeId),
+    );
+
+    const privateAnime = List.findPrivateAnimeByAnimeId(
+      userId,
+      Number(animeId),
+    );
+
+    return res.status(200).json({
+      data: {
+        lastEpisodeWatched: lastEpisodeWatched?.lastEpisodeWatched,
+        animeInfo: privateAnime,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+  }
+  return res.status(500).json({
+    message: "INTERNAL SERVER ERROR",
+  });
+};

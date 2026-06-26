@@ -1,0 +1,121 @@
+.badge-container {
+  display: flex;
+  justify-content: space-between;
+  column-gap: 1rem;
+}
+.badge-container .badge {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.badge img.locked {
+  filter: grayscale(100%);
+  opacity: 0.4;
+}
+
+.badge .badge-title {
+  text-align: center;
+  font-size: 14px;
+}
+.badge .badge-rank {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+.badge .badge-rank.bronze {
+  color: var(--bronze);
+}
+.badge .badge-rank.silver {
+  color: var(--silver);
+}
+.badge .badge-rank.gold {
+  color: var(--gold);
+}
+.badge .badge-rank.platinum {
+  color: var(--platinum);
+}
+.badge .badge-rank.secret {
+  color: var(--secret);
+}
+
+/** Small devices (landscape phones, greater than 768px) */
+@media (min-width: 767.98px) {
+  .badges.widget {
+    margin-top: 1rem;
+  }
+}
+
+.badge-card {
+  background-color: var(--bg-ternary);
+  border-radius: 12px;
+  height: 18rem;
+  margin-bottom: calc(0.75rem * 2);
+
+  &.badge-locked {
+    .badge-img {
+      filter: grayscale(100%);
+      opacity: 0.4;
+    }
+  }
+
+  .badge-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 12px 6px;
+
+    .badge-title {
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .badge-img {
+      width: 100%;
+      object-fit: contain;
+      border-radius: 50%;
+    }
+
+    .badge-description {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: normal;
+    }
+    .progress-container {
+      width: 100%;
+      ion-progress-bar {
+        border-radius: 50px;
+      }
+
+      .progress-text {
+        font-size: 12px;
+        margin-top: 2px;
+        color: var(--text-primary);
+        text-align: center;
+      }
+    }
+  }
+  &.rank-bronze {
+    border-bottom: 4px solid var(--bronze);
+  }
+  &.rank-silver {
+    border-bottom: 4px solid var(--silver);
+  }
+  &.rank-gold {
+    border-bottom: 4px solid var(--gold);
+  }
+  &.rank-platinum {
+    border-bottom: 4px solid var(--platinum);
+    // box-shadow: 0 0 8px rgba(229, 228, 226, 0.3);
+  }
+  &.rank-secret {
+    border-bottom: 4px solid var(--secret);
+  }
+}
+
+.full-badge {
+  font-size: 0.65rem;
+  padding: 4px 6px;
+}

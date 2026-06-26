@@ -1,0 +1,56 @@
+<div class="shared-lists">
+  <div class="section-header">
+    <div class="section-title">
+      <h5>Liste condivise</h5>
+    </div>
+    <div class="section-button">
+      <button id="open-modal" class="primary-btn" (click)="openModal()">
+        New SharedList
+      </button>
+    </div>
+  </div>
+  <div class="content">
+    @for (sharedList of sharedLists(); track $index) {
+      <app-shared-list [sharedList]="sharedList" />
+    }
+    @for (invitation of sharedListInvitations(); track $index) {
+      <app-shared-list-invitation
+        [invitation]="invitation"
+        (onAction)="reloadSharedListsAndInvites()"
+      />
+    }
+  </div>
+</div>
+
+<ion-modal>
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-button (click)="cancel()">Cancel</ion-button>
+        </ion-buttons>
+        <ion-title class="ion-text-center">New Shared List</ion-title>
+        <ion-buttons slot="end">
+          <ion-button
+            (click)="confirm()"
+            [strong]="true"
+            color="primary"
+            [disabled]="!name || name.trim() === ''"
+            >Confirm</ion-button
+          >
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <ion-item>
+        <ion-input
+          label="Enter shared list name"
+          labelPlacement="stacked"
+          type="text"
+          placeholder="Our Marathon"
+          [(ngModel)]="name"
+        ></ion-input>
+      </ion-item>
+    </ion-content>
+  </ng-template>
+</ion-modal>

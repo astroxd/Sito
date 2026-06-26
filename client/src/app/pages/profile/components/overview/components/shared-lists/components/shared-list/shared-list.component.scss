@@ -1,0 +1,58 @@
+a.widget {
+  display: block;
+  margin-bottom: 0;
+}
+.widget-title {
+  display: block;
+  font-size: 20px;
+}
+.widget-subtitle {
+  color: var(--text-secondary);
+  font-size: 14px;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+.avatar-container {
+  display: flex;
+  margin-bottom: 12px;
+}
+
+.avatar-container img {
+  width: 32px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+.avatar-container .stacked-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: rgba(128, 128, 128, 0.521);
+  text-align: center;
+  align-content: center;
+}
+
+.leaderboard-container li {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.leaderboard-container .position {
+  margin-right: 12px;
+}
+
+.leaderboard-container li:nth-child(1) .position {
+  color: var(--gold);
+}
+.leaderboard-container li:nth-child(2) .position {
+  color: var(--silver);
+}
+.leaderboard-container li:nth-child(3) .position {
+  color: var(--bronze);
+}
+
+.leaderboard-container img {
+  width: 24px;
+  border-radius: 50%;
+  margin-right: 8px;
+}

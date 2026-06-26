@@ -1,0 +1,51 @@
+.add-to-watchlist {
+  display: flex;
+  position: relative;
+}
+
+.add-to-watchlist .text {
+  border-bottom-right-radius: 0;
+  border-top-right-radius: 0;
+  font-size: 12px;
+  background-color: var(--light-grey);
+}
+.add-to-watchlist .text.selected {
+  background-color: var(--active);
+}
+
+.add-to-watchlist .icon {
+  border-bottom-left-radius: 0;
+  border-top-left-radius: 0;
+  background-color: rgba(255 255 255 / 0.13);
+  font-size: 16px;
+  padding-inline: 14px;
+}
+.add-to-watchlist .icon.selected {
+  background-color: rgba(229 54 55 / 0.85);
+}
+
+.add-to-watchlist .dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 14px);
+  width: 100%;
+}
+
+.add-to-watchlist .dropdown-menu::before {
+  right: 9px;
+}
+
+.add-to-watchlist .dropdown-menu-item:not(.no-hover) {
+  padding-left: 16px;
+}
+
+.no-touch {
+  cursor: default !important;
+}
+
+/** X-Small devices (portrait phones, less than 576px) */
+@media (max-width: 575.98px) {
+  .add-to-watchlist .icon {
+    font-size: 14px;
+  }
+}

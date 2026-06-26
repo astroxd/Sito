@@ -1,27 +1,23 @@
 import { Component, input, ViewEncapsulation } from '@angular/core';
+import { RouterLink } from '@angular/router';
+
+import { Anime } from 'src/app/models/Anime';
+import { ListedAnime } from '../../models/List';
+import { getEpisodes } from 'src/app/helpers/formattedAnimeDetails';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faEye } from '@fortawesome/free-solid-svg-icons';
-import { Anime } from '../../models/Anime';
+import { faEye } from '@fortawesome/free-regular-svg-icons';
+
 @Component({
   selector: 'app-anime-card',
-  imports: [FontAwesomeModule],
+  imports: [RouterLink, FontAwesomeModule],
   templateUrl: './anime-card.html',
-  styleUrl: './anime-card.css',
+  styleUrl: './anime-card.scss',
   encapsulation: ViewEncapsulation.None,
 })
 export class AnimeCard {
+  anime = input<Anime | undefined>();
+  listedAnime = input<ListedAnime | undefined>();
+  getEpisodes = getEpisodes;
   faEye = faEye;
-  anime = input.required<Anime>();
-
-  constructor() {
-    // console.log(this.anime());
-  }
-
-  // anime = {
-  //   id: 3,
-  //   title: 'Jujustu Kakaisen cosaassurdalunghissima ciao prova ancopra pià',
-  //   image:
-  //     'https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx172463-LnXqHzt74SJL.jpg',
-  //   popularity: 100000,
-  // };
+  constructor() {}
 }

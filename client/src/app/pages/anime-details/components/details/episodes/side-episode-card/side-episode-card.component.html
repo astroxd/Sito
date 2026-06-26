@@ -1,0 +1,22 @@
+<div
+  class="side-anime-card anime-card-image"
+  [style]="`background-image: url(${episode().images.jpg.image_url})`"
+>
+  @if (lastEpisodeWatched() !== null) {
+    @if (episode().mal_id > lastEpisodeWatched()!) {
+      <button
+        class="primary-btn add"
+        (click)="confirmBulkEpisodes(episode().mal_id)"
+      >
+        ADD
+      </button>
+    } @else {
+      <span class="watched">Watched</span>
+    }
+  }
+
+  <h5 class="title">
+    <span class="episode-number">{{ episode().mal_id }}</span>
+    {{ `. ${episode().title}` }}
+  </h5>
+</div>

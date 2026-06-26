@@ -1,0 +1,33 @@
+.list {
+  margin-bottom: 2rem;
+}
+
+.section-search input {
+  color: white;
+  background-color: var(--bg-ternary);
+  border-color: transparent;
+  padding: 4px 10px;
+  border-radius: 5px;
+}
+
+.show-more {
+  text-align: center;
+  width: 100%;
+}
+
+.show-more span {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.show-more span:hover {
+  color: var(--active);
+}
+
+.no-results {
+  width: 100%;
+  text-align: center;
+  color: var(--text-secondary);
+}

@@ -1,15 +1,19 @@
 import { Component, input } from '@angular/core';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faEye } from '@fortawesome/free-solid-svg-icons';
+
 import { Anime } from '../../models/Anime';
+import { getEpisodes } from 'src/app/helpers/formattedAnimeDetails';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faEye } from '@fortawesome/free-regular-svg-icons';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-side-anime-card',
-  imports: [FontAwesomeModule],
+  imports: [FontAwesomeModule, RouterLink],
   templateUrl: './side-anime-card.html',
-  styleUrl: './side-anime-card.css',
+  styleUrl: './side-anime-card.scss',
 })
 export class SideAnimeCard {
-  faEye = faEye;
   anime = input.required<Anime>();
+  getEpisodes = getEpisodes;
+  faEye = faEye;
 }

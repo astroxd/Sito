@@ -1,32 +1,28 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { form, FormField } from '@angular/forms/signals';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faSearch, faUserCircle } from '@fortawesome/free-solid-svg-icons';
+// import { form, FormField } from '@angular/forms/signals';
 
 @Component({
   selector: 'app-header',
-  imports: [FontAwesomeModule, RouterLink, RouterLinkActive, FormField],
+  imports: [RouterLink, RouterLinkActive],
   templateUrl: './header.html',
   styleUrl: './header.css',
 })
 export class Header {
   private router = inject(Router);
-  faSearch = faSearch;
-  faUserCircle = faUserCircle;
 
   searchModel = signal('');
-  searchForm = form(this.searchModel);
+  // searchForm = form(this.searchModel);
 
   search(e: Event) {
     e.preventDefault();
 
-    const query = this.searchForm().value();
-    if (query.length <= 0) return;
-    this.searchForm().value.set('');
+    // const query = this.searchForm().value();
+    // if (query.length <= 0) return;
+    // this.searchForm().value.set('');
 
-    this.router.navigate(['/search'], {
-      queryParams: { query: query, sort: 'POPULARITY_DESC', page: 1 },
-    });
+    // this.router.navigate(['/search'], {
+    //   queryParams: { query: query, sort: 'POPULARITY_DESC', page: 1 },
+    // });
   }
 }

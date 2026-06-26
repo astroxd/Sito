@@ -1,0 +1,27 @@
+<div class="profile-banner" [style]="`background-image: url(${bannerImage})`">
+  <div class="profile-info">
+    <img [src]="user()?.avatar" [alt]="user()?.username" />
+    <div class="flex-container">
+      <div class="profile-text">
+        <h4 class="profile-name">{{ user()?.username }}</h4>
+        <span class="profile-subtitle">{{ user()?.email }}</span>
+      </div>
+      <button class="primary-btn" (click)="logout()">Logout</button>
+    </div>
+  </div>
+</div>
+<div class="profile-navigation">
+  <a
+    routerLink="/profile"
+    routerLinkActive="active"
+    [routerLinkActiveOptions]="{ exact: true }"
+    class="primary-btn profile-navigation-button"
+    >Overview</a
+  >
+  <a
+    routerLink="/profile/statistics"
+    routerLinkActive="active"
+    class="primary-btn profile-navigation-button"
+    >Statistics</a
+  >
+</div>

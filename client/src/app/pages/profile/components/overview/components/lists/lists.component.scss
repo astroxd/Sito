@@ -1,0 +1,83 @@
+.widget-navigation {
+  display: flex;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.widget-navigation::after {
+  content: "";
+  height: 2px;
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+  background-color: var(--text-secondary);
+  z-index: 0;
+}
+
+.widget-navigation-item {
+  padding: 8px 16px;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  z-index: 1;
+  cursor: pointer;
+}
+.widget-navigation-item:hover {
+  color: var(--text-primary);
+}
+.widget-navigation-item.active {
+  border-bottom: 2px solid var(--active);
+  color: var(--text-primary);
+}
+
+.list-container {
+  display: flex;
+  column-gap: 2rem;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  padding-bottom: 1rem;
+}
+
+.list-container a:hover .list-anime-title {
+  text-decoration: underline;
+}
+
+.list-anime {
+  display: flex;
+  column-gap: 8px;
+  min-width: 270px;
+  width: 270px;
+}
+
+.list-anime img {
+  border-radius: 8px;
+  width: 100px;
+  aspect-ratio: 1 / 1.5;
+  object-fit: cover;
+}
+
+.list-anime-info {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.list-anime-title {
+  line-clamp: 4;
+  -webkit-line-clamp: 4;
+  font-size: 20px;
+}
+
+.progress {
+  height: 8px;
+  background-color: var(--text-secondary);
+  border-radius: 50px;
+}
+
+.list-anime-episodes {
+  margin-top: 4px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--text-secondary);
+}

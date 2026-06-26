@@ -1,0 +1,24 @@
+.sign-up-form h5 {
+  font-size: 15px;
+  margin-top: 36px;
+}
+.sign-up-form h5 a {
+  color: var(--active);
+}
+.sign-up-form h5 a:hover {
+  text-decoration: underline;
+}
+
+.register-login {
+  padding-left: 30px;
+}
+
+.register-login h3 {
+  font-family: var(--header-font);
+  margin-bottom: 30px;
+}
+
+.register-login .primary-btn {
+  padding: 12px 42px;
+  border-radius: 0;
+}

@@ -1,0 +1,296 @@
+/*
+ * App Global CSS
+ * ----------------------------------------------------------------------------
+ * Put style rules here that you want to apply globally. These styles are for
+ * the entire app and not just one component. Additionally, this file can be
+ * used as an entry point to import other CSS/Sass files to be included in the
+ * output CSS.
+ * For more information on global stylesheets, visit the documentation:
+ * https://ionicframework.com/docs/layout/global-stylesheets
+ */
+
+/* Core CSS required for Ionic components to work properly */
+@import "@ionic/angular/css/core.css";
+
+/* Basic CSS for apps built with Ionic */
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import "@ionic/angular/css/display.css";
+
+/* Optional CSS utils that can be commented out */
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+
+/**
+ * Ionic Dark Mode
+ * -----------------------------------------------------
+ * For more info, please see:
+ * https://ionicframework.com/docs/theming/dark-mode
+ */
+
+/* @import "@ionic/angular/css/palettes/dark.always.css"; */
+/* @import "@ionic/angular/css/palettes/dark.class.css"; */
+// @import "@ionic/angular/css/palettes/dark.system.css";
+
+/* You can add global styles to this file, and also import other style files */
+@import url("app/components/section/section.scss");
+@import url("app/components/anime-card/anime-card.scss");
+
+:root {
+  --bg-primary: rgba(11, 12, 42, 1);
+  --bg-secondary: rgba(7, 7, 32, 1);
+  --bg-ternary: rgba(37, 36, 64, 1);
+
+  --text-primary: rgba(255, 255, 255, 1);
+  --text-secondary: rgba(183, 183, 183, 1);
+
+  --main-font: "Mulish", sans-serif;
+  --main-font-weight: 400;
+  --header-font: "Oswald", sans-serif;
+
+  --active: rgb(229, 54, 55);
+
+  --grey: rgba(61, 61, 61, 1);
+  --light-grey: rgba(255, 255, 255, 0.2);
+
+  --platinum: #4ee2ec;
+  --gold: gold;
+  --silver: silver;
+  --bronze: #cd7f32;
+  --secret: #a020f0;
+}
+
+/** || GENERAL STYLES */
+
+*,
+*::after,
+*::before {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  background-color: var(--bg-primary) !important;
+  font-family: var(--main-font) !important;
+  font-weight: var(--main-font-weight) !important;
+}
+
+a {
+  text-decoration: none;
+  color: var(--text-primary);
+}
+a:hover,
+a:visited {
+  color: var(--text-primary);
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+h1 {
+  font-size: 70px;
+}
+
+h2 {
+  font-size: 36px;
+}
+
+h3 {
+  font-size: 30px;
+}
+
+h4 {
+  font-size: 24px;
+}
+
+h5 {
+  font-size: 18px;
+}
+
+h6 {
+  font-size: 16px;
+}
+
+p {
+  font-size: 15px;
+  color: var(--grey);
+  line-height: 25px;
+  margin: 0 0 15px 0;
+}
+
+ol,
+ul {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+select:focus,
+textarea:focus {
+  outline: none;
+}
+
+input[type="search"] {
+  outline-offset: 0;
+}
+
+.primary-btn {
+  font-size: 13px;
+  color: var(--text-primary);
+  background-color: var(--active);
+  font-weight: 700;
+  border: none;
+  border-radius: 2px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  display: inline-block;
+  padding: 12px 30px;
+}
+
+.primary-btn:focus {
+  border: none;
+  box-shadow: none;
+}
+
+.primary-btn:hover {
+  background-color: rgb(214, 49, 49);
+}
+
+.tag {
+  background-color: var(--light-grey);
+  color: var(--text-primary);
+  padding: 8px 16px;
+  border-radius: 4px;
+}
+
+.tag:not(.no-hover):hover {
+  background-color: white;
+  color: black;
+}
+
+.widget {
+  background-color: var(--bg-ternary);
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+}
+
+.ellipsis {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+}
+
+// AUTH PROV
+.auth {
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: top center;
+}
+
+.auth h2 {
+  font-size: 48px;
+  font-family: var(--header-font);
+}
+
+.auth-form {
+  position: relative;
+  padding-right: 40px;
+}
+.auth-form h3 {
+  font-family: var(--header-font);
+  margin-bottom: 30px;
+}
+
+.auth-form p {
+  color: var(--active);
+  margin: 0;
+}
+
+.auth-form button {
+  border-radius: 0;
+  margin-top: 10px;
+}
+
+.auth-form::after {
+  position: absolute;
+  right: -14px;
+  top: -20px;
+  width: 1px;
+  height: 590px;
+  background-color: var(--light-grey);
+  content: "";
+}
+
+.input-item {
+  position: relative;
+  width: 370px;
+  margin-bottom: 20px;
+}
+.input-item::before {
+  position: absolute;
+  left: 50px;
+  top: 10px;
+  height: 30px;
+  width: 1px;
+  background-color: var(--text-secondary);
+  content: "";
+}
+
+.input-item input {
+  height: 50px;
+  width: 100%;
+  font-size: 15px;
+  font-weight: 500;
+  color: black;
+  background-color: var(--text-primary);
+  border: none;
+  padding-left: 76px;
+}
+.input-item input::placeholder {
+  color: var(--text-secondary);
+}
+
+.input-item-icon {
+  color: var(--text-secondary);
+  font-size: 24px;
+  position: absolute;
+  left: 10px;
+  top: 13px;
+}
+
+/** Medium devices (tablets, less than 992px) */
+@media (max-width: 991.98px) {
+  .auth-form {
+    margin-bottom: 40px;
+    width: 100%;
+    padding-right: 0;
+  }
+  .auth-form::after {
+    content: none;
+  }
+  .auth-form .input-item {
+    width: auto;
+  }
+}

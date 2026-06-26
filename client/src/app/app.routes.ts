@@ -1,14 +1,22 @@
 import { Routes } from '@angular/router';
-import { HomePage } from './pages/home-page/home-page';
-import { Search } from './pages/search/search';
 
 export const routes: Routes = [
   {
     path: '',
-    component: HomePage,
+    loadChildren: () => import('./tabs/tabs.routes').then((m) => m.routes),
   },
   {
-    path: 'search',
-    component: Search,
+    path: 'login',
+    loadComponent: () =>
+      import('./pages/Authentication/login/login.page').then(
+        (m) => m.LoginPage,
+      ),
+  },
+  {
+    path: 'register',
+    loadComponent: () =>
+      import('./pages/Authentication/register/register.page').then(
+        (m) => m.RegisterPage,
+      ),
   },
 ];

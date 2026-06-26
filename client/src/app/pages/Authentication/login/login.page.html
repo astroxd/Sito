@@ -1,0 +1,75 @@
+<ion-content [fullscreen]="true">
+  <section style="margin-top: 1rem">
+    <div
+      style="background-image: url(../../../assets/images/banner.jpg)"
+      class="auth"
+    >
+      <div>
+        <h2>Login</h2>
+      </div>
+    </div>
+    <section style="padding-top: 130px; padding-bottom: 150px">
+      <ion-grid>
+        <ion-row>
+          <ion-col
+            size="12"
+            size-md="6"
+            style="display: flex; justify-content: flex-end"
+          >
+            <div class="auth-form login-form">
+              <h3>Login</h3>
+
+              <form
+                [formGroup]="loginFormControl.loginForm"
+                (ngSubmit)="onSubmit()"
+              >
+                <p>{{loginError()}}</p>
+                <div class="input-item">
+                  <input
+                    type="email"
+                    placeholder="Email address"
+                    formControlName="email"
+                    required
+                  />
+                  <fa-icon
+                    [icon]="faEnvelope"
+                    class="input-item-icon"
+                  ></fa-icon>
+
+                  <p>{{formErrors().email}}</p>
+                </div>
+
+                <div class="input-item">
+                  <input
+                    type="password"
+                    placeholder="Password"
+                    formControlName="password"
+                    required
+                  />
+                  <fa-icon [icon]="faLock" class="input-item-icon"></fa-icon>
+                  <p>{{formErrors().password}}</p>
+                </div>
+
+                <button
+                  type="submit"
+                  [disabled]="!loginFormControl.loginForm.valid"
+                  class="primary-btn"
+                >
+                  Login Now
+                </button>
+              </form>
+            </div>
+          </ion-col>
+          <ion-col size="12" size-md="6">
+            <div class="login-register">
+              <h3>Don't Have an Account?</h3>
+              <a routerLink="/register" replaceUrl="true" class="primary-btn">
+                Register Now
+              </a>
+            </div>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </section>
+  </section>
+</ion-content>

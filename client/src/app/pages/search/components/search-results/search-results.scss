@@ -1,0 +1,63 @@
+.search-result .section-header {
+  position: relative;
+  padding-bottom: 15px;
+  border-bottom: 2px solid var(--light-grey);
+}
+
+.search-result .section-header .order-by span {
+  margin-right: 10px;
+  color: var(--text-secondary);
+}
+
+.search-result .section-header .order-by select {
+  padding: 4px;
+}
+
+.search-result .search-query {
+  position: absolute;
+  top: calc(100% + 6px);
+  color: var(--text-secondary);
+}
+
+.search-result .inline-pagination {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+}
+
+.search-result .inline-pagination::before {
+  content: "[";
+  color: white;
+}
+
+.search-result .inline-pagination::after {
+  content: "]";
+  color: white;
+}
+
+.search-result .inline-pagination .pagination-indicator {
+  display: inline-block;
+  margin-right: 10px;
+  color: var(--text-primary);
+  cursor: pointer;
+  background-color: transparent;
+}
+
+.search-result .inline-pagination .pagination-indicator:disabled {
+  pointer-events: none;
+  color: var(--light-grey);
+}
+
+.search-result .inline-pagination .pagination-indicator:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.search-result .inline-pagination .pagination-indicator.current {
+  color: var(--active);
+  text-decoration: underline;
+  pointer-events: none;
+}
+
+.search-result .inline-pagination .pagination-indicator:first-child {
+  margin-left: 10px;
+}

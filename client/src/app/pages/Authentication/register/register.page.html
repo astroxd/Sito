@@ -1,0 +1,102 @@
+<ion-content [fullscreen]="true">
+  <section style="margin-top: 1rem">
+    <div
+      style="background-image: url(../../../assets/images/banner.jpg)"
+      class="auth"
+    >
+      <div>
+        <h2>Sign Up</h2>
+      </div>
+    </div>
+    <section style="padding-top: 130px; padding-bottom: 180px">
+      <ion-grid>
+        <ion-row>
+          <ion-col
+            size="12"
+            size-md="6"
+            style="display: flex; justify-content: flex-end"
+          >
+            <div class="auth-form sign-up-form">
+              <h3>Sign Up</h3>
+
+              <form
+                [formGroup]="registerFormControl.registerForm"
+                (ngSubmit)="onSubmit()"
+                enctype="multipart/form-data"
+              >
+                <p>{{registerError()}}</p>
+                <div class="input-item">
+                  <input
+                    type="text"
+                    placeholder="Email address"
+                    formControlName="email"
+                  />
+                  <fa-icon
+                    [icon]="faEnvelope"
+                    class="input-item-icon"
+                  ></fa-icon>
+
+                  <p>{{formErrors().email}}</p>
+                </div>
+                <div class="input-item">
+                  <input
+                    type="text"
+                    placeholder="Your username"
+                    formControlName="username"
+                  />
+                  <fa-icon [icon]="faUser" class="input-item-icon"></fa-icon>
+                  <p>{{formErrors().username}}</p>
+                </div>
+                <div class="input-item">
+                  <input
+                    type="password"
+                    placeholder="Password"
+                    formControlName="password"
+                  />
+                  <fa-icon [icon]="faLock" class="input-item-icon"></fa-icon>
+                  <p>{{formErrors().password}}</p>
+                </div>
+                <div class="input-item">
+                  <input
+                    type="password"
+                    placeholder="Confirm Password"
+                    formControlName="confirmPassword"
+                  />
+                  <fa-icon [icon]="faLock" class="input-item-icon"></fa-icon>
+                  @if (confirmPassword?.invalid && (confirmPassword?.dirty ||
+                  confirmPassword?.touched)){
+                  @if(registerFormControl.registerForm.hasError('PasswordNoMatch')){
+                  <p>Le password devono combaciare</p>
+                  } }
+                </div>
+                <div style="width: 370px; margin-bottom: 10px">
+                  <input
+                    type="file"
+                    name="avatar"
+                    accept="image/*"
+                    (change)="registerFormControl.onFileSelected($event)"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  [disabled]="!registerFormControl.registerForm.valid"
+                  class="primary-btn"
+                >
+                  Register Now
+                </button>
+              </form>
+            </div>
+          </ion-col>
+          <ion-col size="12" size-md="6">
+            <div class="register-login">
+              <h3>Already have an account?</h3>
+              <a routerLink="/login" replaceUrl="true" class="primary-btn">
+                Log In!
+              </a>
+            </div>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </section>
+  </section>
+</ion-content>

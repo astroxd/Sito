@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    /* Ambiente e Linguaggio */
+    "target": "ES2022" /* Compila in JavaScript moderno (compatibile con Node.js recente) */,
+    "lib": ["ES2022"] /* Include le librerie dei tipi per JS moderno */,
+
+    /* Configurazione Moduli (La parte cruciale per Node) */
+    "module": "NodeNext" /* Gestione dei moduli nativa e moderna per Node.js */,
+    "moduleResolution": "NodeNext" /* Dice a TypeScript come cercare i file seguendo le regole di Node */,
+
+    /* Gestione dei File e Layout */
+    "rootDir": "./src" /* Dove si trova tutto il tuo codice sorgente TypeScript */,
+    "outDir": "./dist" /* Dove TypeScript salverà i file compilati in JavaScript */,
+    "allowJs": true /* Permette la convivenza di file .js e .ts se necessario */,
+    "checkJs": false /* Disattiva il controllo degli errori nei file .js grezzi */,
+
+    /* Controllo dei Tipi (Bilanciato: Sicuro ma flessibile) */
+    "strict": false /* Disattiva le regole ultra-rigide che bloccano lo sviluppo rapido */,
+    "strictNullChecks": true /* Fondamentale: ti obbliga a gestire i casi in cui i dati sono 'null' o 'undefined' */,
+    "noImplicitAny": false /* Non si arrabbia se non specifichi il tipo di una variabile (anche se è meglio metterlo!) */,
+
+    /* Compatibilità e Interoperabilità */
+    "esModuleInterop": true /* Permette di usare gli import standard (import x from 'y') anche con vecchie librerie CommonJS */,
+    "forceConsistentCasingInFileNames": true /* Evita bug se scrivi una maiuscola sbagliata negli import (es: Auth contro auth) */,
+    "skipLibCheck": true /* Velocizza la compilazione ignorando il controllo dei tipi dentro node_modules */
+  },
+  "include": [
+    "src/**/*"
+  ] /* Compila tutto quello che si trova dentro la cartella src */,
+  "exclude": [
+    "node_modules",
+    "dist",
+    "coverage"
+  ] /* Ignora completamente queste cartelle */
+}

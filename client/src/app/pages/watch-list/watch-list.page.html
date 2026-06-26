@@ -1,0 +1,19 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>WatchList</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">WatchList</ion-title>
+    </ion-toolbar>
+  </ion-header>
+  <ion-grid>
+    <app-keep-watching />
+    <app-list [status]="AnimeStatus.Watching" name="Watching" />
+    <app-list [status]="AnimeStatus.Completed" name="Completed" />
+    <app-list [status]="AnimeStatus.Dropped" name="Dropped" />
+  </ion-grid>
+</ion-content>

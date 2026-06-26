@@ -1,0 +1,97 @@
+.character-card {
+  width: 420px;
+  height: 120px;
+  padding: 4px;
+  background-color: var(--bg-ternary);
+  border-radius: 8px;
+}
+
+.character-card-left,
+.character-card-right {
+  height: 112px;
+  display: flex;
+  color: var(--text-primary);
+}
+
+.character-card .character-card-right {
+  justify-content: flex-end;
+}
+
+.character-card .character-card-left img {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+
+  height: 100%;
+  max-width: 50%;
+}
+.character-card .character-card-right img {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+
+  height: 100%;
+  max-width: 50%;
+}
+
+.character-card .character-card-left .description,
+.character-card .character-card-right .description {
+  padding: 0px 8px;
+  word-wrap: break-word;
+}
+
+.character-card .character-card-right .description {
+  margin-top: auto;
+  text-align: end;
+}
+
+.character-card-left .description svg,
+.character-card-right .description svg {
+  font-size: 26px;
+}
+
+.character-card-left .description .role,
+.character-card-right .description .role {
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+/* .character-card-left .description .name,
+.character-card-right .description .name {
+	TODO Add clamp for dynamic font size
+} */
+
+/** X-Large devices (large desktops, less than 1400px) */
+@media (max-width: 1399.98px) {
+  /** ANIME DETAILS */
+  .character-card {
+    width: 360px;
+  }
+}
+
+/** Large devices (desktops, less than 1200px) */
+@media (max-width: 1199.98px) {
+  .character-card {
+    width: 300px;
+  }
+  .character-card-left .description .name,
+  .character-card-right .description .name {
+    font-size: 12px;
+  }
+}
+
+/** Medium devices (tablets, less than 992px) */
+@media (max-width: 991.98px) {
+  .character-card {
+    width: 340px;
+  }
+  .character-card-left .description .name,
+  .character-card-right .description .name {
+    font-size: 16px;
+  }
+}
+
+/** Small devices (landscape phones, less than 768px) */
+@media (max-width: 767.98px) {
+  .character-card {
+    width: 100%;
+  }
+}

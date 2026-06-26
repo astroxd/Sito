@@ -1,0 +1,72 @@
+<div class="private-lists">
+  <div class="widget">
+    <div class="section-header">
+      <div class="section-title">
+        <h5>My Lists</h5>
+      </div>
+      <div class="section-button-all">
+        <a routerLink="/watchlist">
+          View All
+          <fa-icon [icon]="faLongArrowAltRight" />
+        </a>
+      </div>
+    </div>
+    <div class="widget-navigation">
+      <div
+        class="widget-navigation-item"
+        [class.active]="status() === AnimeStatus.Watching"
+        (click)="status.set(AnimeStatus.Watching)"
+      >
+        Watching
+      </div>
+      <div
+        class="widget-navigation-item"
+        [class.active]="status() === AnimeStatus.Completed"
+        (click)="status.set(AnimeStatus.Completed)"
+      >
+        Completed
+      </div>
+      <div
+        class="widget-navigation-item"
+        [class.active]="status() === AnimeStatus.Dropped"
+        (click)="status.set(AnimeStatus.Dropped)"
+      >
+        Dropped
+      </div>
+    </div>
+    <ul class="list-container">
+      @for (anime of listedAnimes(); track anime.animeId) {
+        @let progress =
+          anime.status === AnimeStatus.Completed
+            ? 1
+            : anime.lastEpisodeWatched / anime.animeEpisodes;
+        <a [routerLink]="['/anime', anime.animeId]">
+          <li class="list-anime">
+            <img [src]="anime.animeCover" [alt]="`${anime.animeTitle} image`" />
+            <div class="list-anime-info">
+              <span class="list-anime-title ellipsis">{{
+                anime.animeTitle
+              }}</span>
+              <div class="list-anime-progress">
+                <ion-progress-bar
+                  [value]="progress"
+                  class="progress"
+                ></ion-progress-bar>
+                <div class="list-anime-episodes">
+                  <span class="list-anime-episodes">Progress:</span>
+                  <span class="list-anime-episodes number"
+                    >{{
+                      anime.status === AnimeStatus.Completed
+                        ? anime.animeEpisodes
+                        : anime.lastEpisodeWatched
+                    }}/{{ anime.animeEpisodes }}</span
+                  >
+                </div>
+              </div>
+            </div>
+          </li>
+        </a>
+      }
+    </ul>
+  </div>
+</div>

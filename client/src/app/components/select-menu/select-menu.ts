@@ -1,22 +1,21 @@
 import { Component, input, model, signal } from '@angular/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
-
 @Component({
   selector: 'app-select-menu',
   imports: [FontAwesomeModule],
   templateUrl: './select-menu.html',
-  styleUrl: './select-menu.css',
+  styleUrl: './select-menu.scss',
 })
 export class SelectMenu {
   readonly menuTitle = input.required<string>();
   readonly options = input.required<any[]>();
   readonly multiple = input<boolean>(false);
 
+  faChevronDown = faChevronDown;
+
   selectedOptions = model<any[]>([]);
   showMenu = signal<boolean>(false);
-
-  faChevronDown = faChevronDown;
 
   protected addToSelection = (object: any) => {
     if (!this.multiple()) {
@@ -25,7 +24,9 @@ export class SelectMenu {
     let filteredResult;
 
     if (this.multiple()) {
-      if (this.selectedOptions().some((option) => option.name === object.name)) {
+      if (
+        this.selectedOptions().some((option) => option.name === object.name)
+      ) {
         this.removeFromSelection(object);
       } else {
         filteredResult = [...this.selectedOptions(), object];
@@ -54,4 +55,7 @@ export class SelectMenu {
       this.selectedOptions.set(filteredResult); //* Array
     }
   };
+  isSelected(optionName: string): boolean {
+    return this.selectedOptions().some((o) => o.name === optionName);
+  }
 }

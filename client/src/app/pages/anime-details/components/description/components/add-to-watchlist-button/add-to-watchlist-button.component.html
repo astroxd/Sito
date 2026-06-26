@@ -1,0 +1,43 @@
+<div class="add-to-watchlist">
+  <button
+    class="primary-btn text"
+    [class]="animeStatus() ? 'selected' : ''"
+    (click)="showWatchlistMenu = !showWatchlistMenu"
+  >
+    {{ formattedAnimeStatus() }}
+  </button>
+  <button
+    class="primary-btn icon"
+    [class]="animeStatus() ? 'selected' : ''"
+    (click)="showWatchlistMenu = !showWatchlistMenu"
+  >
+    <!-- <FontAwesomeIcon icon={faChevronDown} /> -->
+    a
+  </button>
+  <div class="dropdown-menu" [class]="showWatchlistMenu ? 'show' : ''">
+    <ul>
+      <li class="dropdown-menu-item no-hover">Set as:</li>
+      @for (list of iterableAnimeStatusLabels; track list.animeStatus) {
+        @let isInList = list.animeStatus === animeStatus();
+        <li
+          class="dropdown-menu-item"
+          [class]="isInList ? 'selected' : ''"
+          (click)="handleList(list.animeStatus, isInList)"
+        >
+          {{ list.label }}
+        </li>
+      }
+      <span>Add To List</span>
+      @for (sharedList of sharedLists(); track $index) {
+        @let isInList = sharedList?.animeId ? true : false;
+        <li
+          class="dropdown-menu-item"
+          [class]="isInList ? 'selected no-touch' : ''"
+          (click)="handleSharedList(sharedList.sharedListId, isInList)"
+        >
+          {{ sharedList.sharedListName }}
+        </li>
+      }
+    </ul>
+  </div>
+</div>

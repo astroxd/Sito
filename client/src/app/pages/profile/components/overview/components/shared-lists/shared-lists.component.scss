@@ -1,0 +1,16 @@
+.shared-lists {
+  margin-bottom: 2rem;
+}
+.shared-lists .widget {
+  margin-bottom: 0;
+}
+
+.shared-lists .content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+ion-modal {
+  --height: 10rem;
+}

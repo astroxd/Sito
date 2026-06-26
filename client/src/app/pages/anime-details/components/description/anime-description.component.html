@@ -1,0 +1,128 @@
+<div class="anime-details-content">
+  @if (details()) {
+    <ion-row>
+      <ion-col size="12" size-lg="3">
+        <div class="anime-details-img">
+          <img
+            [src]="details()?.coverImage?.extraLarge"
+            [alt]="details()?.title?.romaji"
+          />
+          <div class="anime-card-image-overlay comments">
+            <fa-icon [icon]="faHeart"></fa-icon>
+
+            {{ details()?.favourites?.toLocaleString("en-US") }}
+          </div>
+          <div class="anime-card-image-overlay view">
+            <fa-icon [icon]="faEye"></fa-icon>
+            {{ details()?.popularity?.toLocaleString("en-US") }}
+          </div>
+        </div>
+      </ion-col>
+      <ion-col size="12" size-lg="9">
+        <div class="anime-details-description">
+          <ion-row>
+            <ion-col>
+              <div class="anime-details-title">
+                <h3>
+                  {{
+                    details()?.title?.english
+                      ? details()?.title?.english
+                      : details()?.title?.romaji
+                  }}
+                </h3>
+                <span>
+                  {{ titles() }}
+                </span>
+              </div>
+            </ion-col>
+          </ion-row>
+          <div class="description">
+            <p
+              style="white-space: pre-wrap"
+              [class]="showDescription ? 'show' : ''"
+              (click)="setShowDescription(!showDescription)"
+            >
+              {{ details()?.description?.replaceAll("\<br\>", "") }}
+            </p>
+            <div
+              class="description-show-more"
+              [class]="showDescription ? 'hide' : ''"
+              (click)="setShowDescription(!showDescription)"
+            >
+              {{ showDescription ? "Show Less" : "Show More" }}
+            </div>
+          </div>
+          <div class="anime-details-info">
+            <ion-row>
+              <ion-col size-md="6">
+                <ul>
+                  <li>
+                    <span>Type:</span>
+                    <p>{{ details()?.format }}</p>
+                  </li>
+                  <li>
+                    <span>Studios:</span>
+                    <p>
+                      {{ studios() }}
+                    </p>
+                  </li>
+                  <li>
+                    <span>Date Aired:</span>
+                    <p>
+                      {{
+                        getDateAired(details()?.startDate, details()?.endDate)
+                      }}
+                    </p>
+                  </li>
+                  <li>
+                    <span>Status:</span>
+                    <p>{{ getStatus(details()?.status ?? "") }}</p>
+                  </li>
+                  @if (details()?.nextAiringEpisode) {
+                    <li>
+                      <span>Next:</span>
+                      <p>
+                        {{
+                          getAiringEpisode(
+                            details()?.nextAiringEpisode?.airingAt
+                          )
+                        }}
+                      </p>
+                    </li>
+                  }
+                </ul>
+              </ion-col>
+              <ion-col size-md="6">
+                <ul>
+                  <li>
+                    <span>Genre:</span>
+                    <p>
+                      {{ genres() }}
+                    </p>
+                  </li>
+                  <li>
+                    <span>Scores:</span>
+                    <p>{{ details()?.averageScore ?? "?" }}%</p>
+                  </li>
+                  <li>
+                    <span>Episodes:</span>
+                    <p>{{ details()?.episodes ?? "?" }}</p>
+                  </li>
+                  <li>
+                    <span>Duration:</span>
+                    <p>{{ details()?.duration ?? "?" }} min/ep</p>
+                  </li>
+                </ul>
+              </ion-col>
+            </ion-row>
+          </div>
+          <div class="anime-details-buttons">
+            <app-add-to-watchlist-button
+              [animeDetails]="details() ?? undefined"
+            />
+          </div>
+        </div>
+      </ion-col>
+    </ion-row>
+  }
+</div>

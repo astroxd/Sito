@@ -1,0 +1,171 @@
+header {
+  background-color: var(--bg-secondary);
+}
+
+.header-logo {
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.navbar-nav {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.nav-link {
+  color: var(--text-secondary);
+  display: block;
+  padding: 20px 30px;
+  font-size: 15px;
+  font-weight: 700;
+  transition: all 0.5s;
+}
+
+.nav-link:hover,
+.nav-link:focus {
+  color: var(--text-primary);
+  transition: all 0.5s;
+}
+
+.nav-active {
+  background-color: var(--active);
+  color: var(--text-primary);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.search-bar {
+  display: flex;
+  position: relative;
+  margin-right: 20px;
+  width: 100%;
+  height: 30px;
+}
+
+.search-bar-input {
+  border: none;
+  outline: none;
+  background: none;
+  color: var(--text-primary);
+  padding: 3px 24px 2px 3px;
+  cursor: pointer;
+  width: 0;
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 3;
+  transition: width 0.4s cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+.search-bar-input:focus {
+  cursor: text;
+  /** add padding-left(value: 3px) of input to padding-right to have the same on right */
+  padding-right: 27px;
+  border-bottom: 1px solid var(--text-primary);
+  /** use this to extend the search bar over the col limit */
+  width: calc(100% + 50px);
+  z-index: 1;
+}
+.search-bar-button {
+  border: none;
+  background: none;
+  /** width has to be the same as padding-right of input */
+  width: 24px;
+  color: var(--text-primary);
+  font-size: 18px;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  z-index: 2;
+  cursor: pointer;
+}
+
+.profile {
+  position: relative;
+}
+
+.profile .avatar {
+  color: var(--active);
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.dropdown-menu {
+  width: 200px;
+
+  background-color: var(--bg-primary);
+  border: 2px solid var(--bg-ternary);
+  border-radius: 5px;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 2;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition:
+    opacity 0.15s ease-in,
+    transform 0.15s ease-in;
+}
+.dropdown-menu .show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0px);
+}
+
+.dropdown-menu::before {
+  content: '';
+  width: 20px;
+  height: 20px;
+  background-color: var(--bg-primary);
+  border-top: 2px solid var(--bg-ternary);
+  border-left: 2px solid var(--bg-ternary);
+  transform: rotate(45deg);
+
+  position: absolute;
+  top: -11px;
+  right: 12px;
+  z-index: -1;
+}
+
+.dropdown-menu-item {
+  color: var(--text-primary);
+  text-align: start;
+  padding: 8px;
+}
+
+.dropdown-menu-item:hover:not(.no-hover) {
+  background-color: var(--active);
+  cursor: pointer;
+}
+
+/*.dropdown-menu-item.selected {
+	background-color: var(--active);
+}
+
+.dropdown-menu-item.divided {
+	border-top: 2px solid var(--bg-ternary);
+} */
+
+/** Header Profile Menu */
+.profile-menu {
+  top: 45px;
+  right: -9px;
+}
+
+.profile-menu-item {
+  padding: 0;
+}
+.profile-menu-item a {
+  display: block;
+  padding: 8px;
+}
+
+/* .profile-menu-sign-out {
+	cursor: pointer;
+} */
