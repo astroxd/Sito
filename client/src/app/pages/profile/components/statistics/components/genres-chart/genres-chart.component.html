@@ -3,12 +3,16 @@
     <div class="section-title"><h4>I tuoi generi</h4></div>
   </div>
   <div class="chart-wrapper">
-    <canvas
-      baseChart
-      [data]="lineChartData"
-      [options]="lineChartOptions"
-      [type]="lineChartType"
-    >
-    </canvas>
+    @if (genres() !== null) {
+      <canvas
+        baseChart
+        [data]="chartData()"
+        [options]="radarChartOptions"
+        type="radar"
+      >
+      </canvas>
+    } @else {
+      <ion-spinner />
+    }
   </div>
 </div>

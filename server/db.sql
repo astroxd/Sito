@@ -29,8 +29,12 @@ CREATE TABLE `Anime`(
     `anime_cover` VARCHAR(255) NOT NULL,
     `anime_episodes` BIGINT NOT NULL,
     `anime_avg_episode_duration` BIGINT NOT NULL,
+    `anime_genres` TEXT NOT NULL DEFAULT ''
     PRIMARY KEY(`anime_id`)
 );
+
+
+
 
 CREATE TABLE `Watched Episodes`(
     `user_id` INTEGER NOT NULL,
@@ -302,4 +306,64 @@ CREATE TABLE `SharedListInvitation` (
         FOREIGN KEY (`invited_user_id`) REFERENCES `User`(`user_id`) ON DELETE CASCADE,
         
     CONSTRAINT check_status CHECK (`status` IN ('PENDING', 'ACCEPTED'))
+);
+
+CREATE TABLE `Statistics` (
+    `user_id` INTEGER NOT NULL PRIMARY KEY,
+    `total_time` INTEGER NOT NULL DEFAULT 0,
+
+    CONSTRAINT fk_user
+        FOREIGN KEY (`user_id`) REFERENCES `User`(`user_id`) ON DELETE CASCADE
+);
+
+CREATE TABLE `Daily WatchTime` (
+    `user_id` INTEGER NOT NULL,
+    `date` TEXT NOT NULL,                  -- Formato standard YYYY-MM-DD (es: 2026-06-25)
+    `watchtime` INTEGER NOT NULL DEFAULT 0,-- Minuti guardati in questa specifica data
+    PRIMARY KEY(`user_id`, `date`)
+
+     CONSTRAINT fk_user
+        FOREIGN KEY (`user_id`) REFERENCES `User`(`user_id`) ON DELETE CASCADE
+);
+
+CREATE TABLE `Genre` (
+    `user_id` INTEGER NOT NULL,
+    `genre` TEXT NOT NULL,                  -- Nome del genere (es: 'Shonen', 'Action')
+    `watched_animes` INTEGER NOT NULL DEFAULT 0, -- Quanti anime di questo genere ha completato/iniziato
+    PRIMARY KEY(`user_id`, `genre`)
+
+    CONSTRAINT fk_user
+        FOREIGN KEY (`user_id`) REFERENCES `User`(`user_id`) ON DELETE CASCADE
+    
+    CONSTRAINT check_genre CHECK (
+        `genre` IN (
+            'Action', 'Adventure', 'Comedy', 'Drama', 'Ecchi', 
+            'Fantasy', 'Horror', 'Mahou Shoujo', 'Mecha', 'Music', 
+            'Mystery', 'Psychological', 'Romance', 'Sci-Fi', 
+            'Slice of Life', 'Sports', 'Supernatural', 'Thriller', 'Hentai'
+        )
+    )
+);
+
+
+
+CREATE TABLE `Badge` (
+    `badge_id` INTEGER PRIMARY KEY AUTOINCREMENT,
+    `badge_name` TEXT NOT NULL,             -- Nome pubblico (es: "Ninja Leggendario")
+    `badge_image` TEXT NOT NULL,            -- Path dell'icona/asset (es: "assets/badges/shonen-10.png")
+    `badge_description` TEXT NOT NULL,      -- Descrizione (es: "Hai guardato 10 anime Shonen")
+    `badge_slug` TEXT NOT NULL UNIQUE       -- Identificativo univoco logico (es: "shonen-tier-1")
+);
+
+CREATE TABLE `User Badge` (
+    `user_id` INTEGER NOT NULL,
+    `badge_id` INTEGER NOT NULL,
+    `unlocked_at` TEXT NOT NULL,            -- Data di sblocco in formato ISO string o Timestamp
+    PRIMARY KEY(`user_id`, `badge_id`),
+
+    CONSTRAINT fk_user
+        FOREIGN KEY (`user_id`) REFERENCES `User`(`user_id`) ON DELETE CASCADE,
+
+    CONSTRAINT fk_badge
+        FOREIGN KEY(`badge_id`) REFERENCES `Badge`(`badge_id`) ON DELETE CASCADE
 );

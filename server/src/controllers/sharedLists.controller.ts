@@ -11,6 +11,7 @@ import db from "../config/database";
 import { User } from "../models/user.model";
 import { List, AnimeStatus } from "../models/list.model";
 import { Anime } from "../models/anime.model";
+import { trackWatchTime, updateGenreStats } from "./statistics.controller";
 
 export const getSharedLists = (req: Request, res: Response) => {
   const userId = res.locals.userId;
@@ -265,9 +266,11 @@ export const updateSharedUserProgress = (req: Request, res: Response) => {
       console.log(userProgress);
 
       const anime = Anime.findAnimeById(Number(animeId));
-      if (!anime?.animeEpisodes)
-        throw new Error("No anime found in local catalog");
-      const maxEpisodes = anime.animeEpisodes;
+
+      const maxEpisodes = anime?.animeEpisodes;
+      const genresArray = Array.isArray(anime?.animeGenres)
+        ? anime.animeGenres.map((g: string) => g.trim())
+        : [];
 
       // 2. Calcoliamo il nuovo episodio basandoci se esisteva già o meno il progresso nella lista condivisa
       let newCurrentEpisode = 1; // Se è il primo click, l'episodio diventa 1 (risolve il Bug 1)
@@ -277,7 +280,7 @@ export const updateSharedUserProgress = (req: Request, res: Response) => {
       }
 
       // Blocco di sicurezza: non posso andare oltre gli episodi totali dell'anime
-      if (newCurrentEpisode > maxEpisodes) {
+      if (newCurrentEpisode > maxEpisodes!) {
         return res.status(200).json({ message: "Already in par" });
       }
 
@@ -328,13 +331,21 @@ export const updateSharedUserProgress = (req: Request, res: Response) => {
         if (!privateAnime) {
           // Se non esisteva proprio, lo inseriamo (inizia come WATCHING o COMPLETED se è l'ultima puntata)
           List.insertPrivateAnime(userId, Number(animeId), calculatedStatus);
+          if (calculatedStatus === AnimeStatus.Completed) {
+            updateGenreStats(userId, genresArray, "INCREMENT");
+          }
         } else {
           // Se esisteva (ed era DROPPED o WATCHING), lo aggiorniamo solo se lo stato calcolato è diverso
           if (privateAnime.status !== calculatedStatus) {
             List.updateAnimeStatus(userId, Number(animeId), calculatedStatus);
+            if (calculatedStatus === AnimeStatus.Completed) {
+              updateGenreStats(userId, genresArray, "INCREMENT");
+            }
           }
         }
       }
+      // Aggiornamento statistiche
+      trackWatchTime(userId, 1, anime?.animeAvgEpisodeDuration ?? 0);
     })();
     return res.status(200).json({ message: "Updated Progress" });
   } catch (error) {
@@ -361,6 +372,7 @@ export const addSharedAnime = (req: Request, res: Response) => {
     coverImage,
     episodes,
     duration,
+    genres,
   } = animeDetails;
 
   try {
@@ -381,6 +393,7 @@ export const addSharedAnime = (req: Request, res: Response) => {
         animeCover: coverImage,
         animeEpisodes: episodes,
         animeAvgEpisodeDuration: duration,
+        animeGenres: Array.isArray(genres) ? genres.join(",") : "",
       });
 
       SharedList.addSharedAnime(Number(listId), animeId);

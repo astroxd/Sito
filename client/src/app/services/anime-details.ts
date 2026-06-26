@@ -7,12 +7,14 @@ import {
   AnimeRecommendation,
   AnimeTag,
 } from '../models/AnimeDetails';
+import { APIService } from './apiservice';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AnimeDetails {
   private http = inject(HttpClient);
+  private apiService = inject(APIService);
 
   private readonly url = 'https://graphql.anilist.co';
 
@@ -67,8 +69,25 @@ export class AnimeDetails {
       variables: { id: animeId },
     };
     return this.http.post<any>(this.url, query).pipe(
-      // tap(({ data }) => console.log(data.Media)),
       map(({ data: { Media } }) => Media),
+      tap((media) => {
+        const animePayload = {
+          id: media.id,
+          idMal: media.idMal,
+          title:
+            media.title.romaji ??
+            media.title.english ??
+            media.title.native ??
+            'NO TITLE',
+          coverImage: media.coverImage.extraLarge ?? media.coverImage.large,
+          duration: media.duration,
+          episodes: media.nextAiringEpisode?.episode
+            ? media.nextAiringEpisode.episode - 1
+            : (media.episodes ?? 0),
+        };
+
+        this.apiService.post('anime/sync', { anime: animePayload }).subscribe();
+      }),
     ) as Observable<AnimeDetail>;
   }
 

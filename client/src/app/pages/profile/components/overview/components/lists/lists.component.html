@@ -37,8 +37,10 @@
     </div>
     <ul class="list-container">
       @for (anime of listedAnimes(); track anime.animeId) {
-        <!-- @let progress = 400 / anime.animeEpisodes; -->
-        @let progress = anime.lastEpisodeWatched / anime.animeEpisodes;
+        @let progress =
+          anime.status === AnimeStatus.Completed
+            ? 1
+            : anime.lastEpisodeWatched / anime.animeEpisodes;
         <a [routerLink]="['/anime', anime.animeId]">
           <li class="list-anime">
             <img [src]="anime.animeCover" alt="`${anime.animeTitle} image`" />
@@ -54,9 +56,11 @@
                 <div class="list-anime-episodes">
                   <span class="list-anime-episodes">Progress:</span>
                   <span class="list-anime-episodes number"
-                    >{{ anime.lastEpisodeWatched }}/{{
-                      anime.animeEpisodes
-                    }}</span
+                    >{{
+                      anime.status === AnimeStatus.Completed
+                        ? anime.animeEpisodes
+                        : anime.lastEpisodeWatched
+                    }}/{{ anime.animeEpisodes }}</span
                   >
                 </div>
               </div>

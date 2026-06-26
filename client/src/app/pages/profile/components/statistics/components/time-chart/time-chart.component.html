@@ -3,12 +3,16 @@
     <div class="section-title"><h4>La tua settimana</h4></div>
   </div>
   <div class="chart-wrapper">
-    <canvas
-      baseChart
-      [data]="lineChartData"
-      [options]="lineChartOptions"
-      [type]="lineChartType"
-    >
-    </canvas>
+    @if (dailyHistory()) {
+      <canvas
+        baseChart
+        [data]="chartData()"
+        [options]="lineChartOptions"
+        type="line"
+      >
+      </canvas>
+    } @else {
+      <ion-spinner />
+    }
   </div>
 </div>

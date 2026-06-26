@@ -11,7 +11,11 @@
     </div>
 
     @for (episode of episodes().slice(0, 3); track $index) {
-      <app-side-episode-card [episode]="episode" />
+      <app-side-episode-card
+        [episode]="episode"
+        [lastEpisodeWatched]="lastEpisodeWatched()"
+        (updateEpisodes)="updateWatchedEpisode($event)"
+      />
     }
   </div>
 } @else {
@@ -29,7 +33,11 @@
     <ion-row>
       @for (episode of episodes(); track $index) {
         <ion-col size-lg="4" size-md="6">
-          <app-side-episode-card [episode]="episode" />
+          <app-side-episode-card
+            [episode]="episode"
+            [lastEpisodeWatched]="lastEpisodeWatched()"
+            (updateEpisodes)="updateWatchedEpisode($event)"
+          />
         </ion-col>
       }
     </ion-row>

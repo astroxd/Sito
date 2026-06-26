@@ -71,7 +71,7 @@ export const List = {
           SELECT p.user_id as userId, p.status, a.anime_id as animeId, a.anime_mal_id as animeMalId, a.anime_title as animeTitle, a.anime_cover as animeCover, a.anime_episodes as animeEpisodes, w.last_episode_watched as lastEpisodeWatched, COUNT(*) OVER() AS length 
           FROM 'Private Anime' p
           JOIN Anime a ON a.anime_id = p.anime_id
-          JOIN 'Watched Episodes' w ON w.anime_id = p.anime_id
+          JOIN 'Watched Episodes' w ON w.anime_id = p.anime_id AND w.user_id = p.user_id
           WHERE p.user_id = ? AND p.status = ? AND a.anime_title COLLATE UTF8_GENERAL_CI LIKE @query
           LIMIT ?
           OFFSET ?

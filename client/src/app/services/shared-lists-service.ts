@@ -97,6 +97,7 @@ export class SharedListsService {
       episodes,
       duration,
       status,
+      genres,
     } = anime;
 
     return this.apiService
@@ -110,6 +111,7 @@ export class SharedListsService {
             nextAiringEpisode?.episode ??
             (status === 'FINISHED' && !nextAiringEpisode ? episodes : 0),
           duration: duration ?? 0,
+          genres,
         },
       })
       .pipe();

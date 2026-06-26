@@ -1,17 +1,6 @@
-import {
-  Component,
-  computed,
-  effect,
-  inject,
-  OnInit,
-  signal,
-} from '@angular/core';
+import { Component, effect, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import {
-  AnimeStatus,
-  ListedAnime,
-  ListedAnimeApiRes,
-} from 'src/app/models/List';
+import { AnimeStatus, ListedAnime } from 'src/app/models/List';
 import { AuthService } from 'src/app/services/auth-service';
 import { IonProgressBar } from '@ionic/angular/standalone';
 import { ListsService } from 'src/app/services/lists-service';

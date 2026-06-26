@@ -40,6 +40,7 @@ export class ListsService {
       nextAiringEpisode,
       duration,
       status,
+      genres,
     } = animeDetails;
 
     return this.apiService.post<{ message: string }>(`list/entrie`, {
@@ -49,10 +50,11 @@ export class ListsService {
         idMal,
         title: title.romaji ?? title.english ?? title.native ?? 'NO TITLE',
         coverImage: coverImage.extraLarge ?? coverImage.large,
-        episodes:
-          nextAiringEpisode?.episode ??
-          (status === 'FINISHED' && !nextAiringEpisode ? episodes : 0),
+        episodes: nextAiringEpisode?.episode
+          ? nextAiringEpisode.episode - 1
+          : (episodes ?? 0),
         duration: duration ?? 0,
+        genres,
       },
     });
   }
