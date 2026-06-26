@@ -31,7 +31,6 @@ import { AsyncPipe } from '@angular/common';
     FormsModule,
     AnimeDescription,
     IonGrid,
-    IonRouterOutlet,
     AsyncPipe,
     RouterOutlet,
     IonButtons,

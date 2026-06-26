@@ -138,7 +138,6 @@ export const getUserBadges = (req: Request, res: Response) => {
     const catalogWithImages = catalog.map((badge) => {
       return {
         ...badge,
-        // imageUrl: `${serverUrl}/badges/${badge.image}`,
         imageUrl: `${serverUrl}/static/badges/default.png`,
       };
     });

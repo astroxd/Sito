@@ -16,15 +16,19 @@ import {
   getAiringEpisode,
 } from 'src/app/helpers/formattedAnimeDetails';
 import { AddToWatchlistButtonComponent } from './components/add-to-watchlist-button/add-to-watchlist-button.component';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faHeart, faEye } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-anime-description',
   templateUrl: './anime-description.component.html',
   styleUrls: ['./anime-description.component.scss'],
-  imports: [IonRow, IonCol, AddToWatchlistButtonComponent],
+  imports: [IonRow, IonCol, AddToWatchlistButtonComponent, FontAwesomeModule],
 })
 export class AnimeDescription implements OnInit {
   public details = input<AnimeDetail | null>(null);
+  faHeart = faHeart;
+  faEye = faEye;
 
   public titles = computed<string>(() => {
     return Object.entries(this.details()?.title ?? [])

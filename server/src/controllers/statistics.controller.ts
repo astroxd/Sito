@@ -68,16 +68,6 @@ export const getUserStats = (req: Request, res: Response) => {
 
     //* get user genres
     const userGenres = Statistics.getUserGenres(userId);
-    // const rows = db
-    //   .prepare(
-    //     `
-    //   SELECT genre, watched_animes as watchedAnimes
-    //   FROM 'Genre'
-    //   WHERE user_id = ? AND watched_animes > 0
-    //   ORDER BY watched_animes DESC
-    // `,
-    //   )
-    //   .all(userId) as { genre: string; watchedAnimes: number }[];
 
     const formattedGenres = userGenres.map((row) => ({
       genre: row.genre,

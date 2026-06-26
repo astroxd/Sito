@@ -167,104 +167,21 @@ export const updateSharedUserProgress = (req: Request, res: Response) => {
 
   try {
     db.transaction(() => {
-      // const watchedEpisode = User.findLastEpisodeWatchedByAnimeId(
-      //   userId,
-      //   Number(animeId),
-      // );
-
-      // const privateAnime = List.findPrivateAnimeByAnimeId(
-      //   userId,
-      //   Number(animeId),
-      // );
-
-      // const userProgress = SharedList.findUserAnimeProgressByAnimeId(
-      //   Number(listId),
-      //   userId,
-      //   Number(animeId),
-      // );
-
-      // //*Se progress === null, crea Shared List Progress, aggiungi a watching
-      // if (!userProgress?.currentEpisode) {
-      //   SharedList.insertUserProgress(Number(listId), userId, Number(animeId));
-
-      //   SharedList.updateAnimeLastActivity(Number(listId), Number(animeId));
-
-      //   //* SE non è in private anime aggiungi in watching
-      //   if (!privateAnime) {
-      //     List.insertPrivateAnime(userId, Number(animeId), "WATCHING");
-      //     //*Aggiungi in watched episodes
-      //     User.insertAnimeIntoWatchedEpisodes(userId, Number(animeId));
-
-      //     //* SE è in private anime ma ha status dropped, sposta in watching (se è completed non fare niente)
-      //   } else if (privateAnime.status === "DROPPED") {
-      //     List.updateAnimeStatus(userId, Number(animeId), "WATCHING");
-
-      //     //* Potrei aver tolto tutte le puntate viste da un anime
-      //     //* quindi devo risettare a 1 le puntate viste
-      //     if (watchedEpisode && watchedEpisode?.lastEpisodeWatched < 1) {
-      //       User.updateLastWatchedEpisode(userId, Number(animeId), 1);
-      //     }
-      //   }
-      // }
-      // //*Se progress !== null, aggiorna puntata in Shared List Progress
-      // else {
-      //   const animeEpisodes = Anime.findAnimeById(
-      //     Number(animeId),
-      //   )?.animeEpisodes;
-      //   if (!animeEpisodes) throw new Error("No anime found");
-
-      //   const newCurrentEpisode = userProgress.currentEpisode + 1;
-
-      //   if (newCurrentEpisode <= animeEpisodes) {
-      //     SharedList.updateUserProgress(
-      //       Number(listId),
-      //       userId,
-      //       Number(animeId),
-      //       newCurrentEpisode,
-      //     );
-
-      //     SharedList.updateAnimeLastActivity(Number(listId), Number(animeId));
-
-      //     //* Se in una lista condivisa ho superato le puntate viste da solo aggiorno anche watchedEpisodes
-      //     if (
-      //       watchedEpisode &&
-      //       watchedEpisode?.lastEpisodeWatched < newCurrentEpisode
-      //     ) {
-      //       User.updateLastWatchedEpisode(
-      //         userId,
-      //         Number(animeId),
-      //         newCurrentEpisode,
-      //       );
-      //     }
-      //     if (animeEpisodes === newCurrentEpisode) {
-      //       //* Move anime to completed
-      //       List.updateAnimeStatus(userId, Number(animeId), 'COMPLETED');
-      //     }
-      //     //* Se avevo messo l'anime in dropped dopo che avevo fatto progressi in shared List devo rimetterlo in watching
-      //     console.log("CONTROLLO ", privateAnime);
-      //     if (privateAnime?.status === 'DROPPED') {
-      //       List.updateAnimeStatus(userId, Number(animeId), 'WATCHING');
-      //     }
-      //   }
-      // }
-      // 1. Recuperiamo i dati attuali
       const watchedEpisode = User.findLastEpisodeWatchedByAnimeId(
         userId,
         Number(animeId),
       );
-      console.log(watchedEpisode);
+
       const privateAnime = List.findPrivateAnimeByAnimeId(
         userId,
         Number(animeId),
       );
-      console.log(privateAnime);
+
       const userProgress = SharedList.findUserAnimeProgressByAnimeId(
         Number(listId),
         userId,
         Number(animeId),
       );
-
-      console.log(userProgress);
 
       const anime = Anime.findAnimeById(Number(animeId));
 
@@ -273,21 +190,18 @@ export const updateSharedUserProgress = (req: Request, res: Response) => {
         ? anime.animeGenres.map((g: string) => g.trim())
         : [];
 
-      // 2. Calcoliamo il nuovo episodio basandoci se esisteva già o meno il progresso nella lista condivisa
-      let newCurrentEpisode = 1; // Se è il primo click, l'episodio diventa 1 (risolve il Bug 1)
+      let newCurrentEpisode = 1;
 
       if (userProgress?.currentEpisode) {
         newCurrentEpisode = userProgress.currentEpisode + 1;
       }
 
-      // Blocco di sicurezza: non posso andare oltre gli episodi totali dell'anime
       if (newCurrentEpisode > maxEpisodes!) {
         return res.status(200).json({ message: "Already in par" });
       }
 
-      // 3. AGGIORNAMENTO PROGRESSO CONDIVISO
       if (!userProgress?.currentEpisode) {
-        // Primo inserimento: creiamo la riga direttamente impostando l'episodio a 1
+        //* Prima volta che vede l'anime nella lista condivisa
         SharedList.insertUserProgress(
           Number(listId),
           userId,
@@ -295,7 +209,7 @@ export const updateSharedUserProgress = (req: Request, res: Response) => {
           newCurrentEpisode,
         );
       } else {
-        // Aggiornamento della riga esistente
+        //* Non è la prima volta che lo vede, update progress
         SharedList.updateUserProgress(
           Number(listId),
           userId,
@@ -322,7 +236,7 @@ export const updateSharedUserProgress = (req: Request, res: Response) => {
       } else {
         const lastWatchedPrivate = watchedEpisode?.lastEpisodeWatched || 0;
         if (lastWatchedPrivate < newCurrentEpisode) {
-          // Se la lista condivisa è più avanti di quello che ho visto da solo, allineo il mio counter privato
+          //* */ Se la lista condivisa è più avanti di quella privata, aumento il counter privato
           User.updateLastWatchedEpisode(
             userId,
             Number(animeId),
@@ -333,23 +247,21 @@ export const updateSharedUserProgress = (req: Request, res: Response) => {
         trackWatchTime(userId, 1, anime?.animeAvgEpisodeDuration ?? 0);
       }
 
-      // 5. GESTIONE STATI AUTOMATICA
-      // Calcoliamo lo stato che DOVREBBE avere l'anime in base all'episodio appena raggiunto
+      //* Calcolo del nuovo stato dell'anime
       if (privateAnime?.status !== AnimeStatus.Completed) {
-        // Calcoliamo lo stato ideale per chi NON l'ha ancora completato privatamente
         const calculatedStatus =
           newCurrentEpisode === maxEpisodes
             ? AnimeStatus.Completed
             : AnimeStatus.Watching;
 
+        //* Se non l'ho mai visto da solo, oppure l'ho tolto forzatamente lo inserisco in watching o completed
         if (!privateAnime) {
-          // Se non esisteva proprio, lo inseriamo (inizia come WATCHING o COMPLETED se è l'ultima puntata)
           List.insertPrivateAnime(userId, Number(animeId), calculatedStatus);
           if (calculatedStatus === AnimeStatus.Completed) {
             updateGenreStats(userId, genresArray, "INCREMENT");
           }
         } else {
-          // Se esisteva (ed era DROPPED o WATCHING), lo aggiorniamo solo se lo stato calcolato è diverso
+          //* Se esisteva (ed era DROPPED o WATCHING), lo aggiorno solo se il nuovo stato è diverso
           if (privateAnime.status !== calculatedStatus) {
             List.updateAnimeStatus(userId, Number(animeId), calculatedStatus);
             if (calculatedStatus === AnimeStatus.Completed) {

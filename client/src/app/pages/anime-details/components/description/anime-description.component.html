@@ -8,11 +8,12 @@
             [alt]="details()?.title?.romaji"
           />
           <div class="anime-card-image-overlay comments">
-            <!-- <FontAwesomeIcon icon={fasHeart} /> -->
+            <fa-icon [icon]="faHeart"></fa-icon>
+
             {{ details()?.favourites?.toLocaleString("en-US") }}
           </div>
           <div class="anime-card-image-overlay view">
-            <!-- <FontAwesomeIcon icon={faEye} /> -->
+            <fa-icon [icon]="faEye"></fa-icon>
             {{ details()?.popularity?.toLocaleString("en-US") }}
           </div>
         </div>

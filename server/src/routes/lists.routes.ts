@@ -8,6 +8,8 @@ import {
   deleteAnimeFromList,
   getUserAnimesProgress,
   updateUserProgress,
+  updateLastWatchedEpisode,
+  getLastWatchedEpisode,
 } from "../controllers/lists.controller";
 
 const router = Router();
@@ -32,7 +34,15 @@ router.patch("/list/entrie", updateAnimeList);
 //* Rimuove un anime dalla lista privata
 router.delete("/list/entrie/:animeId", deleteAnimeFromList);
 
+//* Ottiene il progresso dell'utente in tutti gli anime con lo status specificato
 router.get("/list/:status/progress", getUserAnimesProgress);
+
+//* Aggiorna il progresso in un anime (+1)
 router.post("/list/:status/progress/entry/:animeId", updateUserProgress);
+
+//* Aggiorno le puntate viste in bulk (animeDetails page)
+router.post("/anime/episodes/watch", updateLastWatchedEpisode);
+//* Ottengo le info dell'anime e l'ultima puntata vista
+router.get("/anime/episodes/:animeId", getLastWatchedEpisode);
 
 export default router;

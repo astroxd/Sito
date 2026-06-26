@@ -54,7 +54,7 @@ export class GetAnimes {
           }
         }
 `,
-      variables: { page: 1, perPage: 10 },
+      variables: { page: 1, perPage: 12 },
     };
     return this.FetchAnime(query);
   }
@@ -87,7 +87,7 @@ export class GetAnimes {
 `,
       variables: {
         page: 1,
-        perPage: 10,
+        perPage: 12,
         seasonYear: new Date().getFullYear(),
         season: getCurrentSeason(),
       },

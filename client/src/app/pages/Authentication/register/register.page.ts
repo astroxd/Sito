@@ -3,9 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
   IonContent,
-  IonHeader,
-  IonTitle,
-  IonToolbar,
   IonGrid,
   IonCol,
   IonRow,
@@ -15,7 +12,8 @@ import {
 import { RouterLink } from '@angular/router';
 
 import { AuthForm } from 'src/app/services/auth-form';
-
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faEnvelope, faUser, faLock } from '@fortawesome/free-solid-svg-icons';
 @Component({
   selector: 'app-register',
   templateUrl: './register.page.html',
@@ -23,9 +21,6 @@ import { AuthForm } from 'src/app/services/auth-form';
   standalone: true,
   imports: [
     IonContent,
-    IonHeader,
-    IonTitle,
-    IonToolbar,
     CommonModule,
     FormsModule,
     IonGrid,
@@ -34,10 +29,14 @@ import { AuthForm } from 'src/app/services/auth-form';
     ReactiveFormsModule,
     IonRouterLinkWithHref,
     RouterLink,
+    FontAwesomeModule,
   ],
 })
 export class RegisterPage implements OnInit {
   private authForm = inject(AuthForm);
+  faEnvelope = faEnvelope;
+  faLock = faLock;
+  faUser = faUser;
 
   public registerFormControl = this.authForm.registerFormControl;
   public formErrors = this.registerFormControl.formErrors;
@@ -47,7 +46,7 @@ export class RegisterPage implements OnInit {
   constructor() {}
 
   ngOnInit() {
-    // this.registerFormControl.resetForm();
+    this.registerFormControl.resetForm();
   }
 
   onSubmit() {

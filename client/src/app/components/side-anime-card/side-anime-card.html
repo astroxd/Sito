@@ -1,4 +1,4 @@
-<a href="">
+<a [routerLink]="['/anime', anime().id]">
   <div
     class="side-anime-card anime-card-image"
     [style]="`backgroundImage: url(${anime().bannerImage ?? anime().coverImage.extraLarge})`"

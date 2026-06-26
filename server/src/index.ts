@@ -22,27 +22,7 @@ app.use(
 app.use("/static", express.static(path.join(__dirname, "..", "static")));
 
 app.get("/", (req, res) => {
-  res.send("Hello World!");
-
-  const stmt = db.prepare("SELECT * FROM User");
-  const user = stmt.get();
-
-  console.log("USER: ", user);
-
-  // const rows = await fetchAll(db, "SELECT * FROM User");
-  // console.log(rows);
-});
-
-app.get("/user/:userId", (req, res) => {
-  const userId = req.params.userId;
-
-  const stmt = db.prepare(
-    "SELECT user_id, username, email FROM User WHERE user_id = ?",
-  );
-  const user = stmt.get(userId);
-
-  console.log("Get User: ", user);
-  res.send({ user: user });
+  return res.send("Hello World!");
 });
 
 app.use("/", globalRoutes);

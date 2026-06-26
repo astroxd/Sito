@@ -41,6 +41,14 @@ export const routes: Routes = [
         canActivate: [authGuard],
       },
       {
+        path: 'watchlist',
+        loadComponent: () =>
+          import('../pages/watch-list/watch-list.page').then(
+            (m) => m.WatchListPage,
+          ),
+        canActivate: [authGuard],
+      },
+      {
         path: 'anime/:id',
         component: AnimeDetailsPage,
         children: [
@@ -67,14 +75,7 @@ export const routes: Routes = [
           },
         ],
       },
-      {
-        path: 'watchlist',
-        loadComponent: () =>
-          import('../pages/watch-list/watch-list.page').then(
-            (m) => m.WatchListPage,
-          ),
-        canActivate: [authGuard],
-      },
+
       {
         path: 'shared/:listId',
         loadComponent: () =>

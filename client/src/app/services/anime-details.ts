@@ -1,7 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable, tap } from 'rxjs';
-import { Anime } from '../models/Anime';
 import {
   AnimeDetail,
   AnimeRecommendation,

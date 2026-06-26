@@ -1,29 +1,12 @@
-<!-- <ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>register</ion-title>
-  </ion-toolbar>
-</ion-header> -->
-
 <ion-content [fullscreen]="true">
-  <!-- <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">register</ion-title>
-    </ion-toolbar>
-  </ion-header> -->
   <section style="margin-top: 1rem">
     <div
       style="background-image: url(../../../assets/images/banner.jpg)"
       class="auth"
     >
-      <!-- <Container> -->
-      <!-- <Row> -->
-      <!-- <Col lg={12} style={{ textAlign: 'center' }}> -->
       <div>
         <h2>Sign Up</h2>
       </div>
-      <!-- </Col> -->
-      <!-- </Row> -->
-      <!-- </Container> -->
     </div>
     <section style="padding-top: 130px; padding-bottom: 180px">
       <ion-grid>
@@ -48,10 +31,11 @@
                     placeholder="Email address"
                     formControlName="email"
                   />
-                  <!-- <FontAwesomeIcon
-											icon={faEnvelope}
-											className='input-item-icon'
-										/> -->
+                  <fa-icon
+                    [icon]="faEnvelope"
+                    class="input-item-icon"
+                  ></fa-icon>
+
                   <p>{{formErrors().email}}</p>
                 </div>
                 <div class="input-item">
@@ -60,10 +44,7 @@
                     placeholder="Your Name"
                     formControlName="username"
                   />
-                  <!-- <FontAwesomeIcon
-											icon={faUser}
-											className='input-item-icon'
-										/> -->
+                  <fa-icon [icon]="faUser" class="input-item-icon"></fa-icon>
                   <p>{{formErrors().username}}</p>
                 </div>
                 <div class="input-item">
@@ -72,10 +53,7 @@
                     placeholder="Password"
                     formControlName="password"
                   />
-                  <!-- <FontAwesomeIcon
-											icon={faLock}
-											className='input-item-icon'
-										/> -->
+                  <fa-icon [icon]="faLock" class="input-item-icon"></fa-icon>
                   <p>{{formErrors().password}}</p>
                 </div>
                 <div class="input-item">
@@ -84,10 +62,7 @@
                     placeholder="Confirm Password"
                     formControlName="confirmPassword"
                   />
-                  <!-- <FontAwesomeIcon
-											icon={faLock}
-											className='input-item-icon'
-										/> -->
+                  <fa-icon [icon]="faLock" class="input-item-icon"></fa-icon>
                   @if (confirmPassword?.invalid && (confirmPassword?.dirty ||
                   confirmPassword?.touched)){
                   @if(registerFormControl.registerForm.hasError('PasswordNoMatch')){
@@ -101,7 +76,6 @@
                     accept="image/*"
                     (change)="registerFormControl.onFileSelected($event)"
                   />
-                  <!-- <p>{errors.avatar?.message}</p> -->
                 </div>
                 <button
                   type="submit"
@@ -110,10 +84,6 @@
                 >
                   Register Now
                 </button>
-                <!-- <h5>
-                  Already have an account?
-                  <a> Log In! </a>
-                </h5> -->
               </form>
             </div>
           </ion-col>

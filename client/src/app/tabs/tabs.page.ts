@@ -1,18 +1,33 @@
 import { Component, EnvironmentInjector, inject } from '@angular/core';
-import { IonTabs, IonTabBar, IonTabButton, IonIcon, IonLabel } from '@ionic/angular/standalone';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import {
+  IonTabs,
+  IonTabBar,
+  IonTabButton,
+  IonIcon,
+  IonLabel,
+} from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { triangle, ellipse, square } from 'ionicons/icons';
-
+import { home, search, person, eye } from 'ionicons/icons';
+import { faHeart } from '@fortawesome/free-solid-svg-icons';
 @Component({
   selector: 'app-tabs',
   templateUrl: 'tabs.page.html',
   styleUrls: ['tabs.page.scss'],
-  imports: [IonTabs, IonTabBar, IonTabButton, IonIcon, IonLabel],
+  imports: [
+    IonTabs,
+    IonTabBar,
+    IonTabButton,
+    IonIcon,
+    IonLabel,
+    FontAwesomeModule,
+  ],
 })
 export class TabsPage {
   public environmentInjector = inject(EnvironmentInjector);
+  faHeart = faHeart;
 
   constructor() {
-    addIcons({ triangle, ellipse, square });
+    addIcons({ home, search, person, eye });
   }
 }

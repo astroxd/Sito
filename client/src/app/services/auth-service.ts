@@ -1,14 +1,14 @@
-import { effect, inject, Injectable, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { User } from '../models/User';
-import { finalize, Observable, shareReplay, tap } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import { finalize, shareReplay, tap } from 'rxjs';
 import { Router } from '@angular/router';
+import { APIService } from './apiservice';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private http = inject(HttpClient);
+  private apiService = inject(APIService);
   private router = inject(Router);
 
   user = signal<User | undefined | null>(undefined);
@@ -17,8 +17,8 @@ export class AuthService {
   constructor() {}
 
   login(email: string, password: string) {
-    return this.http
-      .post('http://localhost:3001/login', {
+    return this.apiService
+      .post('login', {
         email,
         password,
       })
@@ -27,7 +27,6 @@ export class AuthService {
           next: (value: any) => {
             this.setUser(value.user);
             this.setToken(value.accessToken);
-            // this.router.navigate(['/profile']);
           },
           error: () => {
             this.setUser(null);
@@ -52,7 +51,7 @@ export class AuthService {
   }
 
   refreshToken() {
-    return this.http.get('http://localhost:3001/refresh-token').pipe(
+    return this.apiService.get('refresh-token').pipe(
       tap((res: any) => {
         console.log('REFRESHED TOKEN: ', res.accessToken);
         this.setToken(res.accessToken);
@@ -64,29 +63,26 @@ export class AuthService {
   initSession() {
     console.log('INIT SESSION');
     this.refreshToken().subscribe({
-      next: () => this.loadUser(), // Una volta ottenuto il token, carichiamo l'utente
+      next: () => this.loadUser(),
       error: () => this.setUser(null),
     });
   }
 
   loadUser() {
-    this.http
-      .get<any>('http://localhost:3001/session')
+    this.apiService
+      .get<any>('session')
       .pipe(tap((data) => console.log(data)))
-      .subscribe(
-        // { error(err) {}, next(res) {} },
-        ({ user }: { user: User }) => {
-          if (!user) {
-            this.setUser(null);
-          } else {
-            this.setUser(user);
-          }
-        },
-      );
+      .subscribe(({ user }: { user: User }) => {
+        if (!user) {
+          this.setUser(null);
+        } else {
+          this.setUser(user);
+        }
+      });
   }
 
   logout() {
-    return this.http.post('http://localhost:3001/logout', {}).pipe(
+    return this.apiService.post('logout', {}).pipe(
       finalize(() => {
         this.setToken(null);
         this.setUser(null);
@@ -110,7 +106,7 @@ export class AuthService {
       formData.append('avatar', avatar, avatar.name);
     }
 
-    return this.http.post('http://localhost:3001/register', formData).pipe(
+    return this.apiService.post('register', formData).pipe(
       tap({
         next: (value: any) => {
           this.setUser(value.user);
@@ -127,17 +123,5 @@ export class AuthService {
 
   isAuthenticated() {
     return this.user() ? true : false;
-  }
-
-  private userId = 1;
-  public changeUser() {
-    // this.userId++;
-    // if (this.userId > 2) this.userId = 1;
-    // this.http
-    //   .get<any>(`http://localhost:3001/user/${this.userId}`)
-    //   .pipe(tap((data) => console.log(data)))
-    //   .subscribe(({ user: { user_id: id, username, email } }) => {
-    //     this.user.set({ id, username, email });
-    //   });
   }
 }

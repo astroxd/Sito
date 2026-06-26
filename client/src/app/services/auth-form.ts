@@ -96,13 +96,13 @@ class LoginForm {
     for (const formField of formFields) {
       const field = this.loginForm.get(formField);
 
-      // Controlliamo se il field esiste ed ha errori
+      //* ontrolliamo se il field esiste ed ha errori
       if (field && field.errors) {
-        // Prendiamo la prima chiave d'errore attiva (es. 'required', 'minlength')
+        //* prendiamo la prima chiave d'errore attiva tipo 'required'
         const firstErrorKey = Object.keys(field.errors)[0] as ErrorType;
 
-        // Assegniamo il testo associato a quell'errore specifico
-        // solo se il field è stato toccato
+        //* Assegniamo il testo associato a quell'errore specifico solo se il
+        //* field è stato toccato
         if (field.invalid && (field.dirty || field.touched)) {
           this._formErrors.update((errors) => ({
             ...errors,
@@ -112,7 +112,7 @@ class LoginForm {
           }));
         }
       } else {
-        // Se non ci sono errori sul field, svuotiamo il messaggio
+        //* Se non ci sono errori sul field, resettiamo il messaggio
         this._formErrors.update((errors) => ({
           ...errors,
           [formField]: '',
@@ -205,16 +205,13 @@ class RegisterForm {
 
     this._registerForm = this.formBuilder.group(
       {
-        email: [
-          'andreasciortino202222204@gmail.com',
-          [Validators.required, Validators.email],
-        ],
+        email: ['', [Validators.required, Validators.email]],
         username: [
-          'proviamo',
+          '',
           [Validators.required, Validators.pattern('^[a-zA-Z0-9_.]+$')],
         ],
         password: [
-          'password123',
+          '',
           [
             Validators.required,
             Validators.minLength(8),
@@ -222,7 +219,7 @@ class RegisterForm {
           ],
         ],
         confirmPassword: [
-          'password123',
+          '',
           [
             Validators.required,
             Validators.minLength(8),
@@ -247,13 +244,13 @@ class RegisterForm {
     for (const formField of formFields) {
       const field = this.registerForm.get(formField);
 
-      // Controlliamo se il field esiste ed ha errori
+      //* ontrolliamo se il field esiste ed ha errori
       if (field && field.errors) {
-        // Prendiamo la prima chiave d'errore attiva (es. 'required', 'minlength')
+        //* prendiamo la prima chiave d'errore attiva tipo 'required'
         const firstErrorKey = Object.keys(field.errors)[0] as ErrorType;
 
-        // Assegniamo il testo associato a quell'errore specifico
-        // solo se il field è stato toccato
+        //* Assegniamo il testo associato a quell'errore solo se il
+        //* field è stato toccato
         if (field.invalid && (field.dirty || field.touched)) {
           this.formErrors.update((errors) => ({
             ...errors,
@@ -263,7 +260,7 @@ class RegisterForm {
           }));
         }
       } else {
-        // Se non ci sono errori sul field, svuotiamo il messaggio
+        //* Se non ci sono errori sul field, resettiamo il messaggio
         this.formErrors.update((errors) => ({
           ...errors,
           [formField]: '',

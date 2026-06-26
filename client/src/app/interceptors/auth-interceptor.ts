@@ -1,3 +1,6 @@
+//? Implementation based off
+//? https://dev.to/indugrand/the-complete-guide-to-secure-angular-authentication-using-oauth-jwt-with-refresh-tokens-4a3o
+
 import {
   HttpErrorResponse,
   HttpEvent,
@@ -39,7 +42,7 @@ function handleBackendRequests(request: HttpRequest<any>, next: HttpHandlerFn) {
 
   return next(cloned).pipe(
     catchError((error) => {
-      // Se l'errore è 401 dobbiamo refreshare l'accessToken
+      //* Se l'errore è 401 dobbiamo refreshare l'accessToken
       if (error instanceof HttpErrorResponse && error.status === 401) {
         return handle401Error(cloned, next, error, authService);
       }
@@ -54,7 +57,7 @@ function handle401Error(
   error: HttpErrorResponse,
   authService: AuthService,
 ) {
-  // Evitiamo di fare il refresh se la richiesta che è fallita era già quella di login o quella di refresh
+  //* Evitiamo di fare il refresh se la richiesta che è fallita era già quella di login o quella di refresh
   if (
     request.url.includes('/login') ||
     request.url.includes('/refresh-token') ||
@@ -72,18 +75,18 @@ function handle401Error(
         isRefreshing = false;
         refreshTokenSubject.next(response.accessToken);
 
-        // Ripete la richiesta originale fallita con il nuovo token
+        //* Ripete la richiesta originale fallita con il nuovo token
         return next(addTokenHeader(request, response.accessToken));
       }),
       catchError((refreshErr) => {
         isRefreshing = false;
-        authService.logout(); // Se fallisce anche il refresh token, forza il logout
+        authService.logout(); //* Se fallisce anche il refresh token, fai il logout
 
         return throwError(() => refreshErr);
       }),
     );
   } else {
-    // Se il refresh è già in corso, aspetta che finisca prima di ripetere la richiesta
+    //* Se il refresh è già in corso, aspetta che finisca prima di ripetere la richiesta
     return refreshTokenSubject.pipe(
       filter((token) => token !== null),
       take(1),

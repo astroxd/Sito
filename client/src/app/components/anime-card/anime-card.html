@@ -39,7 +39,9 @@
     <ul>
       @if (anime()!.genres) { @for (genre of anime()!.genres; track $index) {
       <li>
-        <a href="">{{ genre }}</a>
+        <a [routerLink]="['/search']" [queryParams]="{genres: genre}"
+          >{{ genre }}</a
+        >
       </li>
       } }
     </ul>

@@ -4,13 +4,9 @@ import sharedListsRoutes from "./sharedLists.routes";
 import listsRoutes from "./lists.routes";
 import friendshipRoutes from "./friendship.routes";
 import { requireAuth } from "../middlewares/auth.middleware";
-import {
-  getLastWatchedEpisode,
-  syncAnime,
-  updateLastWatchedEpisode,
-} from "../controllers/lists.controller";
-import { getUserStats } from "../controllers/statistics.controller";
-import { getUserBadges } from "../controllers/badge.controller";
+import statisticsRoutes from "./statistics.routes";
+
+import { syncAnime } from "../controllers/lists.controller";
 
 const router = Router();
 
@@ -20,12 +16,8 @@ router.use(requireAuth);
 router.use("/", sharedListsRoutes);
 router.use("/", listsRoutes);
 router.use("/", friendshipRoutes);
+router.use("/", statisticsRoutes);
 
 router.post("/anime/sync", syncAnime);
-router.post("/anime/episodes/watch", updateLastWatchedEpisode);
-router.get("/anime/episodes/:animeId", getLastWatchedEpisode);
-
-router.get("/my-stats", getUserStats);
-router.get("/my-badges", getUserBadges);
 
 export default router;

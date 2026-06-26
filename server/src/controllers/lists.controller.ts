@@ -325,7 +325,6 @@ export const updateUserProgress = (req: Request, res: Response) => {
   const { animeId } = req.params;
 
   try {
-    // 1. Recuperiamo i dettagli dell'anime per sapere il numero massimo di episodi
     const anime = Anime.findAnimeById(Number(animeId));
     if (!anime?.animeEpisodes) {
       return res
@@ -334,13 +333,11 @@ export const updateUserProgress = (req: Request, res: Response) => {
     }
     const maxEpisodes = anime.animeEpisodes;
 
-    // 2. Recuperiamo il progresso privato attuale dell'utente (episodi visti)
     const watchedEpisode = User.findLastEpisodeWatchedByAnimeId(
       userId,
       Number(animeId),
     );
 
-    // Recuperiamo lo stato dell'anime nella lista privata dell'utente
     const privateAnime = List.findPrivateAnimeByAnimeId(
       userId,
       Number(animeId),
@@ -350,14 +347,12 @@ export const updateUserProgress = (req: Request, res: Response) => {
       ? anime.animeGenres.split(",").map((g) => g.trim())
       : [];
 
-    // 3. Calcoliamo il nuovo episodio
-    let newCurrentEpisode = 1; // Default se è la prima volta che clicca l'anime
+    let newCurrentEpisode = 1; //* Default se è la prima volta che clicca l'anime
 
     if (watchedEpisode?.lastEpisodeWatched) {
       newCurrentEpisode = watchedEpisode.lastEpisodeWatched + 1;
     }
 
-    // Blocco di sicurezza: non si può andare oltre gli episodi totali dell'anime
     if (newCurrentEpisode > maxEpisodes) {
       return res.status(200).json({ message: "Already completed or in par" });
     }
@@ -366,13 +361,11 @@ export const updateUserProgress = (req: Request, res: Response) => {
       if (anime.animeAvgEpisodeDuration) {
         trackWatchTime(userId, 1, anime.animeAvgEpisodeDuration);
       }
-      // 4. AGGIORNAMENTO PROGRESSO PRIVATO (Watched Episodes)
-      // Visto che nella tua 'addAnimeToList' crei già la riga a 0, qui facciamo sempre un UPDATE sicuro
+
+      //* Update privato
       User.updateLastWatchedEpisode(userId, Number(animeId), newCurrentEpisode);
 
-      // 5. GESTIONE STATO AUTOMATICO E AGGIORNAMENTO TIMESTAMP (Private Anime)
-      // Se l'utente raggiunge l'ultima puntata lo stato diventa COMPLETED, altrimenti rimane WATCHING
-      // (Evitiamo di sovrascrivere se l'utente lo aveva messo manualmente in DROPPED, a meno che non stia guardando l'ultima puntata)
+      //* Update stato anime
       let calculatedStatus = privateAnime?.status;
       if (newCurrentEpisode === maxEpisodes) {
         calculatedStatus = AnimeStatus.Completed;
@@ -403,6 +396,10 @@ export const syncAnime = (req: Request, res: Response) => {
 
   try {
     const { id, idMal, title, coverImage, episodes, duration, genres } = anime;
+
+    if (!id || !idMal || !title || !coverImage || !episodes || !duration) {
+      return res.status(400).json({ message: "Mising Params" });
+    }
 
     Anime.animeUpsert({
       animeId: id,

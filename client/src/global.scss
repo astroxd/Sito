@@ -182,20 +182,6 @@ input[type="search"] {
   color: black;
 }
 
-/** Loader and Page Loader  */
-.loading {
-  width: 100%;
-  text-align: center;
-  color: var(--text-primary);
-}
-.page-loader {
-  height: 80vmin;
-  display: flex;
-  align-items: center;
-  z-index: 9999;
-  background-color: var(--bg-primary);
-}
-
 .widget {
   background-color: var(--bg-ternary);
   padding: 1rem;
@@ -290,7 +276,7 @@ input[type="search"] {
   color: var(--text-secondary);
   font-size: 24px;
   position: absolute;
-  left: 15px;
+  left: 10px;
   top: 13px;
 }
 
