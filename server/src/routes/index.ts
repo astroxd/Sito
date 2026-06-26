@@ -10,6 +10,7 @@ import {
   updateLastWatchedEpisode,
 } from "../controllers/lists.controller";
 import { getUserStats } from "../controllers/statistics.controller";
+import { getUserBadges } from "../controllers/badge.controller";
 
 const router = Router();
 
@@ -25,5 +26,6 @@ router.post("/anime/episodes/watch", updateLastWatchedEpisode);
 router.get("/anime/episodes/:animeId", getLastWatchedEpisode);
 
 router.get("/my-stats", getUserStats);
+router.get("/my-badges", getUserBadges);
 
 export default router;

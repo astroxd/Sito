@@ -43,7 +43,7 @@ export class Episodes implements OnInit {
   private animeId;
   private malId: number | null = null;
   public isFullPage = false;
-  private episodesNumber: number = 0;
+  private episodesNumber: number | null = null;
 
   private page = 1;
   public isLoading = false;
@@ -59,7 +59,8 @@ export class Episodes implements OnInit {
       )
       .subscribe((res: AnimeDetail) => {
         this.malId = res.idMal ?? null;
-        this.episodesNumber = res.nextAiringEpisode?.episode ?? 0;
+        this.episodesNumber =
+          res.nextAiringEpisode?.episode ?? res.episodes ?? null;
       });
   }
 

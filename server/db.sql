@@ -347,23 +347,16 @@ CREATE TABLE `Genre` (
 
 
 
-CREATE TABLE `Badge` (
-    `badge_id` INTEGER PRIMARY KEY AUTOINCREMENT,
-    `badge_name` TEXT NOT NULL,             -- Nome pubblico (es: "Ninja Leggendario")
-    `badge_image` TEXT NOT NULL,            -- Path dell'icona/asset (es: "assets/badges/shonen-10.png")
-    `badge_description` TEXT NOT NULL,      -- Descrizione (es: "Hai guardato 10 anime Shonen")
-    `badge_slug` TEXT NOT NULL UNIQUE       -- Identificativo univoco logico (es: "shonen-tier-1")
-);
-
 CREATE TABLE `User Badge` (
     `user_id` INTEGER NOT NULL,
     `badge_id` INTEGER NOT NULL,
-    `unlocked_at` TEXT NOT NULL,            -- Data di sblocco in formato ISO string o Timestamp
-    PRIMARY KEY(`user_id`, `badge_id`),
+    `rank` TEXT NOT NULL,
+    `unlocked_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,            -- Data di sblocco in formato ISO string o Timestamp
+    PRIMARY KEY(`user_id`, `badge_id`, `rank`),
 
     CONSTRAINT fk_user
         FOREIGN KEY (`user_id`) REFERENCES `User`(`user_id`) ON DELETE CASCADE,
 
-    CONSTRAINT fk_badge
-        FOREIGN KEY(`badge_id`) REFERENCES `Badge`(`badge_id`) ON DELETE CASCADE
+    CONSTRAINT check_rank CHECK (`rank` IN ('BRONZE', 'SILVER', 'GOLD', 'PLATINUM', 'SECRET'))
 );
+
