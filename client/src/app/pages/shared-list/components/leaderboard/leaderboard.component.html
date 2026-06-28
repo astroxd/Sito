@@ -1,0 +1,67 @@
+<div class="leaderboard-container widget">
+  <div class="section-header">
+    <div class="section-title">
+      <h5>Top Viewers</h5>
+    </div>
+  </div>
+  <div class="leaderboard-content">
+    <ion-list>
+      @for (member of members(); track $index) {
+        <ion-item [lines]="$index + 1 === members().length ? 'none' : 'full'">
+          <span class="rank">{{ `#${$index + 1}` }}</span>
+          <ion-avatar>
+            <img [src]="member.avatar" [alt]="member.username" />
+          </ion-avatar>
+
+          <ion-label>{{ member.username }} {{ member.role }}</ion-label>
+          <span>{{ member.totalEpisodes }}</span>
+          @if (member.id === authService.user()?.id) {
+            <ion-button slot="end" style="margin-left: 1rem" (click)="leave()"
+              >Leave</ion-button
+            >
+          } @else if (isOwner()) {
+            @if (member.role === "MEMBER") {
+              <ion-button
+                size="small"
+                fill="clear"
+                color="primary"
+                (click)="changeRole(member.id, 'EDITOR')"
+              >
+                Make Editor
+              </ion-button>
+            } @else if (member.role === "EDITOR") {
+              <ion-button
+                size="small"
+                fill="clear"
+                color="warning"
+                (click)="changeRole(member.id, 'MEMBER')"
+              >
+                Demote to Member
+              </ion-button>
+            }
+
+            <ion-button
+              slot="end"
+              style="margin-left: 1rem"
+              (click)="removeMember(member.id)"
+              >Kick</ion-button
+            >
+          }
+        </ion-item>
+      }
+      @for (pending of pendingMembers(); track $index) {
+        <ion-item
+          [lines]="$index + 1 === pendingMembers().length ? 'none' : 'full'"
+        >
+          <ion-avatar>
+            <img [src]="pending.avatar" [alt]="pending.username" />
+          </ion-avatar>
+          <ion-label>{{ pending.username }}</ion-label>
+          <ion-button slot="end" (click)="cancelInvite(pending.userId)">
+            Cancel
+          </ion-button>
+        </ion-item>
+      }
+    </ion-list>
+  </div>
+</div>

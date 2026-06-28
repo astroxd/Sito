@@ -18,6 +18,7 @@ import {
 } from 'rxjs';
 import { inject } from '@angular/core';
 import { AuthService } from '../services/auth-service';
+import { Router } from '@angular/router';
 
 let isRefreshing = false;
 const refreshTokenSubject: BehaviorSubject<any> = new BehaviorSubject<any>(
@@ -36,6 +37,7 @@ export function AuthInterceptor(
 
 function handleBackendRequests(request: HttpRequest<any>, next: HttpHandlerFn) {
   const authService = inject(AuthService);
+  const router = inject(Router);
   const accessToken = authService.token();
 
   const cloned = addTokenHeader(request, accessToken);
@@ -45,6 +47,14 @@ function handleBackendRequests(request: HttpRequest<any>, next: HttpHandlerFn) {
       //* Se l'errore è 401 dobbiamo refreshare l'accessToken
       if (error instanceof HttpErrorResponse && error.status === 401) {
         return handle401Error(cloned, next, error, authService);
+      }
+
+      if (
+        error instanceof HttpErrorResponse &&
+        error.status === 403 &&
+        cloned.url.includes('/shared-list')
+      ) {
+        router.navigate(['/profile']);
       }
       return throwError(() => error);
     }),

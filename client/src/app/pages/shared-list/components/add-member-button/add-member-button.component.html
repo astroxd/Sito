@@ -34,9 +34,9 @@
             </ion-avatar>
             <ion-label>{{ friend.friendUsername }}</ion-label>
             <div slot="end">
-              @if (sharedListMembers().has(friend.friendUserId)) {
+              @if (membersSet().has(friend.friendUserId)) {
                 <ion-button color="success" disabled> Already in </ion-button>
-              } @else if (sharedListInvited().has(friend.friendUserId)) {
+              } @else if (pendingMembersSet().has(friend.friendUserId)) {
                 <ion-button color="warning" disabled> Invited </ion-button>
               } @else {
                 <ion-button

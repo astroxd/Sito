@@ -3,7 +3,6 @@ import { inject } from '@angular/core';
 import { catchError, map } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { SharedListsService } from '../services/shared-lists-service';
-import { list } from 'ionicons/icons';
 
 export const sharedListGuard: CanActivateFn = (route, state) => {
   const sharedListsService = inject(SharedListsService);

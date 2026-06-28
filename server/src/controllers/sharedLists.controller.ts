@@ -42,8 +42,8 @@ export const getSharedLists = (req: Request, res: Response) => {
 };
 
 export const createSharedList = (req: Request, res: Response) => {
-  const { name } = req.body;
   const userId = res.locals.userId;
+  const { name } = req.body;
 
   if (!name) {
     return res.status(400).json({ message: "Missing Params" });
@@ -61,9 +61,11 @@ export const createSharedList = (req: Request, res: Response) => {
   });
 };
 
+//TODO
 export const getSharedList = (req: Request, res: Response) => {
   const userId = res.locals.userId;
   const { listId } = req.params;
+
   if (!listId) {
     return res.status(400).json({ message: "Missing params" });
   }
@@ -94,6 +96,7 @@ export const getSharedList = (req: Request, res: Response) => {
   });
 };
 
+//TODO check if is in list
 export const getSharedUserProgress = (req: Request, res: Response) => {
   const { listId } = req.params;
   const userId = res.locals.userId;
@@ -120,6 +123,7 @@ export const getSharedUserProgress = (req: Request, res: Response) => {
   });
 };
 
+//TODO check is in list
 export const getSharedAnimesProgress = (req: Request, res: Response) => {
   const { listId } = req.params;
 
@@ -157,6 +161,7 @@ export const getSharedAnimesProgress = (req: Request, res: Response) => {
   });
 };
 
+//TODO check if is in list
 export const updateSharedUserProgress = (req: Request, res: Response) => {
   const { listId, animeId } = req.params;
   const userId = res.locals.userId;
@@ -240,7 +245,7 @@ export const updateSharedUserProgress = (req: Request, res: Response) => {
       } else {
         const lastWatchedPrivate = watchedEpisode?.lastEpisodeWatched || 0;
         if (lastWatchedPrivate < newCurrentEpisode) {
-          //* */ Se la lista condivisa è più avanti di quella privata, aumento il counter privato
+          //* Se la lista condivisa è più avanti di quella privata, aumento il counter privato
           User.updateLastWatchedEpisode(
             userId,
             Number(animeId),
@@ -286,6 +291,7 @@ export const updateSharedUserProgress = (req: Request, res: Response) => {
   });
 };
 
+//TODO check if is in list
 export const addSharedAnime = (req: Request, res: Response) => {
   const userId = res.locals.userId;
   const { listId } = req.params;
@@ -337,6 +343,7 @@ export const addSharedAnime = (req: Request, res: Response) => {
   });
 };
 
+//TODO
 export const removeSharedAnime = (req: Request, res: Response) => {
   const userId = res.locals.userId;
 
@@ -352,7 +359,7 @@ export const removeSharedAnime = (req: Request, res: Response) => {
 
     if (!userRole || !["OWNER", "EDITOR"].includes(userRole)) {
       return res.status(403).json({
-        message: "L'utente non ha i permessi per rimuover l'anime",
+        message: "L'utente non ha i permessi per rimuovere l'anime",
       });
     }
 
@@ -387,6 +394,7 @@ export const getAllSharedListsWithAnimeId = (req: Request, res: Response) => {
   });
 };
 
+//TODO check if is in list & has role  & invited is not yet in
 export const addMemberRequest = (req: Request, res: Response) => {
   const userId = res.locals.userId;
   const { listId } = req.params;
@@ -409,6 +417,7 @@ export const addMemberRequest = (req: Request, res: Response) => {
   });
 };
 
+//TODO check if is in list already
 export const acceptSharedListRequest = (req: Request, res: Response) => {
   const userId = res.locals.userId;
   const { listId } = req.params;
@@ -449,6 +458,7 @@ export const declineSharedListRequest = (req: Request, res: Response) => {
   });
 };
 
+//TODO check if has role
 export const cancelSharedListRequest = (req: Request, res: Response) => {
   const { listId, userId } = req.params;
 
@@ -465,6 +475,7 @@ export const cancelSharedListRequest = (req: Request, res: Response) => {
   });
 };
 
+//TODO check logic
 export const removeMember = (req: Request, res: Response) => {
   const { listId, userId } = req.params;
 
@@ -516,6 +527,7 @@ export const removeMember = (req: Request, res: Response) => {
   }
 };
 
+//TODO
 export const getPendingMembers = (req: Request, res: Response) => {
   const { listId } = req.params;
   if (!listId) {
@@ -567,6 +579,7 @@ export const getInvites = (req: Request, res: Response) => {
   });
 };
 
+//TODO
 export const updateMemberRole = (req: Request, res: Response) => {
   const currentUserId = res.locals.userId;
   const { listId, userId } = req.params;
@@ -606,6 +619,7 @@ export const updateMemberRole = (req: Request, res: Response) => {
   }
 };
 
+//TODO check if is in list & is Leader
 export const updateSharedListMessage = (req: Request, res: Response) => {
   const { listId } = req.params;
   let { message } = req.body;

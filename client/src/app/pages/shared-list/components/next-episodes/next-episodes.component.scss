@@ -1,0 +1,47 @@
+.anime-carousel-container {
+  .anime-carousel {
+    display: flex;
+    column-gap: 8px;
+    overflow-x: scroll;
+
+    .anime-episode-card {
+      .anime-episode-card-image {
+        width: 100px;
+
+        position: relative;
+        img {
+          display: block;
+          border-radius: 8px;
+          width: 100px;
+          aspect-ratio: 1 / 1.5;
+          object-fit: cover;
+        }
+        button {
+          position: absolute;
+
+          right: -4px;
+          bottom: 0px;
+
+          padding: 4px;
+          border-radius: 8px;
+          font-size: 16px;
+
+          text-align: center;
+        }
+      }
+
+      .anime-progress {
+        margin-top: 4px;
+
+        .progress {
+          border-radius: 50px;
+        }
+      }
+      span {
+        display: block;
+        text-align: center;
+        font-size: 14px;
+      }
+    }
+  }
+}

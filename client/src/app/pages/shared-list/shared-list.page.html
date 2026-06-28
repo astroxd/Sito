@@ -1,7 +1,7 @@
 <ion-content class="ion-padding">
   <div class="section-header page-header">
     <div class="section-title">
-      <h4>{{sharedList()?.name}}</h4>
+      <h4>{{listInfo()?.name}}</h4>
     </div>
   </div>
   <ion-grid>
@@ -19,7 +19,7 @@
               #messageInput
               type="text"
               name="message"
-              [(ngModel)]="listMessage"
+              [(ngModel)]="newMessage"
               (blur)="updateMessage()"
               (keydown.enter)="updateMessage()"
               [disabled]="!isLeader()"
@@ -33,22 +33,13 @@
             <div class="action">
               @if (isOwner()) {
 
-              <app-add-member-button
-                [sharedListId]="listId"
-                [sharedListMembers]="sharedListMembersSet()"
-                [sharedListInvited]="invitedMembersSet()"
-                (onAdd)="getPendingMembers()"
-              />
+              <app-add-member-button />
               }
             </div>
             @if (isOwner() || isEditor()) {
 
             <div class="editor-buttons">
-              <app-add-anime-button
-                [sharedListId]="listId"
-                [sharedListAnimeIds]="sharedListAnimesSet()"
-                (onAdd)="loadData()"
-              />
+              <app-add-anime-button />
             </div>
             }
           </div>
@@ -58,170 +49,11 @@
             <h5>Next Episodes</h5>
           </div>
         </div>
-        <div class="anime-carousel-container widget">
-          @if(userSharedAnimesProgress().length > 0){
-          <ul class="anime-carousel">
-            @for(userProgress of userSharedAnimesProgress(); track $index){
-            @if(userProgress.currentEpisode !== userProgress.animeEpisodes){
-            @let progress = userProgress.currentEpisode /
-            userProgress.animeEpisodes;
-            <li class="anime-episode-card">
-              <div class="anime-episode-card-image">
-                <img
-                  [src]="userProgress.animeCover"
-                  [alt]="userProgress.animeTitle"
-                />
-                <button class="primary-btn" (click)="addEpisode(userProgress)">
-                  <fa-icon [icon]="faPlus"></fa-icon>
-                </button>
-              </div>
-              <div class="anime-progress">
-                <ion-progress-bar
-                  [value]="progress"
-                  class="progress"
-                ></ion-progress-bar>
-              </div>
-              <span>Mark Ep: {{userProgress.currentEpisode+1}}</span>
-              <!-- <button class="primary-btn">
-                Mark Ep: {{userProgress.currentEpisode+1}}
-              </button> -->
-            </li>
-            } }
-          </ul>
-          }@else {
-          <div class="no-results">
-            <span>You haven't started an anime yet</span>
-          </div>
-          }
-        </div>
-        <div class="anime-progress-container">
-          <ion-accordion-group expand="inset">
-            @for (animeProgress of sharedListAnimes(); track $index) {
-
-            <ion-accordion [value]="$index">
-              <ion-item slot="header">
-                <img
-                  [src]="animeProgress.anime.animeCover"
-                  [alt]="animeProgress.anime.animeTitle"
-                />
-                <span class="ellipsis">{{animeProgress.anime.animeTitle}}</span>
-              </ion-item>
-              <div class="ion-padding" slot="content">
-                @if(animeProgress.progress.length > 0){
-
-                <ul class="progresses">
-                  @for (progress of animeProgress.progress; track $index) { @let
-                  userProgress = progress.currentEpisode /
-                  animeProgress.anime.animeEpisodes;
-                  <li class="user-progress">
-                    <div class="user-info">
-                      <img [src]="progress.avatar" [alt]="progress.username" />
-                      <span>{{progress.username}}</span>
-                    </div>
-                    <div class="progress">
-                      <ion-progress-bar
-                        [value]="userProgress"
-                      ></ion-progress-bar>
-
-                      <span
-                        >{{`${progress.currentEpisode} /
-                        ${animeProgress.anime.animeEpisodes}`}}</span
-                      >
-                    </div>
-                  </li>
-                  }
-                </ul>
-                }@else {
-                <div class="no-results">
-                  <span> No one started this anime yet </span>
-                </div>
-                } @if(isEditor() || isOwner()){
-
-                <div class="anime-action">
-                  <ion-button (click)="removeAnime(animeProgress.anime.animeId)"
-                    >Remove</ion-button
-                  >
-                </div>
-                }
-              </div>
-            </ion-accordion>
-            }
-          </ion-accordion-group>
-        </div>
+        <app-next-episodes />
+        <app-animes-progress />
       </ion-col>
       <ion-col size="12" size-md="4">
-        <div class="leaderboard-container widget">
-          <div class="section-header">
-            <div class="section-title">
-              <h5>Top Viewers</h5>
-            </div>
-          </div>
-          <div class="leaderboard-content">
-            <ion-list>
-              @for (member of sharedList()?.members; track $index) {
-
-              <ion-item
-                [lines]="$index+1 === sharedList()?.members?.length ? 'none' : 'full'"
-              >
-                <span class="rank">{{`#${$index+1}`}}</span>
-                <ion-avatar>
-                  <img [src]="member.avatar" [alt]="member.username" />
-                </ion-avatar>
-
-                <ion-label>{{member.username}} {{member.role}}</ion-label>
-                <span>{{member.totalEpisodes}}</span>
-                @if(member.id === authService.user()?.id){
-                <ion-button
-                  slot="end"
-                  style="margin-left: 1rem"
-                  (click)="leave()"
-                  >Leave</ion-button
-                >
-                }@else if(isOwner() ) { @if (member.role === 'MEMBER') {
-                <ion-button
-                  size="small"
-                  fill="clear"
-                  color="primary"
-                  (click)="changeRole(member.id, 'EDITOR')"
-                >
-                  Make Editor
-                </ion-button>
-                } @else if (member.role === 'EDITOR') {
-                <ion-button
-                  size="small"
-                  fill="clear"
-                  color="warning"
-                  (click)="changeRole(member.id, 'MEMBER')"
-                >
-                  Demote to Member
-                </ion-button>
-                }
-
-                <ion-button
-                  slot="end"
-                  style="margin-left: 1rem"
-                  (click)="removeMember(member.id)"
-                  >Kick</ion-button
-                >
-                }
-              </ion-item>
-              } @for (invited of invitedMembers(); track $index) {
-              <ion-item
-                [lines]="$index+1 === sharedList()?.members?.length ? 'none' : 'full'"
-              >
-                <ion-avatar>
-                  <img [src]="invited.avatar" [alt]="invited.username" />
-                </ion-avatar>
-                <ion-label>{{invited.username}}</ion-label>
-                <ion-button slot="end" (click)="cancelInvite(invited.userId)">
-                  Cancel
-                </ion-button>
-              </ion-item>
-
-              }
-            </ion-list>
-          </div>
-        </div>
+        <app-leaderboard />
       </ion-col>
     </ion-row>
   </ion-grid>

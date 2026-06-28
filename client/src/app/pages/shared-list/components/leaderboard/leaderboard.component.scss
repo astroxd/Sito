@@ -1,0 +1,32 @@
+.leaderboard-container {
+  ion-list {
+    background-color: transparent;
+  }
+  ion-item {
+    --background: transparent;
+    --padding-start: 0;
+    --inner-padding-end: 0;
+
+    .rank {
+      margin-right: 8px;
+      font-weight: bold;
+    }
+
+    &:nth-child(1) .rank {
+      color: var(--gold);
+    }
+    &:nth-child(2) .rank {
+      color: var(--silver);
+    }
+    &:nth-child(3) .rank {
+      color: var(--bronze);
+    }
+
+    ion-avatar {
+      --border-radius: 0;
+      margin-right: 8px;
+      width: 32px;
+      height: 32px;
+    }
+  }
+}

@@ -92,7 +92,8 @@ export const SharedList = {
             INNER JOIN 'User' ON User.user_id = u.user_id
             WHERE u.shared_list_id = ?
             GROUP BY u.user_id
-            ORDER BY totalEpisodes DESC
+            ORDER BY totalEpisodes DESC,
+                  CASE WHEN u.role = 'OWNER' THEN 0 ELSE 1 END ASC
             LIMIT 5
         `,
       )
