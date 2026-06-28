@@ -3,7 +3,6 @@ import {
   AnimeProgress,
   SharedList,
   SharedListAnime,
-  SharedListInvitation,
   SharedListMember,
 } from "../models/sharedList.model";
 
@@ -18,18 +17,16 @@ export const getSharedLists = (req: Request, res: Response) => {
   const userId = res.locals.userId;
 
   try {
-    let sharedListsInfo: {
-      sharedList: SharedList;
-      members: SharedListMember[];
-    }[] = [];
-
     const sharedLists = SharedList.findAllByUserId(Number(userId));
 
-    sharedLists.forEach((list) => {
-      sharedListsInfo.push({
+    const sharedListsInfo = sharedLists.map((list) => {
+      const members = SharedList.findAllMembersByListId(list.id);
+
+      return {
         sharedList: list,
-        members: SharedList.findAllMembersByListId(list.id),
-      });
+        members: members,
+        sharedListMembersNumber: members.length,
+      };
     });
 
     return res.status(200).json({ data: sharedListsInfo });
@@ -45,14 +42,20 @@ export const createSharedList = (req: Request, res: Response) => {
   const userId = res.locals.userId;
   const { name } = req.body;
 
-  if (!name) {
+  if (!name || typeof name !== "string" || name.trim() === "") {
     return res.status(400).json({ message: "Missing Params" });
   }
 
   try {
+    const cleanedName = name.trim();
+    if (cleanedName.length > 100) {
+      return res.status(400).json({
+        message: "Il nome della lista non può superare i 100 caratteri",
+      });
+    }
     SharedList.createWithUserId(userId, name);
 
-    return res.sendStatus(200);
+    return res.status(200).json({ message: "Shared List created" });
   } catch (error) {
     console.error(error);
   }
@@ -61,14 +64,9 @@ export const createSharedList = (req: Request, res: Response) => {
   });
 };
 
-//TODO
 export const getSharedList = (req: Request, res: Response) => {
   const userId = res.locals.userId;
   const { listId } = req.params;
-
-  if (!listId) {
-    return res.status(400).json({ message: "Missing params" });
-  }
 
   try {
     const sharedListInfo = SharedList.findByListId(Number(listId), userId);
@@ -83,8 +81,9 @@ export const getSharedList = (req: Request, res: Response) => {
 
     return res.status(200).json({
       data: {
-        ...sharedListInfo,
+        sharedList: sharedListInfo,
         members: sharedListMembers,
+        sharedListMembersNumber: sharedListMembers.length,
       },
     });
   } catch (error) {
@@ -96,22 +95,15 @@ export const getSharedList = (req: Request, res: Response) => {
   });
 };
 
-//TODO check if is in list
 export const getSharedUserProgress = (req: Request, res: Response) => {
-  const { listId } = req.params;
   const userId = res.locals.userId;
-
-  if (!listId) {
-    return res.status(400).json({ message: "Missing params" });
-  }
+  const { listId } = req.params;
 
   try {
     const userProgress = SharedList.findUserProgressByUserId(
       Number(listId),
       userId,
     );
-
-    console.log(userProgress);
 
     return res.status(200).json({ data: userProgress });
   } catch (error) {
@@ -123,13 +115,8 @@ export const getSharedUserProgress = (req: Request, res: Response) => {
   });
 };
 
-//TODO check is in list
 export const getSharedAnimesProgress = (req: Request, res: Response) => {
   const { listId } = req.params;
-
-  if (!listId) {
-    return res.status(400).json({ message: "Missing params" });
-  }
 
   try {
     const sharedListAnimes = SharedList.findAllAnimeByListId(Number(listId));
@@ -161,17 +148,12 @@ export const getSharedAnimesProgress = (req: Request, res: Response) => {
   });
 };
 
-//TODO check if is in list
 export const updateSharedUserProgress = (req: Request, res: Response) => {
   const { listId, animeId } = req.params;
   const userId = res.locals.userId;
 
-  if (!listId || !animeId) {
+  if (!animeId) {
     return res.status(400).json({ message: "Missing params" });
-  }
-
-  if (SharedList.findByListId(Number(listId), userId) === undefined) {
-    return res.status(403).json({ message: "User not authorized" });
   }
 
   try {
@@ -194,9 +176,13 @@ export const updateSharedUserProgress = (req: Request, res: Response) => {
 
       const anime = Anime.findAnimeById(Number(animeId));
 
-      const maxEpisodes = anime?.animeEpisodes;
-      const genresArray = Array.isArray(anime?.animeGenres)
-        ? anime.animeGenres.map((g: string) => g.trim())
+      if (!anime) {
+        return res.status(404).json({ message: "Missing anime in catalog" });
+      }
+
+      const maxEpisodes = anime.animeEpisodes;
+      const genresArray = anime.animeGenres
+        ? anime.animeGenres.split(",").map((g: string) => g.trim())
         : [];
 
       let newCurrentEpisode = 1;
@@ -291,48 +277,23 @@ export const updateSharedUserProgress = (req: Request, res: Response) => {
   });
 };
 
-//TODO check if is in list
 export const addSharedAnime = (req: Request, res: Response) => {
-  const userId = res.locals.userId;
+  const userRole = res.locals.userRole;
   const { listId } = req.params;
   const { animeDetails } = req.body;
 
-  if (!listId) {
-    return res.status(400).json({ message: "Missing params" });
-  }
-
-  const {
-    id: animeId,
-    idMal,
-    title,
-    coverImage,
-    episodes,
-    duration,
-    genres,
-  } = animeDetails;
-
+  console.log(animeDetails);
   try {
     db.transaction(() => {
-      //* Ottieni Ruolo utente
-      const userRole = SharedList.getUserRole(Number(listId), userId)?.role;
-      console.log(userRole);
-      if (!userRole || !["OWNER", "EDITOR"].includes(userRole)) {
+      if (!["OWNER", "EDITOR"].includes(userRole)) {
         return res.status(403).json({
           message: "L'utente non ha i permessi per aggiungere l'anime",
         });
       }
       //* Aggiorna (upsert) la tabella Anime con i dettagli dell'anime
-      Anime.animeUpsert({
-        animeId: animeId,
-        animeMalId: idMal,
-        animeTitle: title,
-        animeCover: coverImage,
-        animeEpisodes: episodes,
-        animeAvgEpisodeDuration: duration,
-        animeGenres: Array.isArray(genres) ? genres.join(",") : "",
-      });
+      Anime.animeUpsert(Anime.sanitizeAnime(animeDetails));
 
-      SharedList.addSharedAnime(Number(listId), animeId);
+      SharedList.addSharedAnime(Number(listId), animeDetails.id);
     })();
     return res.status(200).json({ message: "Added" });
   } catch (error) {
@@ -343,21 +304,17 @@ export const addSharedAnime = (req: Request, res: Response) => {
   });
 };
 
-//TODO
 export const removeSharedAnime = (req: Request, res: Response) => {
-  const userId = res.locals.userId;
+  const userRole = res.locals.userRole;
 
   const { listId, animeId } = req.params;
 
-  if (!listId || !animeId) {
+  if (!animeId) {
     return res.status(400).json({ message: "MISSING PARAMS" });
   }
 
   try {
-    //* Ottieni Ruolo utente
-    const userRole = SharedList.getUserRole(Number(listId), userId)?.role;
-
-    if (!userRole || !["OWNER", "EDITOR"].includes(userRole)) {
+    if (!["OWNER", "EDITOR"].includes(userRole)) {
       return res.status(403).json({
         message: "L'utente non ha i permessi per rimuovere l'anime",
       });
@@ -394,17 +351,37 @@ export const getAllSharedListsWithAnimeId = (req: Request, res: Response) => {
   });
 };
 
-//TODO check if is in list & has role  & invited is not yet in
 export const addMemberRequest = (req: Request, res: Response) => {
   const userId = res.locals.userId;
+  const userRole = res.locals.userRole;
   const { listId } = req.params;
   const { memberId } = req.body;
 
-  if (!listId) {
-    return res.status(400).json({ error: "Missing params" });
-  }
-
   try {
+    if (userRole !== "OWNER") {
+      return res
+        .status(403)
+        .json({ message: "L'utente non ha i permessi per invitare membri" });
+    }
+
+    const existingRole = SharedList.getUserRole(Number(listId), memberId);
+
+    if (existingRole) {
+      return res.status(400).json({
+        message: "L'utente fa già parte di questa lista",
+      });
+    }
+
+    const isAlreadyInvited = SharedList.checkIfInvitationPending(
+      Number(listId),
+      memberId,
+    );
+    if (isAlreadyInvited) {
+      return res
+        .status(400)
+        .json({ message: "È già stato inviato un invito a questo utente" });
+    }
+
     SharedList.insertUserInvitation(Number(listId), userId, memberId);
 
     return res.status(200).json({ message: "Member invited" });
@@ -417,19 +394,23 @@ export const addMemberRequest = (req: Request, res: Response) => {
   });
 };
 
-//TODO check if is in list already
 export const acceptSharedListRequest = (req: Request, res: Response) => {
   const userId = res.locals.userId;
   const { listId } = req.params;
 
-  if (!listId) {
-    return res.status(400).json({ message: "Missing Params" });
-  }
-
   try {
-    SharedList.updateUserInvitation(Number(listId), "ACCEPTED", userId);
+    const existingRole = SharedList.getUserRole(Number(listId), userId);
+    if (existingRole) {
+      return res
+        .status(400)
+        .json({ message: "Sei già un membro di questa lista" });
+    }
+    db.transaction(() => {
+      SharedList.updateUserInvitation(Number(listId), "ACCEPTED", userId);
+      SharedList.insertUser(Number(listId), userId, "MEMBER");
+    })();
 
-    SharedList.insertUser(Number(listId), userId, "MEMBER");
+    console.log("FOURI TRANS");
 
     return res.status(200).json({ message: "Member joined" });
   } catch (error) {
@@ -458,11 +439,17 @@ export const declineSharedListRequest = (req: Request, res: Response) => {
   });
 };
 
-//TODO check if has role
 export const cancelSharedListRequest = (req: Request, res: Response) => {
   const { listId, userId } = req.params;
+  const userRole = res.locals.userRole;
 
   try {
+    if (userRole !== "OWNER") {
+      return res
+        .status(403)
+        .json({ message: "Non hai i permessi per cancellare l'invito" });
+    }
+
     SharedList.deleteUserInvitation(Number(listId), Number(userId), "PENDING");
 
     return res.status(200).json({ message: "Cancelled Request" });
@@ -475,15 +462,24 @@ export const cancelSharedListRequest = (req: Request, res: Response) => {
   });
 };
 
-//TODO check logic
 export const removeMember = (req: Request, res: Response) => {
+  const currentUserId = res.locals.userId;
+  const currentUserRole = res.locals.userRole;
   const { listId, userId } = req.params;
 
-  if (!listId || !userId) {
+  if (!userId) {
     return res.status(400).json({ message: "Missing params" });
   }
 
   try {
+    const isSelfRemoval = currentUserId === Number(userId);
+
+    if (!isSelfRemoval && currentUserRole !== "OWNER") {
+      return res.status(403).json({
+        message: "Non hai i permessi per espellere membri da questa lista",
+      });
+    }
+
     const memberRole = SharedList.getUserRole(
       Number(listId),
       Number(userId),
@@ -501,11 +497,16 @@ export const removeMember = (req: Request, res: Response) => {
           SharedList.updateNewOwner(Number(listId), Number(userId));
         } else {
           SharedList.deleteList(Number(listId));
-          return; // Usciamo dalla transazione perché la lista non esiste più
+          return;
         }
       }
 
       SharedList.deleteUser(Number(listId), Number(userId));
+      SharedList.deleteUserInvitation(
+        Number(listId),
+        Number(userId),
+        "ACCEPTED",
+      );
 
       //* Forse i progressi potrei lasciarli
       // db.prepare(
@@ -519,7 +520,11 @@ export const removeMember = (req: Request, res: Response) => {
       );
     })();
 
-    return res.status(200).json({ message: "Member removed successfully" });
+    const successMessage = isSelfRemoval
+      ? "Hai abbandonato la lista con successo"
+      : "Membro espulso con successo";
+
+    return res.status(200).json({ message: successMessage });
   } catch (error) {
     console.error(error);
 
@@ -527,12 +532,8 @@ export const removeMember = (req: Request, res: Response) => {
   }
 };
 
-//TODO
 export const getPendingMembers = (req: Request, res: Response) => {
   const { listId } = req.params;
-  if (!listId) {
-    return res.status(400).json({ message: "Missing params" });
-  }
 
   try {
     const sharedListPendingMembers = SharedList.findAllInvitedUsers(
@@ -556,18 +557,22 @@ export const getInvites = (req: Request, res: Response) => {
   const userId = res.locals.userId;
 
   try {
-    let sharedListsInfo: {
-      sharedList: SharedListInvitation;
-      members: SharedListMember[];
-    }[] = [];
+    const sharedListsInvitations = SharedList.findAllUserInvitations(
+      userId,
+      "PENDING",
+    );
 
-    const sharedLists = SharedList.findAllUserInvitations(userId, "PENDING");
+    const sharedListsInfo = sharedListsInvitations.map((invitation) => {
+      const members = SharedList.findAllMembersByListId(
+        invitation.sharedList.sharedListId,
+      );
 
-    sharedLists.forEach((list) => {
-      sharedListsInfo.push({
-        sharedList: list,
-        members: SharedList.findAllMembersByListId(list.sharedListId),
-      });
+      return {
+        sharedList: invitation.sharedList,
+        members,
+        sharedListMembersNumber: members.length,
+        senderInfo: invitation.senderInfo,
+      };
     });
 
     return res.status(200).json({ data: sharedListsInfo });
@@ -579,9 +584,9 @@ export const getInvites = (req: Request, res: Response) => {
   });
 };
 
-//TODO
 export const updateMemberRole = (req: Request, res: Response) => {
   const currentUserId = res.locals.userId;
+  const currentUserRole = res.locals.userRole;
   const { listId, userId } = req.params;
   const { newRole } = req.body;
 
@@ -591,21 +596,31 @@ export const updateMemberRole = (req: Request, res: Response) => {
       .json({ message: "Invalid role. Must be 'EDITOR' or 'MEMBER'" });
   }
 
-  if (!listId || !userId) {
+  if (!userId) {
     return res.status(400).json({ message: "Missing params" });
   }
 
   try {
-    const requesterRole = SharedList.getUserRole(
-      Number(listId),
-      Number(currentUserId),
-    )?.role;
+    if (currentUserId === Number(userId)) {
+      return res.status(400).json({
+        message: "Non puoi modificare il tuo stesso ruolo di OWNER.",
+      });
+    }
 
-    console.log(requesterRole);
-    if (requesterRole !== "OWNER") {
+    if (currentUserRole !== "OWNER") {
       return res
         .status(403)
         .json({ message: "Only the OWNER can change member roles" });
+    }
+
+    const targetUserRole = SharedList.getUserRole(
+      Number(listId),
+      Number(userId),
+    )?.role;
+    if (!targetUserRole) {
+      return res
+        .status(404)
+        .json({ message: "L'utente specificato non fa parte di questa lista" });
     }
 
     SharedList.updateUserRole(Number(listId), Number(userId), newRole);
@@ -621,20 +636,47 @@ export const updateMemberRole = (req: Request, res: Response) => {
 
 //TODO check if is in list & is Leader
 export const updateSharedListMessage = (req: Request, res: Response) => {
+  const userId = res.locals.userId;
+  const userRole = res.locals.userRole;
   const { listId } = req.params;
   let { message } = req.body;
 
-  if (!listId) {
-    return res.status(400).json({ message: "Missing params" });
-  }
+  if (typeof message === "string") {
+    message = message.trim();
 
-  try {
-    if (message === undefined || message === null) {
-      message = null;
-    } else {
-      message = message.trim();
+    if (message.length > 255) {
+      return res
+        .status(400)
+        .json({ message: "Il messaggio non può superare i 255 caratteri" });
     }
 
+    if (message === "") {
+      message = null;
+    }
+  } else {
+    message = null;
+  }
+
+  console.log(message);
+  try {
+    const leader = SharedList.getLeader(Number(listId));
+
+    if (!leader) {
+      if (userRole !== "OWNER") {
+        return res.status(403).json({
+          message:
+            "Non c'è ancora un Leader in questa lista. Solo il proprietario (OWNER) può modificare il messaggio.",
+        });
+      }
+    } else {
+      if (userId !== leader.userId) {
+        return res.status(403).json({
+          message: `Solo il Leader attuale della lista (${leader.username}) può modificare questo messaggio!`,
+        });
+      }
+    }
+
+    console.log(message);
     SharedList.updateMessage(Number(listId), message);
 
     return res.status(200).json({ message: "Message updated" });

@@ -1,5 +1,4 @@
 import { Component, inject, input, OnInit, output } from '@angular/core';
-import { finalize } from 'rxjs';
 import { SharedListInvitation } from 'src/app/models/SharedList';
 import { SharedListsService } from 'src/app/services/shared-lists-service';
 import { IonButton } from '@ionic/angular/standalone';
@@ -11,10 +10,9 @@ import { IonButton } from '@ionic/angular/standalone';
   imports: [IonButton],
 })
 export class SharedListInvitationComponent implements OnInit {
-  invitation = input.required<SharedListInvitation>();
-  sharedListService = inject(SharedListsService);
+  private sharedListService = inject(SharedListsService);
 
-  onAction = output();
+  invitation = input.required<SharedListInvitation>();
 
   constructor() {}
 
@@ -23,22 +21,12 @@ export class SharedListInvitationComponent implements OnInit {
   accept() {
     this.sharedListService
       .acceptInvite(this.invitation().sharedList.sharedListId)
-      .pipe(
-        finalize(() => {
-          this.onAction.emit();
-        }),
-      )
       .subscribe();
   }
 
   decline() {
     this.sharedListService
       .declineInvite(this.invitation().sharedList.sharedListId)
-      .pipe(
-        finalize(() => {
-          this.onAction.emit();
-        }),
-      )
       .subscribe();
   }
 }

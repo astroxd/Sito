@@ -1,19 +1,6 @@
-import {
-  Component,
-  effect,
-  inject,
-  OnInit,
-  signal,
-  ViewChild,
-} from '@angular/core';
+import { Component, inject, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { finalize } from 'rxjs';
-import {
-  SharedListInfo,
-  SharedListInvitation,
-} from 'src/app/models/SharedList';
 
-import { AuthService } from 'src/app/services/auth-service';
 import { SharedListComponent } from './components/shared-list/shared-list.component';
 import {
   IonModal,
@@ -48,19 +35,12 @@ import { SharedListInvitationComponent } from './components/shared-list-invitati
   ],
 })
 export class SharedListsComponent implements OnInit {
-  private authService = inject(AuthService);
   private sharedListsService = inject(SharedListsService);
-  sharedLists = signal<SharedListInfo[]>([]);
-  sharedListInvitations = signal<SharedListInvitation[]>([]);
 
-  constructor() {
-    effect(() => {
-      if (this.authService.user()) {
-        this.loadSharedList();
-        this.loadInvites();
-      }
-    });
-  }
+  sharedLists = this.sharedListsService.userSharedLists;
+  sharedListInvitations = this.sharedListsService.userInvitations;
+
+  constructor() {}
 
   @ViewChild(IonModal) modal!: IonModal;
   name!: string;
@@ -79,32 +59,8 @@ export class SharedListsComponent implements OnInit {
 
   confirm() {
     this.modal.dismiss(this.name, 'confirm');
-    this.sharedListsService
-      .createSharedList(this.name)
-      .pipe(
-        finalize(() => {
-          this.loadSharedList();
-        }),
-      )
-      .subscribe();
+    this.sharedListsService.createSharedList(this.name).subscribe();
   }
 
-  loadSharedList() {
-    this.sharedListsService.loadSharedLists().subscribe((sharedListsInfo) => {
-      this.sharedLists.set(sharedListsInfo);
-    });
-  }
-
-  loadInvites() {
-    this.sharedListsService.loadInvites().subscribe((data) => {
-      console.log(data.data);
-      this.sharedListInvitations.set(data.data);
-    });
-  }
-
-  reloadSharedListsAndInvites() {
-    this.loadSharedList();
-    this.loadInvites();
-  }
   ngOnInit() {}
 }

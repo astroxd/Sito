@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, computed, inject, OnInit } from '@angular/core';
 import { IonProgressBar } from '@ionic/angular/standalone';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
@@ -23,6 +23,8 @@ export class NextEpisodesComponent implements OnInit {
   ngOnInit() {}
 
   addEpisode(userProgress: SharedListUserProgress) {
+    console.log(this.sharedListsService.listInfo());
+    console.log(this.listId);
     this.sharedListsService
       .updateUserAnimeProgress(this.listId, userProgress.animeId)
       .subscribe();

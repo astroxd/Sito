@@ -6,6 +6,7 @@ import {
   SharedListAnimeProgress,
   SharedListAnimeProgressResApi,
   SharedListInfo,
+  SharedListInvitation,
   SharedListInvitationResApi,
   SharedListMember,
   SharedListResApi,
@@ -26,6 +27,9 @@ export class SharedListsService {
   private apiService = inject(APIService);
   private authService = inject(AuthService);
 
+  //* User shared lists
+  public userSharedLists = signal<SharedListInfo[]>([]);
+
   //* General information of the shared list
   public listInfo = signal<SharedList | null>(null);
 
@@ -37,6 +41,9 @@ export class SharedListsService {
 
   //* Shared animes with progress of all member
   public sharedListAnimes = signal<SharedListAnimeProgress[]>([]);
+
+  //* User invitation to shared lists
+  public userInvitations = signal<SharedListInvitation[]>([]);
 
   isOwner = computed(
     () =>
@@ -61,40 +68,55 @@ export class SharedListsService {
   );
 
   loadSharedLists() {
-    return this.apiService.get<SharedListResApi>('shared-lists').pipe(
-      tap((val) => {
-        console.log(val.data);
-      }),
-      map(({ data }) => {
-        return data.map(({ sharedList, members }) => {
-          return {
-            sharedList,
-            members,
-            sharedListMembersNumber: members[0].length,
-          } as SharedListInfo;
-        });
+    return this.apiService.get<{ data: SharedListInfo[] }>('shared-lists').pipe(
+      tap({
+        next: ({ data }) => {
+          console.log(data);
+          this.userSharedLists.set(data);
+        },
+        error: (err) => {
+          console.log(err);
+        },
       }),
     );
   }
 
   loadInvites() {
-    return this.apiService.get<SharedListInvitationResApi>(
-      'shared-lists/invite',
-    );
+    return this.apiService
+      .get<SharedListInvitationResApi>('shared-lists/invite')
+      .pipe(
+        tap({
+          next: ({ data: invitations }) => {
+            this.userInvitations.set(invitations);
+          },
+          error: (err) => {
+            console.error(err);
+          },
+        }),
+      );
   }
 
   createSharedList(sharedListName: string) {
-    return this.apiService.post('shared-list', { name: sharedListName });
+    return this.apiService.post('shared-list', { name: sharedListName }).pipe(
+      tap({
+        next: () => {
+          this.loadSharedLists().subscribe();
+        },
+        error: (err) => {
+          console.log(err);
+        },
+      }),
+    );
   }
 
   loadSharedList(sharedListId: number) {
     return this.apiService
-      .get<{ data: SharedList }>(`shared-list/${sharedListId}`)
+      .get<{ data: SharedListInfo }>(`shared-list/${sharedListId}`)
       .pipe(
         tap({
-          next: ({ data: sharedList }) => {
-            this.listInfo.set(sharedList);
-            this.members.set(sharedList.members);
+          next: ({ data: sharedListInfo }) => {
+            this.listInfo.set(sharedListInfo.sharedList);
+            this.members.set(sharedListInfo.members);
 
             this.getPendingMembers(sharedListId);
 
@@ -110,11 +132,11 @@ export class SharedListsService {
 
   loadSharedListLeaderboard(sharedListId: number) {
     this.apiService
-      .get<{ data: SharedList }>(`shared-list/${sharedListId}`)
+      .get<{ data: SharedListInfo }>(`shared-list/${sharedListId}`)
       .subscribe({
-        next: ({ data: sharedList }) => {
-          this.listInfo.set(sharedList);
-          this.members.set(sharedList.members);
+        next: ({ data: sharedListInfo }) => {
+          // this.listInfo.set(sharedList);
+          this.members.set(sharedListInfo.members);
         },
         error: (err) => {
           console.error(err);
@@ -235,6 +257,7 @@ export class SharedListsService {
           next: () => {
             this.getUserSharedAnimeProgress(sharedListId);
             this.getSharedAnimesProgress(sharedListId);
+            this.loadSharedListLeaderboard(sharedListId);
           },
           error: (err) => {
             console.log(err);
@@ -271,11 +294,30 @@ export class SharedListsService {
   }
 
   acceptInvite(listId: number) {
-    return this.apiService.post(`shared-list/${listId}/accept`, {});
+    return this.apiService.post(`shared-list/${listId}/accept`, {}).pipe(
+      tap({
+        next: () => {
+          this.loadInvites().subscribe();
+          this.loadSharedLists().subscribe();
+        },
+        error: (err) => {
+          console.log(err);
+        },
+      }),
+    );
   }
 
   declineInvite(listId: number) {
-    return this.apiService.delete(`shared-list/${listId}/decline`);
+    return this.apiService.delete(`shared-list/${listId}/decline`).pipe(
+      tap({
+        next: () => {
+          this.loadInvites().subscribe();
+        },
+        error: (err) => {
+          console.log(err);
+        },
+      }),
+    );
   }
 
   cancelInvite(sharedListId: number, invitedUserId: number) {

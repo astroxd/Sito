@@ -5,21 +5,23 @@
     @for (member of invitation().members; track $index) {
       <img [src]="member.avatar" [alt]="member.username" />
     }
-    @if (invitation().members.length > 3) {
-      <div class="stacked-avatar">+{{ invitation().members.length - 3 }}</div>
+    @if (invitation().sharedListMembersNumber > 3) {
+      <div class="stacked-avatar">
+        +{{ invitation().sharedListMembersNumber - 3 }}
+      </div>
     }
   </div>
   <div class="inviter-info">
     <img
-      [src]="invitation().sharedList.senderAvatar"
-      [alt]="invitation().sharedList.senderUsername"
+      [src]="invitation().senderInfo.senderAvatar"
+      [alt]="invitation().senderInfo.senderUsername"
     />
     <span class="widget-subtitle"
-      >{{ invitation().sharedList.senderUsername }} ti ha invitato</span
+      >{{ invitation().senderInfo.senderUsername }} ti ha invitato</span
     >
   </div>
   <div class="actions">
-    <ion-button (click)="accept()">Accetta</ion-button>
-    <ion-button fill="outline" (click)="decline()">Rifiuta</ion-button>
+    <ion-button (click)="accept()">Accept</ion-button>
+    <ion-button fill="outline" (click)="decline()">Decline</ion-button>
   </div>
 </div>

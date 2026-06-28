@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import "dotenv/config";
 
 import globalRoutes from "./routes/index";
+import { SharedListRole } from "./models/sharedList.model";
 
 const app = express();
 
@@ -19,6 +20,19 @@ app.use(
 );
 
 app.use("/static", express.static(path.join(__dirname, "..", "static")));
+
+// Source - https://stackoverflow.com/a/76266704
+// Posted by wojtow
+// Retrieved 2026-06-28, License - CC BY-SA 4.0
+
+declare global {
+  namespace Express {
+    interface Locals {
+      userId: number;
+      userRole: SharedListRole;
+    }
+  }
+}
 
 app.get("/", (req, res) => {
   return res.send("Hello World!");

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonContent, IonRow, IonGrid, IonCol } from '@ionic/angular/standalone';
@@ -44,7 +44,7 @@ export class SharedListPage implements OnInit {
   isEditor = this.sharedListsService.isEditor;
   isLeader = this.sharedListsService.isLeader;
 
-  newMessage = '';
+  newMessage = this.listInfo()?.message!;
 
   faEdit = faEdit;
   faPlus = faPlus;

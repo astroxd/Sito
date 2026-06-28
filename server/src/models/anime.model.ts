@@ -52,4 +52,43 @@ export const Anime = {
       },
     );
   },
+
+  sanitizeAnime: (anime: any) => {
+    let { id, idMal, title, coverImage, episodes, duration, genres } = anime;
+
+    const animeId = Number(id);
+    const animeMalId = Number(idMal);
+
+    if (isNaN(animeId) || isNaN(animeMalId)) {
+      throw new Error("INVALID_IDS");
+    }
+
+    if (!title || typeof title !== "string" || title.trim() === "") {
+      throw new Error("MISSING_TITLE");
+    }
+
+    episodes = typeof episodes === "number" && episodes > 0 ? episodes : 0;
+    duration = typeof duration === "number" && duration > 0 ? duration : 0;
+
+    let animeGenres = "";
+
+    if (Array.isArray(genres)) {
+      animeGenres = genres.map((g: any) => String(g).trim()).join(",");
+    } else if (typeof genres === "string") {
+      animeGenres = genres.trim();
+    }
+
+    const animeCover = coverImage;
+    const animeTitle = title.trim();
+
+    return {
+      animeId,
+      animeMalId,
+      animeTitle,
+      animeCover,
+      animeEpisodes: episodes,
+      animeAvgEpisodeDuration: duration,
+      animeGenres,
+    } as Anime;
+  },
 };

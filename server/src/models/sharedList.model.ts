@@ -23,7 +23,7 @@ export interface SharedList {
   message?: string;
 
   sharedListUser?: SharedListUser;
-  sharedListMembers: SharedListMember[];
+  // sharedListMembers: SharedListMember[];
 }
 
 export interface SharedListMember {
@@ -61,11 +61,15 @@ export interface AnimeProgress {
 }
 
 export interface SharedListInvitation {
-  sharedListId: number;
-  sharedListName: string;
-  senderUserId: number;
-  senderUsername: string;
-  senderAvatar: string;
+  sharedList: {
+    sharedListId: number;
+    sharedListName: string;
+  };
+  senderInfo: {
+    senderUserId: number;
+    senderUsername: string;
+    senderAvatar: string;
+  };
 }
 
 export const SharedList = {
@@ -265,6 +269,37 @@ export const SharedList = {
       .get(listId, userId) as { role: SharedListRole } | undefined;
   },
 
+  getLeader: (listId: number) => {
+    const row = db
+      .prepare(
+        `
+          SELECT p.user_id as userId, u.username as username, u.avatar as avatar
+          FROM 'Shared List Progress' p
+          JOIN 'Shared List User' su ON p.user_id = su.user_id AND p.shared_list_id = su.shared_list_id
+          JOIN 'User' u ON p.user_id = u.user_id
+          WHERE p.shared_list_id = ?
+          GROUP BY p.user_id
+          ORDER BY 
+            SUM(p.current_episode) DESC,  
+            MIN(p.updated_at) ASC        
+          LIMIT 1;
+  `,
+      )
+      .get(listId) as any | undefined;
+
+    if (!row) return undefined;
+
+    const avatarUrl = row.avatar
+      ? `${serverUrl}/static/avatar/${row.avatar}`
+      : `https://api.dicebear.com/9.x/initials/svg?seed=${row.username}`;
+
+    return {
+      userId: row.userId,
+      username: row.username,
+      avatar: avatarUrl,
+    };
+  },
+
   addSharedAnime: (listId: number, animeId: number) => {
     return db
       .prepare(
@@ -313,6 +348,20 @@ export const SharedList = {
         VALUES (?, ?, ?)
       `,
     ).run(listId, userId, role);
+  },
+
+  checkIfInvitationPending: (listId: number, invitedUserId: number) => {
+    const row = db
+      .prepare(
+        `
+        SELECT 1
+        FROM 'SharedListInvitation'
+        WHERE shared_list_id = ? AND invited_user_id = ? AND status = 'PENDING';
+      `,
+      )
+      .get(listId, invitedUserId) as { "1": number } | undefined;
+
+    return !!row;
   },
 
   insertUserInvitation: (
@@ -447,14 +496,23 @@ export const SharedList = {
           ORDER BY i.created_at DESC
       `,
       )
-      .all(userId, status) as SharedListInvitation[];
+      .all(userId, status) as any[];
 
-    return foundInvitation.map((sender) => {
+    return foundInvitation.map((invitation) => {
+      const avatarUrl = invitation.senderAvatar
+        ? `${serverUrl}/static/avatar/${invitation.senderAvatar}`
+        : `https://api.dicebear.com/9.x/initials/svg?seed=${invitation.senderUsername}`;
+
       return {
-        ...sender,
-        senderAvatar: sender.senderAvatar
-          ? `${serverUrl}/static/avatar/${sender.senderAvatar}`
-          : `https://api.dicebear.com/9.x/initials/svg?seed=${sender.senderUsername}`,
+        sharedList: {
+          sharedListId: invitation.sharedListId,
+          sharedListName: invitation.sharedListName,
+        },
+        senderInfo: {
+          senderUserId: invitation.senderUserId,
+          senderUsername: invitation.senderUsername,
+          senderAvatar: avatarUrl,
+        },
       };
     });
   },
