@@ -634,7 +634,6 @@ export const updateMemberRole = (req: Request, res: Response) => {
   }
 };
 
-//TODO check if is in list & is Leader
 export const updateSharedListMessage = (req: Request, res: Response) => {
   const userId = res.locals.userId;
   const userRole = res.locals.userRole;
@@ -657,7 +656,6 @@ export const updateSharedListMessage = (req: Request, res: Response) => {
     message = null;
   }
 
-  console.log(message);
   try {
     const leader = SharedList.getLeader(Number(listId));
 
@@ -676,7 +674,6 @@ export const updateSharedListMessage = (req: Request, res: Response) => {
       }
     }
 
-    console.log(message);
     SharedList.updateMessage(Number(listId), message);
 
     return res.status(200).json({ message: "Message updated" });

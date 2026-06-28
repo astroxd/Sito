@@ -10,6 +10,7 @@ import {
 } from '@ionic/angular/standalone';
 import { RouterOutlet } from '@angular/router';
 import { SharedListsService } from 'src/app/services/shared-lists-service';
+import { FriendshipService } from 'src/app/services/friendship-service';
 
 @Component({
   selector: 'app-profile',
@@ -29,6 +30,7 @@ import { SharedListsService } from 'src/app/services/shared-lists-service';
 })
 export class ProfilePage implements OnInit {
   private sharedListsService = inject(SharedListsService);
+  private friendshipService = inject(FriendshipService);
   constructor() {}
 
   ngOnInit() {}
@@ -37,5 +39,6 @@ export class ProfilePage implements OnInit {
     //* Refresh every components data
     this.sharedListsService.loadSharedLists().subscribe();
     this.sharedListsService.loadInvites().subscribe();
+    this.friendshipService.loadFriendsAndRequests().subscribe();
   }
 }

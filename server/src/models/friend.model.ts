@@ -1,6 +1,15 @@
 import db from "../config/database";
 const serverUrl = "http://localhost:3001";
 
+export type FriendshipRequestStatus = "PENDING" | "ACCEPTED";
+
+export interface Friendship {
+  userId1: number;
+  userId2: number;
+  status: FriendshipRequestStatus;
+  senderUserId: number;
+}
+
 export interface FriendUser {
   friendUserId: number;
   friendUsername: string;
@@ -8,9 +17,7 @@ export interface FriendUser {
   count?: number;
 }
 
-export type FriendshipRequestStatus = "PENDING" | "ACCEPTED";
-
-export interface FriendshipRecord extends FriendUser {
+export interface FriendshipInfo extends FriendUser {
   senderUserId: number;
   status: FriendshipRequestStatus;
 }
@@ -31,7 +38,7 @@ export const Friendship = {
             WHERE f.user_id_1 = @currentUserId OR f.user_id_2 = @currentUserId
         `,
       )
-      .all({ currentUserId: userId }) as FriendshipRecord[];
+      .all({ currentUserId: userId }) as FriendshipInfo[];
 
     return foundFriendship.map((user) => {
       return {
@@ -78,6 +85,18 @@ export const Friendship = {
           : `https://api.dicebear.com/9.x/initials/svg?seed=${user.friendUsername}`,
       };
     });
+  },
+
+  findFriendshipByUsers: (userId1: number, userId2: number) => {
+    return db
+      .prepare(
+        `
+        SELECT user_id_1 as userId1, user_id_2 as userId2, status, sender_user_id as senderUserId
+        FROM 'Friendship'
+        WHERE user_id_1 = ? AND user_id_2 = ?
+      `,
+      )
+      .get(userId1, userId2) as Friendship;
   },
 
   addFriend: (
