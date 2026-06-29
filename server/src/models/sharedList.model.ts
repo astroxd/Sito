@@ -73,6 +73,20 @@ export interface SharedListInvitation {
 }
 
 export const SharedList = {
+  exists: (listId: number) => {
+    const result = db
+      .prepare(
+        `
+          SELECT COUNT(*) as total
+          FROM 'Shared List'
+          WHERE shared_list_id = ?
+        `,
+      )
+      .get(listId) as { total: number };
+
+    return result.total > 0;
+  },
+
   findAllByUserId: (userId: number) => {
     return db
       .prepare(
@@ -412,7 +426,7 @@ export const SharedList = {
           WHERE shared_list_id = ?
         `,
       )
-      .get(listId) as number | 0;
+      .get(listId) as { count: number };
   },
 
   updateNewOwner: (listId: number, userId: number) => {

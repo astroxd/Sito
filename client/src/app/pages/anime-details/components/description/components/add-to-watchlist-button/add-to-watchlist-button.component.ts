@@ -37,7 +37,8 @@ export class AddToWatchlistButtonComponent implements OnInit {
   animeDetails = input.required<AnimeDetail | undefined>();
   animeId = computed(() => this.animeDetails()?.id);
 
-  animeStatus = signal<AnimeStatus | null>(null);
+  animeStatus = this.listsService.animeStatus;
+  sharedLists = this.sharedListsService.sharedListsWithAnime;
 
   formattedAnimeStatus = computed(() => {
     const status = this.animeStatus();
@@ -46,42 +47,20 @@ export class AddToWatchlistButtonComponent implements OnInit {
 
   showWatchlistMenu = false;
 
-  constructor() {
-    effect(() => {
-      this.getAnimeStatus();
-      this.getSharedLists();
-    });
-  }
+  constructor() {}
 
   ngOnInit() {}
 
-  getAnimeStatus() {
-    if (this.animeId() && this.authService.user()) {
-      this.listsService.getListedAnime(this.animeId()!).subscribe((res) => {
-        this.animeStatus.set(res?.data?.status ?? null);
-      });
-    }
-  }
-
   addToList(status: AnimeStatus) {
-    this.listsService
-      .addAnime(status, this.animeDetails()!)
-      .pipe(finalize(() => this.getAnimeStatus()))
-      .subscribe();
+    this.listsService.addAnime(status, this.animeDetails()!).subscribe();
   }
 
   removeFromList() {
-    this.listsService
-      .removeAnime(this.animeId()!)
-      .pipe(finalize(() => this.getAnimeStatus()))
-      .subscribe();
+    this.listsService.removeAnime(this.animeId()!).subscribe();
   }
 
   updateStatusList(status: AnimeStatus) {
-    this.listsService
-      .updateAnime(this.animeId()!, status)
-      .pipe(finalize(() => this.getAnimeStatus()))
-      .subscribe();
+    this.listsService.updateAnime(this.animeId()!, status).subscribe();
   }
 
   handleList(status: AnimeStatus, isInList: boolean) {
@@ -93,24 +72,6 @@ export class AddToWatchlistButtonComponent implements OnInit {
       this.updateStatusList(status);
     } else {
       this.addToList(status);
-    }
-  }
-
-  sharedLists = signal<
-    {
-      sharedListId: number;
-      sharedListName: string;
-      animeId?: number;
-    }[]
-  >([]);
-
-  getSharedLists() {
-    if (this.animeId() && this.authService.user()) {
-      this.sharedListsService
-        .getSharedListsWithAnimeId(this.animeId()!)
-        .subscribe((res) => {
-          this.sharedLists.set(res.data);
-        });
     }
   }
 
@@ -164,16 +125,11 @@ export class AddToWatchlistButtonComponent implements OnInit {
         genres: [],
       };
 
-      if (this.animeId() && this.authService.user()) {
-        this.sharedListsService
-          .addAnimeToSharedList(listId, anime)
-          .pipe(
-            finalize(() => {
-              this.getSharedLists();
-            }),
-          )
-          .subscribe();
-      }
+      // if (this.animeId() && this.authService.user()) {
+      this.sharedListsService
+        .addAnimeToSharedList(listId, anime, false)
+        .subscribe();
+      // }
     }
   }
 }

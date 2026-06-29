@@ -1,4 +1,11 @@
-import { Component, inject, OnInit, signal, Signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  inject,
+  OnInit,
+  signal,
+  Signal,
+} from '@angular/core';
 import { Router, RouterLink, ROUTER_OUTLET_DATA } from '@angular/router';
 import {
   IonRow,
@@ -8,15 +15,12 @@ import {
   IonInfiniteScrollContent,
 } from '@ionic/angular/standalone';
 import { finalize } from 'rxjs';
-import {
-  AnimeDetail,
-  AnimeEpisode,
-  AnimeEpisodeApiRes,
-} from 'src/app/models/AnimeDetails';
+import { AnimeEpisode, AnimeEpisodeApiRes } from 'src/app/models/AnimeDetails';
 import { AnimeDetails } from 'src/app/services/anime-details';
 import { SideEpisodeCardComponent } from './side-episode-card/side-episode-card.component';
-import { APIService } from 'src/app/services/apiservice';
-import { AnimeStatus, PrivateAnime } from 'src/app/models/List';
+import { AnimeStatus } from 'src/app/models/List';
+import { ListsService } from 'src/app/services/lists-service';
+import { AuthService } from 'src/app/services/auth-service';
 
 @Component({
   selector: 'app-episodes',
@@ -32,48 +36,62 @@ import { AnimeStatus, PrivateAnime } from 'src/app/models/List';
   ],
 })
 export class Episodes implements OnInit {
-  outletData = inject(ROUTER_OUTLET_DATA) as Signal<{ id: string }>;
+  outletData = inject(ROUTER_OUTLET_DATA) as Signal<{ id: number }>;
   public router = inject(Router);
   private AnimeDetailsService = inject(AnimeDetails);
-  private apiService = inject(APIService);
+  private listsService = inject(ListsService);
+  private authService = inject(AuthService);
 
   public episodes = signal<AnimeEpisode[]>([]);
-  public lastEpisodeWatched = signal<number | null>(null);
+
+  public lastEpisodeWatched = computed(() => {
+    const animeStatus = this.listsService.animeStatus();
+
+    if (!animeStatus) {
+      return null;
+    }
+
+    if (animeStatus === AnimeStatus.Completed) {
+      return this.listsService.episodes();
+    }
+
+    return this.listsService.lastEpisodeWatched()?.lastEpisodeWatched ?? 0;
+  });
 
   private animeId;
   private malId: number | null = null;
   public isFullPage = false;
-  private episodesNumber: number | null = null;
 
   private page = 1;
-  public isLoading = false;
+
   constructor() {
     this.isFullPage = this.router.url.endsWith('episodes');
     this.animeId = this.outletData().id;
 
-    this.AnimeDetailsService.GetAnimeDetails(this.animeId)
-      .pipe(
-        finalize(() => {
-          this.loadEpisodes();
-        }),
-      )
-      .subscribe((res: AnimeDetail) => {
-        this.malId = res.idMal ?? null;
-        this.episodesNumber =
-          res.nextAiringEpisode?.episode ?? res.episodes ?? null;
-      });
+    this.AnimeDetailsService.GetAnimeDetails(this.animeId).subscribe((res) => {
+      this.malId = res.idMal ?? null;
+      const episodesNumber =
+        res.nextAiringEpisode?.episode ?? res.episodes ?? null;
+
+      this.listsService.episodes.set(episodesNumber);
+      if (this.malId) {
+        this.loadEpisodes();
+      }
+    });
+
+    if (this.authService.user()) {
+      this.getLastEpisodeWatched();
+    }
   }
 
   ngOnInit() {}
 
   loadEpisodes(event?: InfiniteScrollCustomEvent) {
-    this.isLoading = true;
-    this.AnimeDetailsService.GetAnimeEpisodes(this.malId as number, this.page)
+    this.AnimeDetailsService.GetAnimeEpisodes(this.malId!, this.page)
       .pipe(
         finalize(() => {
           if (event) {
             event.target.complete();
-            this.isLoading = false;
           }
         }),
       )
@@ -84,8 +102,12 @@ export class Episodes implements OnInit {
             event.target.disabled = !res.pagination.has_next_page;
           }
         },
+        complete: () => {
+          if (event) {
+            event.target.complete();
+          }
+        },
       });
-    this.getLastEpisodeWatched();
   }
 
   loadMore(event: InfiniteScrollCustomEvent) {
@@ -94,35 +116,15 @@ export class Episodes implements OnInit {
   }
 
   getLastEpisodeWatched() {
-    this.apiService
-      .get<{
-        data: { lastEpisodeWatched: number; animeInfo: PrivateAnime };
-      }>(`anime/episodes/${this.outletData().id}`)
-      .subscribe(({ data: data }) => {
-        console.log(data);
-        if (data?.animeInfo === undefined) {
-          this.lastEpisodeWatched.set(null);
-        } else {
-          if (data.animeInfo.status === AnimeStatus.Completed) {
-            console.log('completed', this.episodesNumber);
-            this.lastEpisodeWatched.set(this.episodesNumber);
-          } else {
-            this.lastEpisodeWatched.set(data.lastEpisodeWatched);
-          }
-        }
-      });
+    this.listsService.getLastEpisodeWatched(this.outletData().id).subscribe();
   }
 
   updateWatchedEpisode(episodeTarget: number) {
-    this.apiService
-      .post('anime/episodes/watch', {
-        animeId: this.outletData().id,
-        episodeTarget: episodeTarget,
-      })
+    this.listsService
+      .updateWatchedEpisode(this.outletData().id, episodeTarget)
       .subscribe({
         next: () => {
           console.log(`Progressi portati all'episodio ${episodeTarget}`);
-          this.getLastEpisodeWatched();
         },
         error: (err) =>
           console.error("Errore durante l'aggiornamento rapido:", err),

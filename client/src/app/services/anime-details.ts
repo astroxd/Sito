@@ -14,10 +14,9 @@ import { APIService } from './apiservice';
 export class AnimeDetails {
   private http = inject(HttpClient);
   private apiService = inject(APIService);
-
   private readonly url = 'https://graphql.anilist.co';
 
-  GetAnimeDetails(animeId: string) {
+  GetAnimeDetails(animeId: number) {
     const query = {
       query: `
         query($id: Int){
@@ -90,7 +89,7 @@ export class AnimeDetails {
     ) as Observable<AnimeDetail>;
   }
 
-  GetAnimeTags(animeId: string) {
+  GetAnimeTags(animeId: number) {
     const query = {
       query: `
         query($id: Int){
@@ -112,7 +111,7 @@ export class AnimeDetails {
     ) as Observable<AnimeTag>;
   }
 
-  GetAnimeRecommendations(animeId: string) {
+  GetAnimeRecommendations(animeId: number) {
     const query = {
       query: `
         query($id: Int){
@@ -152,7 +151,7 @@ export class AnimeDetails {
     ) as Observable<AnimeRecommendation>;
   }
 
-  GetAnimeCharacters(animeId: string, page = 1) {
+  GetAnimeCharacters(animeId: number, page = 1) {
     const query = {
       query: `
         query($id: Int, $pageNumber: Int){

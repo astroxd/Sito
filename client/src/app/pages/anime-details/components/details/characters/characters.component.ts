@@ -31,7 +31,7 @@ import {
   ],
 })
 export class Characters implements OnInit {
-  outletData = inject(ROUTER_OUTLET_DATA) as Signal<{ id: string }>;
+  outletData = inject(ROUTER_OUTLET_DATA) as Signal<{ id: number }>;
   public router = inject(Router);
   private AnimeDetailsService = inject(AnimeDetails);
 

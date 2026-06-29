@@ -16,7 +16,10 @@
           <ion-label>{{ member.username }} {{ member.role }}</ion-label>
           <span>{{ member.totalEpisodes }}</span>
           @if (member.id === authService.user()?.id) {
-            <ion-button slot="end" style="margin-left: 1rem" (click)="leave()"
+            <ion-button
+              slot="end"
+              style="margin-left: 1rem"
+              (click)="confirmListDestruction()"
               >Leave</ion-button
             >
           } @else if (isOwner()) {

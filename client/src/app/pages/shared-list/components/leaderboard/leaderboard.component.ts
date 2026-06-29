@@ -6,6 +6,7 @@ import {
   IonAvatar,
   IonLabel,
   IonButton,
+  AlertController,
 } from '@ionic/angular/standalone';
 import { finalize } from 'rxjs';
 import { SharedListRole } from 'src/app/models/SharedList';
@@ -22,6 +23,7 @@ export class LeaderboardComponent implements OnInit {
   private sharedListsService = inject(SharedListsService);
   public authService = inject(AuthService);
   private router = inject(Router);
+  private alertController = inject(AlertController);
 
   members = this.sharedListsService.members;
   pendingMembers = this.sharedListsService.pendingMembers;
@@ -31,6 +33,31 @@ export class LeaderboardComponent implements OnInit {
   constructor() {}
 
   ngOnInit() {}
+
+  async confirmListDestruction() {
+    const alert = await this.alertController.create({
+      header: 'Confirm',
+
+      message:
+        'Warning: You are the only member left. Leaving this shared list will <strong>permanently delete it</strong>. Do you want to proceed?',
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+        },
+        {
+          text: 'Delete & Leave',
+          role: 'destructive',
+
+          handler: () => {
+            this.leave();
+          },
+        },
+      ],
+    });
+
+    await alert.present();
+  }
 
   leave() {
     this.sharedListsService

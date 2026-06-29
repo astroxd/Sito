@@ -29,10 +29,13 @@ export class Tags implements OnInit {
   tags$: any;
 
   constructor() {
-    const animeId = this.route.snapshot.paramMap.get('id');
-    if (animeId) {
-      this.tags$ = this.AnimeDetailsService.GetAnimeTags(animeId);
-    }
+    this.route.paramMap.subscribe((params) => {
+      const animeId = Number(params.get('id'));
+
+      if (animeId && !isNaN(animeId)) {
+        this.tags$ = this.AnimeDetailsService.GetAnimeTags(animeId);
+      }
+    });
   }
 
   ngOnInit() {}

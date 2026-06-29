@@ -398,7 +398,18 @@ export const acceptSharedListRequest = (req: Request, res: Response) => {
   const userId = res.locals.userId;
   const { listId } = req.params;
 
+  if (!listId) {
+    return res.status(400).json({ message: "MISSING PARAMS" });
+  }
+
   try {
+    const listExists = SharedList.exists(Number(listId));
+    if (!listExists) {
+      return res.status(404).json({
+        message: "Questa lista condivisa non esiste più o è stata eliminata",
+      });
+    }
+
     const existingRole = SharedList.getUserRole(Number(listId), userId);
     if (existingRole) {
       return res
@@ -409,8 +420,6 @@ export const acceptSharedListRequest = (req: Request, res: Response) => {
       SharedList.updateUserInvitation(Number(listId), "ACCEPTED", userId);
       SharedList.insertUser(Number(listId), userId, "MEMBER");
     })();
-
-    console.log("FOURI TRANS");
 
     return res.status(200).json({ message: "Member joined" });
   } catch (error) {
@@ -426,7 +435,18 @@ export const declineSharedListRequest = (req: Request, res: Response) => {
   const userId = res.locals.userId;
   const { listId } = req.params;
 
+  if (!listId) {
+    return res.status(400).json({ message: "MISSING PARAMS" });
+  }
+
   try {
+    const listExists = SharedList.exists(Number(listId));
+    if (!listExists) {
+      return res.status(404).json({
+        message: "Questa lista condivisa non esiste più o è stata eliminata",
+      });
+    }
+
     SharedList.deleteUserInvitation(Number(listId), userId, "PENDING");
 
     return res.status(200).json({ message: "Declined Request" });
@@ -493,7 +513,7 @@ export const removeMember = (req: Request, res: Response) => {
       if (memberRole === "OWNER") {
         const totalMembers = SharedList.findMembersCount(Number(listId));
 
-        if (totalMembers > 1) {
+        if (totalMembers.count > 1) {
           SharedList.updateNewOwner(Number(listId), Number(userId));
         } else {
           SharedList.deleteList(Number(listId));

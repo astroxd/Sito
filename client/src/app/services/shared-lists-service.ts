@@ -27,6 +27,15 @@ export class SharedListsService {
   private apiService = inject(APIService);
   private authService = inject(AuthService);
 
+  //* The sharedLists that contain the anime in anime-details.page
+  public sharedListsWithAnime = signal<
+    {
+      sharedListId: number;
+      sharedListName: string;
+      animeId?: number;
+    }[]
+  >([]);
+
   //* User shared lists
   public userSharedLists = signal<SharedListInfo[]>([]);
 
@@ -209,7 +218,11 @@ export class SharedListsService {
       );
   }
 
-  addAnimeToSharedList(sharedListId: number, anime: Anime) {
+  addAnimeToSharedList(
+    sharedListId: number,
+    anime: Anime,
+    isInSharedList = true,
+  ) {
     const {
       id,
       idMal,
@@ -218,7 +231,6 @@ export class SharedListsService {
       nextAiringEpisode,
       episodes,
       duration,
-      status,
       genres,
     } = anime;
 
@@ -228,10 +240,10 @@ export class SharedListsService {
           id,
           idMal,
           title: title.romaji ?? title.english ?? 'NO TITLE',
-          coverImage: coverImage?.extraLarge ?? coverImage?.large,
-          episodes:
-            nextAiringEpisode?.episode ??
-            (status === 'FINISHED' && !nextAiringEpisode ? episodes : 0),
+          coverImage: coverImage.extraLarge ?? coverImage.large,
+          episodes: nextAiringEpisode?.episode
+            ? nextAiringEpisode.episode - 1
+            : (episodes ?? 0),
           duration: duration ?? 0,
           genres,
         },
@@ -239,8 +251,12 @@ export class SharedListsService {
       .pipe(
         tap({
           next: () => {
-            this.getUserSharedAnimeProgress(sharedListId);
-            this.getSharedAnimesProgress(sharedListId);
+            if (isInSharedList) {
+              this.getUserSharedAnimeProgress(sharedListId);
+              this.getSharedAnimesProgress(sharedListId);
+            } else {
+              this.getSharedListsWithAnimeId(id).subscribe();
+            }
           },
           error: (err) => {
             console.log(err);
@@ -267,13 +283,24 @@ export class SharedListsService {
   }
 
   getSharedListsWithAnimeId(animeId: number) {
-    return this.apiService.get<{
-      data: {
-        sharedListId: number;
-        sharedListName: string;
-        animeId?: number;
-      }[];
-    }>(`shared-list/entrie/${animeId}`);
+    return this.apiService
+      .get<{
+        data: {
+          sharedListId: number;
+          sharedListName: string;
+          animeId?: number;
+        }[];
+      }>(`shared-list/entrie/${animeId}`)
+      .pipe(
+        tap({
+          next: ({ data }) => {
+            this.sharedListsWithAnime.set(data);
+          },
+          error: (err) => {
+            console.log(err);
+          },
+        }),
+      );
   }
 
   inviteMember(sharedListId: number, invitedUserId: number) {
@@ -302,6 +329,7 @@ export class SharedListsService {
         },
         error: (err) => {
           console.log(err);
+          this.loadInvites().subscribe();
         },
       }),
     );
@@ -315,6 +343,7 @@ export class SharedListsService {
         },
         error: (err) => {
           console.log(err);
+          this.loadInvites().subscribe();
         },
       }),
     );
