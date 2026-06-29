@@ -84,12 +84,12 @@ export interface AnimeCharacter {
   role: string;
   voiceActors: [
     {
-      image: {
+      image?: {
         large: string;
       };
-      languageV2: string;
+      languageV2?: string;
 
-      name: {
+      name?: {
         full: string;
       };
     },

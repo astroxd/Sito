@@ -1,44 +1,37 @@
 <div class="character-card">
-  <ion-grid>
-    <ion-row>
-      <ion-col>
-        <div class="character-card-left">
-          <img [src]="character().image.large" [alt]="character().name.first" />
+  <div class="character-card-left">
+    <img [src]="character().image.large" [alt]="character().name.first" />
 
-          <div class="description">
-            <div class="content">
-              <!-- <FontAwesomeIcon icon={faCaretRight} /> -->
-              <div>
-                <div class="role">{{ character().role }}</div>
-                <div class="name">{{ getCharacterName(character().name) }}</div>
-              </div>
-            </div>
+    <div class="description">
+      <div class="content">
+        <fa-icon [icon]="faCaretRight" />
+        <div>
+          <div class="role">{{ character().role }}</div>
+          <div class="name">{{ getCharacterName(character().name) }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="character-card-right">
+    <div class="description">
+      <div class="content">
+        <div>
+          <div class="name">
+            {{ character().voiceActors[0]?.name?.full ?? "" }}
+          </div>
+          <div class="role">
+            {{ character().voiceActors[0]?.languageV2 ?? "" }}
           </div>
         </div>
-      </ion-col>
-      <ion-col>
-        <div class="character-card-right">
-          <div class="description">
-            <div class="content">
-              <div>
-                <div class="name">
-                  {{ character().voiceActors[0]?.name?.full ?? "" }}
-                </div>
-                <div class="role">
-                  {{ character().voiceActors[0]?.languageV2 ?? "" }}
-                </div>
-              </div>
-              <!-- <FontAwesomeIcon icon={faCaretLeft} /> -->
-            </div>
-          </div>
-          @if (character().voiceActors.length > 0) {
-            <img
-              [src]="character().voiceActors[0].image.large"
-              [alt]="character().voiceActors[0].name.full"
-            />
-          }
-        </div>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
+        <fa-icon [icon]="faCaretLeft" />
+      </div>
+    </div>
+    @if (character().voiceActors.length > 0) {
+      <img
+        [src]="character().voiceActors[0].image?.large"
+        [alt]="character().voiceActors[0].name?.full"
+      />
+    }
+  </div>
 </div>

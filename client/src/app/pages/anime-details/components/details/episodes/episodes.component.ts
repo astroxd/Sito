@@ -21,7 +21,8 @@ import { SideEpisodeCardComponent } from './side-episode-card/side-episode-card.
 import { AnimeStatus } from 'src/app/models/List';
 import { ListsService } from 'src/app/services/lists-service';
 import { AuthService } from 'src/app/services/auth-service';
-
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faLongArrowAltRight } from '@fortawesome/free-solid-svg-icons';
 @Component({
   selector: 'app-episodes',
   templateUrl: './episodes.component.html',
@@ -33,6 +34,7 @@ import { AuthService } from 'src/app/services/auth-service';
     RouterLink,
     IonInfiniteScroll,
     IonInfiniteScrollContent,
+    FontAwesomeModule,
   ],
 })
 export class Episodes implements OnInit {
@@ -63,6 +65,7 @@ export class Episodes implements OnInit {
   public isFullPage = false;
 
   private page = 1;
+  faLongArrowAltRight = faLongArrowAltRight;
 
   constructor() {
     this.isFullPage = this.router.url.endsWith('episodes');
@@ -116,12 +119,12 @@ export class Episodes implements OnInit {
   }
 
   getLastEpisodeWatched() {
-    this.listsService.getLastEpisodeWatched(this.outletData().id).subscribe();
+    this.listsService.getLastEpisodeWatched(this.animeId).subscribe();
   }
 
   updateWatchedEpisode(episodeTarget: number) {
     this.listsService
-      .updateWatchedEpisode(this.outletData().id, episodeTarget)
+      .updateWatchedEpisode(this.animeId, episodeTarget)
       .subscribe({
         next: () => {
           console.log(`Progressi portati all'episodio ${episodeTarget}`);
