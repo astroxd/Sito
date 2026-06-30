@@ -1,4 +1,4 @@
-<div class="add-to-watchlist">
+<div class="add-to-watchlist" (appClickOutside)="close()">
   <button
     class="primary-btn text"
     [class]="animeStatus() ? 'selected' : ''"
@@ -11,8 +11,11 @@
     [class]="animeStatus() ? 'selected' : ''"
     (click)="showWatchlistMenu = !showWatchlistMenu"
   >
-    <!-- <FontAwesomeIcon icon={faChevronDown} /> -->
-    a
+    @if (showWatchlistMenu) {
+      <fa-icon [icon]="faChevronUp" />
+    } @else {
+      <fa-icon [icon]="faChevronDown" />
+    }
   </button>
   <div class="dropdown-menu" [class]="showWatchlistMenu ? 'show' : ''">
     <ul>
@@ -27,7 +30,7 @@
           {{ list.label }}
         </li>
       }
-      <span>Add To List</span>
+      <li class="dropdown-menu-item no-hover divided">Add to List:</li>
       @for (sharedList of sharedLists(); track $index) {
         @let isInList = sharedList?.animeId ? true : false;
         <li

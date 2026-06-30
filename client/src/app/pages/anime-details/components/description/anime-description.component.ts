@@ -22,6 +22,7 @@ import { AuthService } from 'src/app/services/auth-service';
 
 @Component({
   selector: 'app-anime-description',
+  standalone: true,
   templateUrl: './anime-description.component.html',
   styleUrls: ['./anime-description.component.scss'],
   imports: [IonRow, IonCol, AddToWatchlistButtonComponent, FontAwesomeModule],

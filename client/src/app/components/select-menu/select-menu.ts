@@ -1,9 +1,10 @@
 import { Component, input, model, signal } from '@angular/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
+import { ClickOutsideDirective } from 'src/app/directives/click-outside.directive';
 @Component({
   selector: 'app-select-menu',
-  imports: [FontAwesomeModule],
+  imports: [FontAwesomeModule, ClickOutsideDirective],
   templateUrl: './select-menu.html',
   styleUrl: './select-menu.scss',
 })

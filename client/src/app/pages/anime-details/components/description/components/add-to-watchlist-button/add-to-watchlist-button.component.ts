@@ -1,26 +1,20 @@
-import {
-  Component,
-  computed,
-  effect,
-  inject,
-  input,
-  OnInit,
-  signal,
-} from '@angular/core';
-import { finalize } from 'rxjs';
+import { Component, computed, inject, input, OnInit } from '@angular/core';
 import { AnimeDetail } from 'src/app/models/AnimeDetails';
 import {
   AnimeStatus,
   AnimeStatusLabels,
   iterableAnimeStatusLabels,
 } from 'src/app/models/List';
-import { AuthService } from 'src/app/services/auth-service';
 import { ListsService } from 'src/app/services/lists-service';
 import { SharedListsService } from 'src/app/services/shared-lists-service';
 import { Anime } from 'src/app/models/Anime';
-
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
+import { ClickOutsideDirective } from 'src/app/directives/click-outside.directive';
 @Component({
   selector: 'app-add-to-watchlist-button',
+  standalone: true,
+  imports: [FontAwesomeModule, ClickOutsideDirective],
   templateUrl: './add-to-watchlist-button.component.html',
   styleUrls: [
     './add-to-watchlist-button.component.scss',
@@ -30,7 +24,6 @@ import { Anime } from 'src/app/models/Anime';
 export class AddToWatchlistButtonComponent implements OnInit {
   private listsService = inject(ListsService);
   private sharedListsService = inject(SharedListsService);
-  private authService = inject(AuthService);
   private readonly AnimeStatusLabels = AnimeStatusLabels;
   readonly iterableAnimeStatusLabels = iterableAnimeStatusLabels;
 
@@ -47,6 +40,8 @@ export class AddToWatchlistButtonComponent implements OnInit {
 
   showWatchlistMenu = false;
 
+  faChevronDown = faChevronDown;
+  faChevronUp = faChevronUp;
   constructor() {}
 
   ngOnInit() {}
@@ -131,5 +126,8 @@ export class AddToWatchlistButtonComponent implements OnInit {
         .subscribe();
       // }
     }
+  }
+  close() {
+    this.showWatchlistMenu = false;
   }
 }
