@@ -23,7 +23,7 @@ export class ListsService {
 
   //*
   public lastEpisodeWatched = signal<{
-    animeInfo: PrivateAnime;
+    animeInfo: PrivateAnime | null;
     lastEpisodeWatched: number;
   } | null>(null);
 
@@ -208,7 +208,7 @@ export class ListsService {
   getLastEpisodeWatched(animeId: number) {
     return this.apiService
       .get<{
-        data: { lastEpisodeWatched: number; animeInfo: PrivateAnime };
+        data: { lastEpisodeWatched: number; animeInfo: PrivateAnime | null };
       }>(`anime/episodes/${animeId}`)
       .pipe(
         tap({
@@ -231,6 +231,8 @@ export class ListsService {
             this.getLastEpisodeWatched(animeId).subscribe();
             if (episodeTarget === this.episodes()) {
               this.animeStatus.set(AnimeStatus.Completed);
+            } else if (this.animeStatus() === AnimeStatus.Dropped) {
+              this.animeStatus.set(AnimeStatus.Watching);
             }
           },
         }),

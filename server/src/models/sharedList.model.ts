@@ -1,6 +1,6 @@
 import db from "../config/database";
 import { Anime } from "./anime.model";
-const serverUrl = "http://localhost:3001";
+import { User } from "./user.model";
 
 export type SharedListRole = "OWNER" | "EDITOR" | "MEMBER";
 export type SharedListInvitationStatus = "PENDING" | "ACCEPTED";
@@ -120,9 +120,7 @@ export const SharedList = {
     return foundMembers.map((member) => {
       return {
         ...member,
-        avatar: member.avatar
-          ? `${serverUrl}/static/avatar/${member.avatar}`
-          : `https://api.dicebear.com/9.x/initials/svg?seed=${member.username}`,
+        avatar: User.formatUserAvatar(member.username, member.avatar),
       };
     });
   },
@@ -203,9 +201,7 @@ export const SharedList = {
     return foundProgress.map((member) => {
       return {
         ...member,
-        avatar: member.avatar
-          ? `${serverUrl}/static/avatar/${member.avatar}`
-          : `https://api.dicebear.com/9.x/initials/svg?seed=${member.username}`,
+        avatar: User.formatUserAvatar(member.username, member.avatar),
       };
     });
   },
@@ -303,9 +299,7 @@ export const SharedList = {
 
     if (!row) return undefined;
 
-    const avatarUrl = row.avatar
-      ? `${serverUrl}/static/avatar/${row.avatar}`
-      : `https://api.dicebear.com/9.x/initials/svg?seed=${row.username}`;
+    const avatarUrl = User.formatUserAvatar(row.username, row.avatar);
 
     return {
       userId: row.userId,
@@ -482,9 +476,7 @@ export const SharedList = {
     return foundUsers.map((user) => {
       return {
         ...user,
-        avatar: user.avatar
-          ? `${serverUrl}/static/avatar/${user.avatar}`
-          : `https://api.dicebear.com/9.x/initials/svg?seed=${user.username}`,
+        avatar: User.formatUserAvatar(user.username, user.avatar),
       };
     });
   },
@@ -513,9 +505,10 @@ export const SharedList = {
       .all(userId, status) as any[];
 
     return foundInvitation.map((invitation) => {
-      const avatarUrl = invitation.senderAvatar
-        ? `${serverUrl}/static/avatar/${invitation.senderAvatar}`
-        : `https://api.dicebear.com/9.x/initials/svg?seed=${invitation.senderUsername}`;
+      const avatarUrl = User.formatUserAvatar(
+        invitation.username,
+        invitation.avatar,
+      );
 
       return {
         sharedList: {

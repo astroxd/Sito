@@ -1,4 +1,3 @@
-import { stat } from "node:fs";
 import db from "../config/database";
 
 export interface PrivateAnime {

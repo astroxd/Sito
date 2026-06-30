@@ -57,7 +57,7 @@ export class Episodes implements OnInit {
       return this.listsService.episodes();
     }
 
-    return this.listsService.lastEpisodeWatched()?.lastEpisodeWatched ?? 0;
+    return this.listsService.lastEpisodeWatched()?.lastEpisodeWatched!;
   });
 
   private animeId;

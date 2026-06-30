@@ -56,6 +56,10 @@ export const Anime = {
   sanitizeAnime: (anime: any) => {
     let { id, idMal, title, coverImage, episodes, duration, genres } = anime;
 
+    if (!id || !idMal || !coverImage) {
+      throw new Error("MISSING_PARAMS");
+    }
+
     const animeId = Number(id);
     const animeMalId = Number(idMal);
 
@@ -67,8 +71,10 @@ export const Anime = {
       throw new Error("MISSING_TITLE");
     }
 
-    episodes = typeof episodes === "number" && episodes > 0 ? episodes : 0;
-    duration = typeof duration === "number" && duration > 0 ? duration : 0;
+    const animeEpisodes =
+      typeof episodes === "number" && episodes > 0 ? episodes : 0;
+    const animeDuration =
+      typeof duration === "number" && duration > 0 ? duration : 0;
 
     let animeGenres = "";
 
@@ -86,8 +92,8 @@ export const Anime = {
       animeMalId,
       animeTitle,
       animeCover,
-      animeEpisodes: episodes,
-      animeAvgEpisodeDuration: duration,
+      animeEpisodes,
+      animeAvgEpisodeDuration: animeDuration,
       animeGenres,
     } as Anime;
   },

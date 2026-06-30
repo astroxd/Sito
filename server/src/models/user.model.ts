@@ -31,12 +31,8 @@ export const User = {
     if (foundUser !== undefined) {
       return {
         ...foundUser,
-        avatar: foundUser.avatar
-          ? `${serverUrl}/static/avatar/${foundUser.avatar}`
-          : `https://api.dicebear.com/9.x/initials/svg?seed=${foundUser.username}`,
+        avatar: User.formatUserAvatar(foundUser.username, foundUser.avatar),
       };
-
-      return foundUser;
     }
   },
 
@@ -50,9 +46,7 @@ export const User = {
     if (foundUser !== undefined) {
       return {
         ...foundUser,
-        avatar: foundUser.avatar
-          ? `${serverUrl}/static/avatar/${foundUser.avatar}`
-          : `https://api.dicebear.com/9.x/initials/svg?seed=${foundUser.username}`,
+        avatar: User.formatUserAvatar(foundUser.username, foundUser.avatar),
       };
     }
     return foundUser;
@@ -68,9 +62,7 @@ export const User = {
     if (foundUser !== undefined) {
       return {
         ...foundUser,
-        avatar: foundUser.avatar
-          ? `${serverUrl}/static/avatar/${foundUser.avatar}`
-          : `https://api.dicebear.com/9.x/initials/svg?seed=${foundUser.username}`,
+        avatar: User.formatUserAvatar(foundUser.username, foundUser.avatar),
       };
     }
     return foundUser;
@@ -92,9 +84,7 @@ export const User = {
     return foundUsers.map((user) => {
       return {
         ...user,
-        avatar: user.avatar
-          ? `${serverUrl}/static/avatar/${user.avatar}`
-          : `https://api.dicebear.com/9.x/initials/svg?seed=${user.username}`,
+        avatar: User.formatUserAvatar(user.username, user.avatar),
       };
     });
   },
@@ -105,10 +95,6 @@ export const User = {
     username: string,
     avatar?: string,
   ) => {
-    // if (!avatar) {
-    //   avatar = `https://api.dicebear.com/9.x/initials/svg?seed=${username}`;
-    // }
-
     const result = db
       .prepare(
         `INSERT INTO User(email, password, username, avatar, banner)
@@ -192,5 +178,11 @@ export const User = {
         `,
       )
       .run(userId, animeId).changes;
+  },
+
+  formatUserAvatar: (username: string, avatar: string | null | undefined) => {
+    return avatar
+      ? `${serverUrl}/static/avatar/${avatar}`
+      : `https://api.dicebear.com/9.x/initials/svg?seed=${username}`;
   },
 };

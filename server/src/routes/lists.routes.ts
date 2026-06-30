@@ -14,8 +14,6 @@ import {
 
 const router = Router();
 
-//TODO Aggiungo un middleware che controlla se lo status è valido?
-
 //* Ottiene gli anime di una lista privata
 router.get("/lists/:status/:page", getList);
 

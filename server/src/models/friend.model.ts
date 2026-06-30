@@ -1,5 +1,5 @@
 import db from "../config/database";
-const serverUrl = "http://localhost:3001";
+import { User } from "./user.model";
 
 export type FriendshipRequestStatus = "PENDING" | "ACCEPTED";
 
@@ -43,9 +43,10 @@ export const Friendship = {
     return foundFriendship.map((user) => {
       return {
         ...user,
-        friendAvatar: user.friendAvatar
-          ? `${serverUrl}/static/avatar/${user.friendAvatar}`
-          : `https://api.dicebear.com/9.x/initials/svg?seed=${user.friendUsername}`,
+        friendAvatar: User.formatUserAvatar(
+          user.friendUsername,
+          user.friendAvatar,
+        ),
       };
     });
   },
@@ -80,9 +81,10 @@ export const Friendship = {
     return foundFriendship.map((user) => {
       return {
         ...user,
-        friendAvatar: user.friendAvatar
-          ? `${serverUrl}/static/avatar/${user.friendAvatar}`
-          : `https://api.dicebear.com/9.x/initials/svg?seed=${user.friendUsername}`,
+        friendAvatar: User.formatUserAvatar(
+          user.friendUsername,
+          user.friendAvatar,
+        ),
       };
     });
   },
