@@ -16,7 +16,7 @@ export class GetAnimes {
 
   FetchAnime(query: Object) {
     return this.http.post<any>(this.url, query).pipe(
-      tap(({ data: Page }) => console.log(Page.Page.media)),
+      // tap(({ data: Page }) => console.log(Page.Page.media)),
       map(
         ({
           data: {
@@ -205,11 +205,8 @@ export class GetAnimes {
       variables: { page: page, perPage: 12, sort: sort, ...searchOptions },
     };
 
-    console.log(sort);
-    console.log(searchOptions);
-
     return this.http.post<any>(this.url, query).pipe(
-      tap(({ data: Page }) => console.log(Page.Page.media)),
+      // tap(({ data: Page }) => console.log(Page.Page.media)),
       map(({ data: { Page } }) => Page),
     ) as Observable<SearchResultsData>;
   }

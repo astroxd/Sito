@@ -80,7 +80,6 @@ export class SharedListsService {
     return this.apiService.get<{ data: SharedListInfo[] }>('shared-lists').pipe(
       tap({
         next: ({ data }) => {
-          console.log(data);
           this.userSharedLists.set(data);
         },
         error: (err) => {

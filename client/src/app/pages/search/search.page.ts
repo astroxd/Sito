@@ -101,7 +101,6 @@ export class SearchPage {
       )
       .subscribe({
         next: (res) => {
-          console.log(res);
           this.searchResults.set(res);
         },
         error: (err) => {
