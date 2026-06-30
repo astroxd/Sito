@@ -18,6 +18,7 @@ import { AnimeDetails } from 'src/app/services/anime-details';
 import { AsyncPipe } from '@angular/common';
 import { ListsService } from 'src/app/services/lists-service';
 import { SharedListsService } from 'src/app/services/shared-lists-service';
+import { AuthService } from 'src/app/services/auth-service';
 
 @Component({
   selector: 'app-anime-details',
@@ -41,6 +42,7 @@ import { SharedListsService } from 'src/app/services/shared-lists-service';
   encapsulation: ViewEncapsulation.None,
 })
 export class AnimeDetailsPage implements OnInit {
+  private authService = inject(AuthService);
   private listsService = inject(ListsService);
   private sharedListsService = inject(SharedListsService);
   private route = inject(ActivatedRoute);
@@ -55,10 +57,12 @@ export class AnimeDetailsPage implements OnInit {
 
       if (this.animeId && !isNaN(this.animeId)) {
         this.details$ = this.AnimeDetailsService.GetAnimeDetails(this.animeId);
-        this.listsService.getListedAnime(Number(this.animeId)).subscribe();
-        this.sharedListsService
-          .getSharedListsWithAnimeId(this.animeId)
-          .subscribe();
+        if (this.authService.user()) {
+          this.listsService.getListedAnime(Number(this.animeId)).subscribe();
+          this.sharedListsService
+            .getSharedListsWithAnimeId(this.animeId)
+            .subscribe();
+        }
       }
     });
   }

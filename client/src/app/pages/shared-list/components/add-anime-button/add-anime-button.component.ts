@@ -2,9 +2,7 @@ import {
   Component,
   computed,
   inject,
-  input,
   OnInit,
-  output,
   signal,
   ViewChild,
 } from '@angular/core';

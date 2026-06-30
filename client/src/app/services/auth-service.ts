@@ -123,6 +123,31 @@ export class AuthService {
     );
   }
 
+  updateAvatar(avatar: File) {
+    const formData = new FormData();
+    formData.append('avatar', avatar, avatar.name);
+
+    console.log('Chiamata');
+
+    return this.apiService
+      .post<{ data: { id: number; avatar: string } }>('update-avatar', formData)
+      .pipe(
+        tap({
+          next: ({ data }) => {
+            const newAvatarUrl = data.avatar;
+
+            this.user.update((u) => {
+              if (!u) return u;
+              return { ...u, avatar: newAvatarUrl };
+            });
+          },
+          error: (err) => {
+            console.log(err);
+          },
+        }),
+      );
+  }
+
   isAuthenticated() {
     return this.user() !== null && this.user() !== undefined;
   }

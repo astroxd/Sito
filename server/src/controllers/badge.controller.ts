@@ -6,6 +6,7 @@ import {
   rankOrder,
 } from "../models/badge.model";
 import { Statistics } from "../models/statistics.model";
+import { existsSync } from "node:fs";
 
 export const checkAndUnlockBadges = (userId: number) => {
   const unlockedBadges = Badge.getUserBadges(userId);
@@ -136,9 +137,13 @@ export const getUserBadges = (req: Request, res: Response) => {
     const serverUrl = `${req.protocol}://${req.get("host")}`;
 
     const catalogWithImages = catalog.map((badge) => {
+      let imageUrl = "default.png";
+      if (existsSync(`static/badges/${badge.id}.png`)) {
+        imageUrl = `${badge.id}.png`;
+      }
       return {
         ...badge,
-        imageUrl: `${serverUrl}/static/badges/default.png`,
+        imageUrl: `${serverUrl}/static/badges/${imageUrl}`,
       };
     });
 

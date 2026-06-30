@@ -7,6 +7,7 @@ import {
   AnimeTag,
 } from '../models/AnimeDetails';
 import { APIService } from './apiservice';
+import { AuthService } from './auth-service';
 
 @Injectable({
   providedIn: 'root',
@@ -14,6 +15,7 @@ import { APIService } from './apiservice';
 export class AnimeDetails {
   private http = inject(HttpClient);
   private apiService = inject(APIService);
+  private authService = inject(AuthService);
   private readonly url = 'https://graphql.anilist.co';
 
   GetAnimeDetails(animeId: number) {
@@ -84,7 +86,11 @@ export class AnimeDetails {
             : (media.episodes ?? 0),
         };
 
-        this.apiService.post('anime/sync', { anime: animePayload }).subscribe();
+        if (this.authService.user()) {
+          this.apiService
+            .post('anime/sync', { anime: animePayload })
+            .subscribe();
+        }
       }),
     ) as Observable<AnimeDetail>;
   }

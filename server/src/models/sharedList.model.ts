@@ -507,7 +507,7 @@ export const SharedList = {
     return foundInvitation.map((invitation) => {
       const avatarUrl = User.formatUserAvatar(
         invitation.username,
-        invitation.avatar,
+        invitation.senderAvatar,
       );
 
       return {

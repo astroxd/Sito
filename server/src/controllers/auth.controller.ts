@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import { Request, Response } from "express";
 import { User } from "../models/user.model";
 import { hashSync, compareSync } from "bcrypt";
+import { existsSync, unlinkSync } from "node:fs";
 
 const JWTSECRET = process.env.JWT_SECRET || "RSAPRIVATEKEY";
 
@@ -157,6 +158,37 @@ export const logout = (req: Request, res: Response) => {
   } catch (error) {
     return res.status(500).json({ message: "Internal error during logout" });
   }
+};
+
+export const updateAvatar = (req: Request, res: Response) => {
+  const userId = res.locals.userId;
+  const newAvatar = req.file?.filename!;
+
+  try {
+    const foundUser = User.findById(userId);
+
+    if (!foundUser) {
+      return res.status(400).json({ message: "No user with id" });
+    }
+
+    if (foundUser.avatar && existsSync(`static/avatar/${foundUser.avatar}`)) {
+      unlinkSync(`static/avatar/${foundUser.avatar}`);
+    }
+
+    User.updateAvatar(userId, newAvatar);
+
+    return res.status(200).json({
+      data: {
+        id: foundUser.id,
+        avatar: User.formatUserAvatar(foundUser.username, newAvatar),
+      },
+      message: "Avatar updated",
+    });
+  } catch (error) {
+    console.error(error);
+  }
+
+  return res.status(500).json({ message: "INTERNAL SERVER ERRROR" });
 };
 
 const hashValue = (value: string) => {

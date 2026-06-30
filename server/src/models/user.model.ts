@@ -21,10 +21,24 @@ export interface FoundUser {
 const serverUrl = "http://localhost:3001";
 
 export const User = {
+  findById: (userId: number) => {
+    return db
+      .prepare(
+        `
+        SELECT user_id AS id, email, username, avatar, banner
+        FROM User WHERE user_id = ?
+      `,
+      )
+      .get(userId) as User | undefined;
+  },
+
   findByEmail: (email: string) => {
     const foundUser = db
       .prepare(
-        "SELECT user_id AS id, email, username, avatar, banner FROM User WHERE email = ?",
+        `
+          SELECT user_id AS id, email, username, avatar, banner
+          FROM User WHERE email = ?
+        `,
       )
       .get(email) as User | undefined;
 
@@ -39,7 +53,10 @@ export const User = {
   findByUsername: (username: string) => {
     const foundUser = db
       .prepare(
-        "SELECT user_id AS id, email, username, avatar, banner FROM User WHERE username = ?",
+        `
+          SELECT user_id AS id, email, username, avatar, banner 
+          FROM User WHERE username = ?
+        `,
       )
       .get(username) as User | undefined;
 
@@ -55,7 +72,10 @@ export const User = {
   findByRefreshToken: (refreshToken: string) => {
     const foundUser = db
       .prepare(
-        "SELECT user_id AS id, email, username, avatar, banner FROM User WHERE refresh_token = ?",
+        `
+          SELECT user_id AS id, email, username, avatar, banner
+          FROM User WHERE refresh_token = ?
+        `,
       )
       .get(refreshToken) as User | undefined;
 
@@ -178,6 +198,15 @@ export const User = {
         `,
       )
       .run(userId, animeId).changes;
+  },
+
+  updateAvatar: (userId: number, avatar: string) => {
+    db.prepare(
+      `
+        UPDATE 'User' SET avatar = ?
+        WHERE user_id = ?
+      `,
+    ).run(avatar, userId);
   },
 
   formatUserAvatar: (username: string, avatar: string | null | undefined) => {

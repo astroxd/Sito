@@ -1,7 +1,7 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { IonRouterLinkWithHref } from '@ionic/angular/standalone';
-import { User } from 'src/app/models/User';
+
 import { AuthService } from 'src/app/services/auth-service';
 
 @Component({
@@ -15,15 +15,22 @@ export class ProfileInfoComponent implements OnInit {
     'https://s4.anilist.co/file/anilistcdn/media/anime/banner/16498-8jpFCOcDmneX.jpg';
   private authService = inject(AuthService);
 
-  user = signal<User | undefined | null>(undefined);
+  user = this.authService.user;
 
-  constructor() {
-    this.user = this.authService.user;
-  }
+  constructor() {}
+  ngOnInit() {}
 
   logout() {
     this.authService.logout().subscribe();
   }
 
-  ngOnInit() {}
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+
+      this.authService.updateAvatar(file).subscribe();
+    }
+  }
 }

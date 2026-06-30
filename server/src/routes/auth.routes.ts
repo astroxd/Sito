@@ -5,6 +5,7 @@ import {
   refreshToken,
   register,
   session,
+  updateAvatar,
 } from "../controllers/auth.controller";
 import { uploadAvatarMiddleware } from "../middlewares/upload.middleware";
 import { requireAuth } from "../middlewares/auth.middleware";
@@ -19,5 +20,6 @@ router.use(requireAuth);
 
 router.get("/session", session);
 router.post("/logout", logout);
+router.post("/update-avatar", uploadAvatarMiddleware, updateAvatar);
 
 export default router;

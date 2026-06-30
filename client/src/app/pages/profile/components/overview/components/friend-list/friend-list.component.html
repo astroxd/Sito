@@ -59,7 +59,10 @@
             <img [src]="friend.friendAvatar" [alt]="friend.friendUsername" />
             <span>{{ friend.friendUsername }}</span>
           </div>
-          <ion-button size="small" (click)="removeFriend(friend.friendUserId)"
+          <ion-button
+            size="small"
+            fill="outline"
+            (click)="removeFriend(friend.friendUserId)"
             >Remove</ion-button
           >
         </li>

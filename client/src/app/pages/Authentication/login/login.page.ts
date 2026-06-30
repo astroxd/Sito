@@ -10,7 +10,7 @@ import { faEnvelope, faLock } from '@fortawesome/free-solid-svg-icons';
 @Component({
   selector: 'app-login',
   templateUrl: './login.page.html',
-  styleUrls: ['./login.page.scss'],
+  styleUrls: ['./login.page.scss', './../../../styles/authForm.scss'],
   standalone: true,
   imports: [
     IonContent,
@@ -27,6 +27,7 @@ export class LoginPage implements OnInit {
   private authForm = inject(AuthForm);
   faEnvelope = faEnvelope;
   faLock = faLock;
+  banner = 'assets/images/banner.jpg';
 
   public loginFormControl = this.authForm.loginFormControl;
   public formErrors = this.loginFormControl.formErrors;

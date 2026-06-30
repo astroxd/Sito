@@ -364,14 +364,16 @@ export class SharedListsService {
       );
   }
 
-  removeMember(sharedListId: number, memberId: number) {
+  removeMember(sharedListId: number, memberId: number, isLeave = false) {
     return this.apiService
       .delete(`shared-list/${sharedListId}/remove/${memberId}`)
       .pipe(
         tap({
           next: () => {
-            this.loadSharedListLeaderboard(sharedListId);
-            this.getSharedAnimesProgress(sharedListId);
+            if (!isLeave) {
+              this.loadSharedListLeaderboard(sharedListId);
+              this.getSharedAnimesProgress(sharedListId);
+            }
           },
           error: (err) => {
             console.log(err);

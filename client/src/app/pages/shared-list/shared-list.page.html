@@ -30,14 +30,12 @@
             class="list-actions"
             [style]="!isOwner() && !isEditor() ? 'display: none;' : ''"
           >
-            <div class="action">
+            <div [class]="isOwner() ? 'action' : ''">
               @if (isOwner()) {
-
               <app-add-member-button />
               }
             </div>
             @if (isOwner() || isEditor()) {
-
             <div class="editor-buttons">
               <app-add-anime-button />
             </div>

@@ -197,100 +197,20 @@ input[type="search"] {
   -webkit-line-clamp: 2;
 }
 
-// AUTH PROV
-.auth {
-  height: 300px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: top center;
-}
-
-.auth h2 {
-  font-size: 48px;
-  font-family: var(--header-font);
-}
-
-.auth-form {
-  position: relative;
-  padding-right: 40px;
-}
-.auth-form h3 {
-  font-family: var(--header-font);
-  margin-bottom: 30px;
-}
-
-.auth-form p {
-  color: var(--active);
-  margin: 0;
-}
-
-.auth-form button {
-  border-radius: 0;
-  margin-top: 10px;
-}
-
-.auth-form::after {
-  position: absolute;
-  right: -14px;
-  top: -20px;
-  width: 1px;
-  height: 590px;
-  background-color: var(--light-grey);
-  content: "";
-}
-
-.input-item {
-  position: relative;
-  width: 370px;
-  margin-bottom: 20px;
-}
-.input-item::before {
-  position: absolute;
-  left: 50px;
-  top: 10px;
-  height: 30px;
-  width: 1px;
-  background-color: var(--text-secondary);
-  content: "";
-}
-
-.input-item input {
-  height: 50px;
-  width: 100%;
-  font-size: 15px;
-  font-weight: 500;
-  color: black;
-  background-color: var(--text-primary);
-  border: none;
-  padding-left: 76px;
-}
-.input-item input::placeholder {
-  color: var(--text-secondary);
-}
-
-.input-item-icon {
-  color: var(--text-secondary);
-  font-size: 24px;
-  position: absolute;
-  left: 10px;
-  top: 13px;
-}
-
-/** Medium devices (tablets, less than 992px) */
-@media (max-width: 991.98px) {
-  .auth-form {
-    margin-bottom: 40px;
-    width: 100%;
-    padding-right: 0;
+ion-action-sheet.actionsheet {
+  .action-sheet-button.actionsheet-editor {
+    color: var(--ion-color-warning);
   }
-  .auth-form::after {
-    content: none;
+  .action-sheet-button.actionsheet-kick {
+    color: var(--ion-color-danger);
   }
-  .auth-form .input-item {
-    width: auto;
+}
+
+@media (any-hover: hover) {
+  ion-action-sheet.actionsheet .action-sheet-button.actionsheet-editor:hover {
+    color: var(--ion-color-warning) !important;
+  }
+  ion-action-sheet.actionsheet .action-sheet-button.actionsheet-kick:hover {
+    color: var(--ion-color-danger) !important;
   }
 }

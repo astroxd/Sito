@@ -47,7 +47,9 @@ const createBadge = (badgeInfo: Omit<Badge, "getRankKey">) => {
 };
 
 export const BADGES_LIST: Badge[] = [
-  // 🎭 BADGE DI GENRE (Avanzamento a 4 Rank)
+  //* BADGE DI GENRE
+
+  //*  ACTION & ADVENTURE
   createBadge({
     id: "shonen_master",
     title: "Re dello Shonen",
@@ -55,30 +57,100 @@ export const BADGES_LIST: Badge[] = [
     category: "GENRE",
     isSecret: false,
     thresholds: { BRONZE: 5, SILVER: 15, GOLD: 30, PLATINUM: 50 },
-    getCurrentValue: (stats) => stats.genres.get("Action") ?? 0,
+    getCurrentValue: (stats) =>
+      (stats.genres.get("Action") ?? 0) + (stats.genres.get("Adventure") ?? 0),
   }),
+
+  //* SCI-FI & MECHA
   createBadge({
-    id: "romance_lover",
-    title: "Incurabile Romantico",
-    description: "Completa storie d'amore che fanno battere il cuore",
+    id: "cyber_pilot",
+    title: "Pilota Leggendario",
+    description: "Esplora il futuro tra mecha, cyberpunk e viaggi nello spazio",
     category: "GENRE",
     isSecret: false,
     thresholds: { BRONZE: 3, SILVER: 10, GOLD: 20, PLATINUM: 40 },
-    getCurrentValue: (stats) => stats.genres.get("Romance") ?? 0,
-  }),
-  createBadge({
-    id: "mind_games",
-    title: "Cervello di Platino",
-    description: "Completa anime psicologici o thriller cervellotici",
-    category: "GENRE",
-    isSecret: false,
-    thresholds: { BRONZE: 3, SILVER: 8, GOLD: 15, PLATINUM: 30 },
     getCurrentValue: (stats) =>
-      (stats.genres.get("Psychological") ?? 0) +
-      (stats.genres.get("Thriller") ?? 0),
+      (stats.genres.get("Sci-Fi") ?? 0) + (stats.genres.get("Mecha") ?? 0),
   }),
 
-  // 🕒 BADGE DI TEMPO (Maratone)
+  //* COMEDY & SLICE OF LIFE
+  createBadge({
+    id: "chill_master",
+    title: "Spensierato",
+    description: "Goditi la vita quotidiana e fatti quattro risate",
+    category: "GENRE",
+    isSecret: false,
+    thresholds: { BRONZE: 5, SILVER: 15, GOLD: 30, PLATINUM: 50 },
+    getCurrentValue: (stats) =>
+      (stats.genres.get("Comedy") ?? 0) +
+      (stats.genres.get("Slice of Life") ?? 0),
+  }),
+
+  //* FANTASY & MAHOU SHOUJO & SUPERNATURAL
+  createBadge({
+    id: "magic_isekai",
+    title: "Invocatore di Mondi",
+    description:
+      "Viaggia in mondi fantasy, magici e ricchi di elementi soprannaturali",
+    category: "GENRE",
+    isSecret: false,
+    thresholds: { BRONZE: 5, SILVER: 15, GOLD: 30, PLATINUM: 50 },
+    getCurrentValue: (stats) =>
+      (stats.genres.get("Fantasy") ?? 0) +
+      (stats.genres.get("Mahou Shoujo") ?? 0) +
+      (stats.genres.get("Supernatural") ?? 0),
+  }),
+
+  //* DRAMA & ROMANCE
+  createBadge({
+    id: "heart_breaker",
+    title: "Esperto di Batticuore",
+    description: "Vivi storie d'amore intense, pianti e intrecci drammatici",
+    category: "GENRE",
+    isSecret: false,
+    thresholds: { BRONZE: 4, SILVER: 12, GOLD: 25, PLATINUM: 45 },
+    getCurrentValue: (stats) =>
+      (stats.genres.get("Romance") ?? 0) + (stats.genres.get("Drama") ?? 0),
+  }),
+
+  //* HORROR & THRILLER & PSYCHOLOGICAL & MYSTERY
+  createBadge({
+    id: "mind_games",
+    title: "Detective del Brivido",
+    description: "Risolvi misteri intricati e sopravvivi a horror psicologici",
+    category: "GENRE",
+    isSecret: false,
+    thresholds: { BRONZE: 3, SILVER: 10, GOLD: 20, PLATINUM: 40 },
+    getCurrentValue: (stats) =>
+      (stats.genres.get("Horror") ?? 0) +
+      (stats.genres.get("Thriller") ?? 0) +
+      (stats.genres.get("Psychological") ?? 0) +
+      (stats.genres.get("Mystery") ?? 0),
+  }),
+
+  //* SPORTS
+  createBadge({
+    id: "sports_champion",
+    title: "Campione Nazionale",
+    description: "Sudore, lacrime e spirito di squadra sul campo da gioco",
+    category: "GENRE",
+    isSecret: false,
+    thresholds: { BRONZE: 2, SILVER: 6, GOLD: 12, PLATINUM: 25 },
+    getCurrentValue: (stats) => stats.genres.get("Sports") ?? 0,
+  }),
+
+  //* MUSIC
+  createBadge({
+    id: "music_idol",
+    title: "Idolo del Palco",
+    description: "Lasciati trasportare dal ritmo e dalle performance musicali",
+    category: "GENRE",
+    isSecret: false,
+    thresholds: { BRONZE: 2, SILVER: 5, GOLD: 10, PLATINUM: 20 },
+    getCurrentValue: (stats) => stats.genres.get("Music") ?? 0,
+  }),
+
+  //* BADGE DI TEMPO
   createBadge({
     id: "marathon_runner",
     title: "Maratona Notturna",
@@ -94,7 +166,7 @@ export const BADGES_LIST: Badge[] = [
     getCurrentValue: (stats) => stats.totalMinutes,
   }),
 
-  // 🕵️‍♂️ BADGE SEGRETI (Trofei unici con Rango 'SECRET')
+  //* BADGE SEGRETI
   createBadge({
     id: "culture_man",
     title: "Uomo di Cultura",
@@ -105,17 +177,6 @@ export const BADGES_LIST: Badge[] = [
     thresholds: { SECRET: 1 },
     getCurrentValue: (stats) =>
       (stats.genres.get("Ecchi") ?? 0) + (stats.genres.get("Hentai") ?? 0),
-  }),
-  createBadge({
-    id: "nostalgia_trip",
-    title: "Operazione Nostalgia",
-    description:
-      "Completa almeno 5 anime di genere Adventure o Sci-Fi (i vecchi classici esplorativi)",
-    category: "SPECIAL",
-    isSecret: true,
-    thresholds: { SECRET: 5 },
-    getCurrentValue: (stats) =>
-      (stats.genres.get("Adventure") ?? 0) + (stats.genres.get("Sci-Fi") ?? 0),
   }),
 ];
 

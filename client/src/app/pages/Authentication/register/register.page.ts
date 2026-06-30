@@ -17,7 +17,7 @@ import { faEnvelope, faUser, faLock } from '@fortawesome/free-solid-svg-icons';
 @Component({
   selector: 'app-register',
   templateUrl: './register.page.html',
-  styleUrls: ['./register.page.scss'],
+  styleUrls: ['./register.page.scss', './../../../styles/authForm.scss'],
   standalone: true,
   imports: [
     IonContent,
@@ -37,6 +37,7 @@ export class RegisterPage implements OnInit {
   faEnvelope = faEnvelope;
   faLock = faLock;
   faUser = faUser;
+  banner = 'assets/images/banner.jpg';
 
   public registerFormControl = this.authForm.registerFormControl;
   public formErrors = this.registerFormControl.formErrors;
