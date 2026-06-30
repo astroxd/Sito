@@ -14,6 +14,15 @@ export interface SearchOptions {
   season?: string;
 }
 
+export interface ParamOptions {
+  query?: string;
+  genres?: string;
+  year?: string;
+  formats?: string;
+  status?: string;
+  season?: string;
+}
+
 export interface QueryOptions {
   sort?: string;
   page?: number;

@@ -33,6 +33,7 @@
             [options]="genreOptions"
             [multiple]="true"
             [(selectedOptions)]="genres"
+            (selectedOptionsChange)="resetOnFilter()"
           />
         </ion-col>
         <ion-col size-md="3" size-sm="12">
@@ -40,6 +41,7 @@
             menuTitle="Year"
             [options]="yearOptions"
             [(selectedOptions)]="year"
+            (selectedOptionsChange)="resetOnFilter()"
           />
         </ion-col>
         <ion-col size-md="3" size-sm="12">
@@ -48,6 +50,7 @@
             [options]="formatOptions"
             [multiple]="true"
             [(selectedOptions)]="formats"
+            (selectedOptionsChange)="resetOnFilter()"
           />
         </ion-col>
         <ion-col size-md="3" size-sm="12">
@@ -55,6 +58,7 @@
             menuTitle="Status"
             [options]="statusOptions"
             [(selectedOptions)]="status"
+            (selectedOptionsChange)="resetOnFilter()"
           />
         </ion-col>
       </ion-row>

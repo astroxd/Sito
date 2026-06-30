@@ -13,6 +13,7 @@ import { GetAnimes } from 'src/app/services/get-animes';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import {
+  ParamOptions,
   QueryOptions,
   SearchOptions,
   SearchResultsData,
@@ -20,7 +21,8 @@ import {
 
 import { SearchResults } from './components/search-results/search-results';
 import { sortOptions } from 'src/app/helpers/animeSearchOptions';
-import { finalize } from 'rxjs';
+import { finalize, switchMap } from 'rxjs';
+import { toObservable } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-search',
@@ -43,21 +45,15 @@ export class SearchPage {
   private animeService = inject(GetAnimes);
   private router = inject(Router);
   private activatedRoute = inject(ActivatedRoute);
-  private routeSnapshot = this.activatedRoute.snapshot;
 
   private readonly sortOptions = sortOptions;
 
   searchOptions = signal<SearchOptions | null>(null);
 
-  //* used to signal search bar to clean all the inputs
-  cleanupTrigger = signal<boolean>(false);
-
   //* sortOption and page are detached from options because i need to update them
   //* specifically in searchResultPage
-  sortOption = signal(
-    this.routeSnapshot.queryParamMap.get('sort') ?? this.sortOptions[0].name,
-  );
-  page = signal(Number(this.routeSnapshot.queryParamMap.get('page') ?? 1));
+  sortOption = signal(this.sortOptions[0].name);
+  page = signal(1);
   //* //////////////
 
   queryOptions = computed<QueryOptions>(() => {
@@ -69,7 +65,7 @@ export class SearchPage {
   });
 
   //* For changing url only
-  paramOptions = signal({});
+  paramOptions = signal<ParamOptions | null>(null);
   queryParamOptions = computed(() => {
     return {
       ...this.paramOptions(),
@@ -82,28 +78,42 @@ export class SearchPage {
   isLoading = signal<boolean>(false);
 
   constructor() {
+    this.activatedRoute.queryParamMap.subscribe((params) => {
+      if (params.get('sort') !== this.sortOption()) {
+        this.sortOption.set(params.get('sort') ?? this.sortOptions[0].name);
+      }
+
+      if (params.get('page') === null) {
+        this.page.set(1);
+      } else if (Number(params.get('page')) !== this.page()) {
+        this.page.set(Number(params.get('page') ?? 1));
+      }
+    });
+
+    toObservable(this.queryOptions)
+      .pipe(
+        switchMap((currentQueryOptions) => {
+          this.isLoading.set(true);
+          return this.animeService
+            .SearchAnime(currentQueryOptions)
+            .pipe(finalize(() => this.isLoading.set(false)));
+        }),
+      )
+      .subscribe({
+        next: (res) => {
+          console.log(res);
+          this.searchResults.set(res);
+        },
+        error: (err) => {
+          console.error(err);
+          this.isLoading.set(false);
+        },
+      });
+
     effect(() => {
-      console.log('NAVIGATE');
       this.router.navigate([], {
         queryParams: this.queryParamOptions(),
       });
     });
-    effect(() => {
-      console.log('SEARCH OPTIONS');
-      if (this.searchOptions() !== null) {
-        this.isLoading.set(true);
-        this.animeService
-          .SearchAnime(this.queryOptions())
-          .pipe(finalize(() => this.isLoading.set(false)))
-          .subscribe((res) => {
-            console.log(res);
-            this.searchResults.set(res);
-          });
-      }
-    });
-  }
-
-  ionViewDidLeave() {
-    this.cleanupTrigger.set(true);
   }
 }

@@ -63,7 +63,7 @@ export class GetAnimes {
       query: `
         query($page: Int, $perPage: Int, $seasonYear: Int, $season: MediaSeason){
           Page(page: $page, perPage: $perPage){
-            media (seasonYear: $seasonYear, season: $season, type: ANIME, sort: POPULARITY_DESC){
+            media (seasonYear: $seasonYear, season: $season, type: ANIME, sort: TRENDING_DESC){
               id
               idMal
               title{
