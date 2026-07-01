@@ -129,6 +129,32 @@ const getUserBadgesCatalog = (userId: number) => {
 };
 
 export const getUserBadges = (req: Request, res: Response) => {
+  /* #swagger.tags = ['Statistics']
+     #swagger.description = 'Retrieve the complete badges catalog tailored to the current user. Includes calculation of progression metrics towards next tiers, unlocked states, and resolves localized asset paths for badge icons.'
+     #swagger.security = [{ "bearerAuth": [] }]
+     #swagger.responses[200] = { 
+        description: 'User badges catalog compiled successfully',
+        schema: {
+          data: [{
+            id: "shonen_master",
+            title: "Re dello Shonen",
+            description: "Completa anime pieni di azione e adrenalina",
+            image: "shonen_master.png",
+            category: "GENRE",
+            isSecret: false,
+            unlocked: true,
+            highestRankUnlocked: "SILVER",
+            nextRank: "GOLD",
+            nextRankThreshold: 30,
+            currentValue: 18,
+            progressPercentage: 60.0,
+            unlockedAt: "2026-06-25T14:30:00.000Z",
+            imageUrl: "http://localhost:3000/static/badges/shonen_master.png"
+          }]
+        }
+     }
+     #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+  */
   const userId = res.locals.userId;
 
   try {
@@ -150,6 +176,6 @@ export const getUserBadges = (req: Request, res: Response) => {
     return res.status(200).json({ data: catalogWithImages });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "INTERNAL SERVER ERROR" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };

@@ -3,7 +3,6 @@ import {
   AnimeProgress,
   SharedList,
   SharedListAnime,
-  SharedListMember,
 } from "../models/sharedList.model";
 
 import db from "../config/database";
@@ -14,6 +13,14 @@ import { trackWatchTime, updateGenreStats } from "./statistics.controller";
 import { checkAndUnlockBadges } from "./badge.controller";
 
 export const getSharedLists = (req: Request, res: Response) => {
+  /* #swagger.tags = ['Shared Lists']
+     #swagger.description = 'Retrieve all shared lists associated with the authenticated user, including member details.'
+     #swagger.security = [{ "bearerAuth": [] }]
+     #swagger.responses[200] = { 
+        schema: { $ref: '#/definitions/SharedListsResponse' } 
+     }
+     #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+  */
   const userId = res.locals.userId;
 
   try {
@@ -34,23 +41,37 @@ export const getSharedLists = (req: Request, res: Response) => {
     console.error(error);
   }
   return res.status(500).json({
-    message: "INTERNAL SERVER ERROR",
+    message: "Internal server errror",
   });
 };
 
 export const createSharedList = (req: Request, res: Response) => {
+  /* #swagger.tags = ['Shared Lists']
+     #swagger.description = 'Create a new shared list for the authenticated user.'
+     #swagger.security = [{ "bearerAuth": [] }]
+     #swagger.parameters['body'] = {
+        in: 'body',
+        name: 'CreateSharedListBody',
+        description: 'Details for the new shared list',
+        required: true,
+        schema: { $ref: '#/definitions/CreateSharedListBody' }
+     }
+     #swagger.responses[200] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[400] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+  */
   const userId = res.locals.userId;
   const { name } = req.body;
 
   if (!name || typeof name !== "string" || name.trim() === "") {
-    return res.status(400).json({ message: "Missing Params" });
+    return res.status(400).json({ message: "Missing parameters" });
   }
 
   try {
     const cleanedName = name.trim();
     if (cleanedName.length > 100) {
       return res.status(400).json({
-        message: "Il nome della lista non può superare i 100 caratteri",
+        message: "The list name cannot exceed 100 characters",
       });
     }
     SharedList.createWithUserId(userId, name);
@@ -60,11 +81,21 @@ export const createSharedList = (req: Request, res: Response) => {
     console.error(error);
   }
   return res.status(500).json({
-    message: "INTERNAL SERVER ERROR",
+    message: "Internal server error",
   });
 };
 
 export const getSharedList = (req: Request, res: Response) => {
+  /* #swagger.tags = ['Shared Lists']
+     #swagger.description = 'Retrieve full details of a specific shared list by ID, including its members.'
+     #swagger.security = [{ "bearerAuth": [] }]
+     #swagger.parameters['listId'] = { in: 'path', type: 'integer', required: true, description: 'ID of the shared list' }
+     #swagger.responses[200] = { 
+        schema: { $ref: '#/definitions/SingleSharedListResponse' } 
+     }
+     #swagger.responses[404] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+  */
   const userId = res.locals.userId;
   const { listId } = req.params;
 
@@ -74,7 +105,7 @@ export const getSharedList = (req: Request, res: Response) => {
     if (!sharedListInfo) {
       return res
         .status(404)
-        .json({ message: `Missing shared list with ${listId} id` });
+        .json({ message: `Missing shared list with ID ${listId}` });
     }
 
     const sharedListMembers = SharedList.findAllMembersByListId(Number(listId));
@@ -91,11 +122,20 @@ export const getSharedList = (req: Request, res: Response) => {
   }
 
   return res.status(500).json({
-    message: "INTERNAL SERVER ERROR",
+    message: "Internal server error",
   });
 };
 
 export const getSharedUserProgress = (req: Request, res: Response) => {
+  /* #swagger.tags = ['Shared Lists']
+     #swagger.description = 'Retrieve the anime progress of the authenticated user within a specific shared list.'
+     #swagger.security = [{ "bearerAuth": [] }]
+     #swagger.parameters['listId'] = { in: 'path', type: 'integer', required: true, description: 'ID of the shared list' }
+     #swagger.responses[200] = { 
+        schema: { $ref: '#/definitions/UserProgressResponse' } 
+     }
+     #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+  */
   const userId = res.locals.userId;
   const { listId } = req.params;
 
@@ -111,11 +151,20 @@ export const getSharedUserProgress = (req: Request, res: Response) => {
   }
 
   return res.status(500).json({
-    message: "INTERNAL SERVER ERROR",
+    message: "Internal server error",
   });
 };
 
 export const getSharedAnimesProgress = (req: Request, res: Response) => {
+  /* #swagger.tags = ['Shared Lists']
+     #swagger.description = 'Retrieve the combined progress of all users for every anime in a specific shared list.'
+     #swagger.security = [{ "bearerAuth": [] }]
+     #swagger.parameters['listId'] = { in: 'path', type: 'integer', required: true, description: 'ID of the shared list' }
+     #swagger.responses[200] = { 
+        schema: { $ref: '#/definitions/SharedAnimesProgressResponse' } 
+     }
+     #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+  */
   const { listId } = req.params;
 
   try {
@@ -144,16 +193,26 @@ export const getSharedAnimesProgress = (req: Request, res: Response) => {
   }
 
   return res.status(500).json({
-    message: "INTERNAL SERVER ERROR",
+    message: "Internal server errror",
   });
 };
 
 export const updateSharedUserProgress = (req: Request, res: Response) => {
+  /* #swagger.tags = ['Shared Lists']
+     #swagger.description = 'Increment the authenticated user\'s watched episode count for a specific anime inside a shared list and sync stats.'
+     #swagger.security = [{ "bearerAuth": [] }]
+     #swagger.parameters['listId'] = { in: 'path', type: 'integer', required: true, description: 'ID of the shared list' }
+     #swagger.parameters['animeId'] = { in: 'path', type: 'integer', required: true, description: 'ID of the anime to update' }
+     #swagger.responses[200] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[400] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[404] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+  */
   const { listId, animeId } = req.params;
   const userId = res.locals.userId;
 
   if (!animeId) {
-    return res.status(400).json({ message: "Missing params" });
+    return res.status(400).json({ message: "Missing parameters" });
   }
 
   try {
@@ -192,7 +251,7 @@ export const updateSharedUserProgress = (req: Request, res: Response) => {
       }
 
       if (newCurrentEpisode > maxEpisodes!) {
-        return res.status(200).json({ message: "Already in par" });
+        return res.status(200).json({ message: "Already caught up" });
       }
 
       if (!userProgress?.currentEpisode) {
@@ -268,16 +327,31 @@ export const updateSharedUserProgress = (req: Request, res: Response) => {
 
       checkAndUnlockBadges(userId);
     })();
-    return res.status(200).json({ message: "Updated Progress" });
+    return res.status(200).json({ message: "Progress updated successfully" });
   } catch (error) {
     console.error(error);
   }
   return res.status(500).json({
-    message: "INTERNAL SERVER ERROR",
+    message: "Internal server error",
   });
 };
 
 export const addSharedAnime = (req: Request, res: Response) => {
+  /* #swagger.tags = ['Shared Lists']
+     #swagger.description = 'Add an anime to the shared list. Requires OWNER or EDITOR role.'
+     #swagger.security = [{ "bearerAuth": [] }]
+     #swagger.parameters['listId'] = { in: 'path', type: 'integer', required: true, description: 'ID of the shared list' }
+     #swagger.parameters['body'] = {
+        in: 'body',
+        name: 'AddSharedAnimeBody',
+        description: 'Details of the anime to add',
+        required: true,
+        schema: { $ref: '#/definitions/AddSharedAnimeBody' }
+     }
+     #swagger.responses[200] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[403] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+  */
   const userRole = res.locals.userRole;
   const { listId } = req.params;
   const { animeDetails } = req.body;
@@ -287,7 +361,8 @@ export const addSharedAnime = (req: Request, res: Response) => {
     db.transaction(() => {
       if (!["OWNER", "EDITOR"].includes(userRole)) {
         return res.status(403).json({
-          message: "L'utente non ha i permessi per aggiungere l'anime",
+          message:
+            "The user does not have permission to add anime to this list",
         });
       }
       //* Aggiorna (upsert) la tabella Anime con i dettagli dell'anime
@@ -300,11 +375,21 @@ export const addSharedAnime = (req: Request, res: Response) => {
     console.error(error);
   }
   return res.status(500).json({
-    message: "INTERNAL SERVER ERROR",
+    message: "Internal server errror",
   });
 };
 
 export const removeSharedAnime = (req: Request, res: Response) => {
+  /* #swagger.tags = ['Shared Lists']
+     #swagger.description = 'Remove an anime from the shared list. Requires OWNER or EDITOR role.'
+     #swagger.security = [{ "bearerAuth": [] }]
+     #swagger.parameters['listId'] = { in: 'path', type: 'integer', required: true, description: 'ID of the shared list' }
+     #swagger.parameters['animeId'] = { in: 'path', type: 'integer', required: true, description: 'ID of the anime to remove' }
+     #swagger.responses[200] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[400] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[403] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+  */
   const userRole = res.locals.userRole;
 
   const { listId, animeId } = req.params;
@@ -316,27 +401,38 @@ export const removeSharedAnime = (req: Request, res: Response) => {
   try {
     if (!["OWNER", "EDITOR"].includes(userRole)) {
       return res.status(403).json({
-        message: "L'utente non ha i permessi per rimuovere l'anime",
+        message:
+          "The user does not have permission to remove anime from this list",
       });
     }
 
     SharedList.deleteSharedAnime(Number(listId), Number(animeId));
 
-    return res.status(200).json({ message: "Anime Removed" });
+    return res.status(200).json({ message: "Anime removed successfully" });
   } catch (error) {
     console.error(error);
   }
   return res.status(500).json({
-    message: "INTERNAL SERVER ERROR",
+    message: "Internal server error",
   });
 };
 
 export const getAllSharedListsWithAnimeId = (req: Request, res: Response) => {
+  /* #swagger.tags = ['Shared Lists']
+     #swagger.description = 'Retrieve all shared lists associated with the user, indicating if the specific anime is present or not.'
+     #swagger.security = [{ "bearerAuth": [] }]
+     #swagger.parameters['animeId'] = { in: 'path', type: 'integer', required: true, description: 'ID of the anime to check' }
+     #swagger.responses[200] = { 
+        schema: { $ref: '#/definitions/SharedListsWithAnimeResponse' } 
+     }
+     #swagger.responses[400] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+  */
   const userId = res.locals.userId;
   const { animeId } = req.params;
 
   if (!animeId) {
-    return res.status(400).json({ error: "Missing params" });
+    return res.status(400).json({ error: "Missing parameters" });
   }
   try {
     const sharedLists = SharedList.findAllWithAnimeId(Number(animeId), userId);
@@ -347,11 +443,27 @@ export const getAllSharedListsWithAnimeId = (req: Request, res: Response) => {
   }
 
   return res.status(500).json({
-    message: "INTERNAL SERVER ERROR",
+    message: "Internal server error",
   });
 };
 
 export const addMemberRequest = (req: Request, res: Response) => {
+  /* #swagger.tags = ['Shared Lists']
+     #swagger.description = 'Invite a new user to the shared list. Requires OWNER role.'
+     #swagger.security = [{ "bearerAuth": [] }]
+     #swagger.parameters['listId'] = { in: 'path', type: 'integer', required: true, description: 'ID of the shared list' }
+     #swagger.parameters['body'] = {
+        in: 'body',
+        name: 'InviteMemberBody',
+        description: 'ID of the user to invite',
+        required: true,
+        schema: { $ref: '#/definitions/InviteMemberBody' }
+     }
+     #swagger.responses[200] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[400] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[403] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+  */
   const userId = res.locals.userId;
   const userRole = res.locals.userRole;
   const { listId } = req.params;
@@ -359,16 +471,16 @@ export const addMemberRequest = (req: Request, res: Response) => {
 
   try {
     if (userRole !== "OWNER") {
-      return res
-        .status(403)
-        .json({ message: "L'utente non ha i permessi per invitare membri" });
+      return res.status(403).json({
+        message: "The user does not have permission to invite members",
+      });
     }
 
     const existingRole = SharedList.getUserRole(Number(listId), memberId);
 
     if (existingRole) {
       return res.status(400).json({
-        message: "L'utente fa già parte di questa lista",
+        message: "The user is already a member of this list",
       });
     }
 
@@ -379,34 +491,43 @@ export const addMemberRequest = (req: Request, res: Response) => {
     if (isAlreadyInvited) {
       return res
         .status(400)
-        .json({ message: "È già stato inviato un invito a questo utente" });
+        .json({ message: "An invitation has already been sent to this user" });
     }
 
     SharedList.insertUserInvitation(Number(listId), userId, memberId);
 
-    return res.status(200).json({ message: "Member invited" });
+    return res.status(200).json({ message: "Member invited successfully" });
   } catch (error) {
     console.error(error);
   }
 
   return res.status(500).json({
-    message: "INTERNAL SERVER ERROR",
+    message: "Internal server error",
   });
 };
 
 export const acceptSharedListRequest = (req: Request, res: Response) => {
+  /* #swagger.tags = ['Shared Lists']
+     #swagger.description = 'Accept a pending invitation to join a shared list.'
+     #swagger.security = [{ "bearerAuth": [] }]
+     #swagger.parameters['listId'] = { in: 'path', type: 'integer', required: true, description: 'ID of the shared list invitation to accept' }
+     #swagger.responses[200] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[400] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[404] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+  */
   const userId = res.locals.userId;
   const { listId } = req.params;
 
   if (!listId) {
-    return res.status(400).json({ message: "MISSING PARAMS" });
+    return res.status(400).json({ message: "Missing parameters" });
   }
 
   try {
     const listExists = SharedList.exists(Number(listId));
     if (!listExists) {
       return res.status(404).json({
-        message: "Questa lista condivisa non esiste più o è stata eliminata",
+        message: "This shared list no longer exists or has been deleted",
       });
     }
 
@@ -414,81 +535,114 @@ export const acceptSharedListRequest = (req: Request, res: Response) => {
     if (existingRole) {
       return res
         .status(400)
-        .json({ message: "Sei già un membro di questa lista" });
+        .json({ message: "You are already a member of this list" });
     }
     db.transaction(() => {
       SharedList.updateUserInvitation(Number(listId), "ACCEPTED", userId);
       SharedList.insertUser(Number(listId), userId, "MEMBER");
     })();
 
-    return res.status(200).json({ message: "Member joined" });
+    return res.status(200).json({ message: "Member joined successfully" });
   } catch (error) {
     console.error(error);
   }
 
   return res.status(500).json({
-    message: "INTERNAL SERVER ERROR",
+    message: "Internal server error",
   });
 };
 
 export const declineSharedListRequest = (req: Request, res: Response) => {
+  /* #swagger.tags = ['Shared Lists']
+     #swagger.description = 'Decline a pending invitation to a shared list.'
+     #swagger.security = [{ "bearerAuth": [] }]
+     #swagger.parameters['listId'] = { in: 'path', type: 'integer', required: true, description: 'ID of the shared list invitation to decline' }
+     #swagger.responses[200] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[400] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[404] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+  */
   const userId = res.locals.userId;
   const { listId } = req.params;
 
   if (!listId) {
-    return res.status(400).json({ message: "MISSING PARAMS" });
+    return res.status(400).json({ message: "Missing parameters" });
   }
 
   try {
     const listExists = SharedList.exists(Number(listId));
     if (!listExists) {
       return res.status(404).json({
-        message: "Questa lista condivisa non esiste più o è stata eliminata",
+        message: "This shared list no longer exists or has been deleted",
       });
     }
 
     SharedList.deleteUserInvitation(Number(listId), userId, "PENDING");
 
-    return res.status(200).json({ message: "Declined Request" });
+    return res
+      .status(200)
+      .json({ message: "Invitation declined successfully" });
   } catch (error) {
     console.error(error);
   }
 
   return res.status(500).json({
-    message: "INTERNAL SERVER ERROR",
+    message: "Internal server error",
   });
 };
 
 export const cancelSharedListRequest = (req: Request, res: Response) => {
+  /* #swagger.tags = ['Shared Lists']
+     #swagger.description = 'Cancel a pending invitation sent to a user. Requires OWNER role.'
+     #swagger.security = [{ "bearerAuth": [] }]
+     #swagger.parameters['listId'] = { in: 'path', type: 'integer', required: true, description: 'ID of the shared list' }
+     #swagger.parameters['userId'] = { in: 'path', type: 'integer', required: true, description: 'ID of the invited user' }
+     #swagger.responses[200] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[403] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+  */
   const { listId, userId } = req.params;
   const userRole = res.locals.userRole;
 
   try {
     if (userRole !== "OWNER") {
-      return res
-        .status(403)
-        .json({ message: "Non hai i permessi per cancellare l'invito" });
+      return res.status(403).json({
+        message: "You do not have permission to cancel this invitation",
+      });
     }
 
     SharedList.deleteUserInvitation(Number(listId), Number(userId), "PENDING");
 
-    return res.status(200).json({ message: "Cancelled Request" });
+    return res
+      .status(200)
+      .json({ message: "Invitation cancelled successfully" });
   } catch (error) {
     console.error(error);
   }
 
   return res.status(500).json({
-    message: "INTERNAL SERVER ERROR",
+    message: "Internal server error",
   });
 };
 
 export const removeMember = (req: Request, res: Response) => {
+  /* #swagger.tags = ['Shared Lists']
+     #swagger.description = 'Remove a member from the shared list or leave the list. Requires OWNER role unless removing oneself.'
+     #swagger.security = [{ "bearerAuth": [] }]
+     #swagger.parameters['listId'] = { in: 'path', type: 'integer', required: true, description: 'ID of the shared list' }
+     #swagger.parameters['userId'] = { in: 'path', type: 'integer', required: true, description: 'ID of the member to remove' }
+     #swagger.responses[200] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[400] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[403] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[404] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+  */
   const currentUserId = res.locals.userId;
   const currentUserRole = res.locals.userRole;
   const { listId, userId } = req.params;
 
   if (!userId) {
-    return res.status(400).json({ message: "Missing params" });
+    return res.status(400).json({ message: "Missing parameters" });
   }
 
   try {
@@ -496,7 +650,7 @@ export const removeMember = (req: Request, res: Response) => {
 
     if (!isSelfRemoval && currentUserRole !== "OWNER") {
       return res.status(403).json({
-        message: "Non hai i permessi per espellere membri da questa lista",
+        message: "You do not have permission to remove members from this list",
       });
     }
 
@@ -541,18 +695,27 @@ export const removeMember = (req: Request, res: Response) => {
     })();
 
     const successMessage = isSelfRemoval
-      ? "Hai abbandonato la lista con successo"
-      : "Membro espulso con successo";
+      ? "You have left the list successfully"
+      : "Member removed successfully";
 
     return res.status(200).json({ message: successMessage });
   } catch (error) {
     console.error(error);
 
-    return res.status(500).json({ message: "INTERNAL SERVER ERROR" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
 export const getPendingMembers = (req: Request, res: Response) => {
+  /* #swagger.tags = ['Shared Lists']
+     #swagger.description = 'Retrieve a list of users who have pending invitations for this shared list.'
+     #swagger.security = [{ "bearerAuth": [] }]
+     #swagger.parameters['listId'] = { in: 'path', type: 'integer', required: true, description: 'ID of the shared list' }
+     #swagger.responses[200] = { 
+        schema: { $ref: '#/definitions/PendingMembersResponse' } 
+     }
+     #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+  */
   const { listId } = req.params;
 
   try {
@@ -569,11 +732,19 @@ export const getPendingMembers = (req: Request, res: Response) => {
   }
 
   return res.status(500).json({
-    message: "INTERNAL SERVER ERROR",
+    message: "Internal server error",
   });
 };
 
 export const getInvites = (req: Request, res: Response) => {
+  /* #swagger.tags = ['Shared Lists']
+     #swagger.description = 'Retrieve all pending shared list invitations received by the authenticated user, including list info, sender data, and current members.'
+     #swagger.security = [{ "bearerAuth": [] }]
+     #swagger.responses[200] = { 
+        schema: { $ref: '#/definitions/InvitesListResponse' } 
+     }
+     #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+  */
   const userId = res.locals.userId;
 
   try {
@@ -600,11 +771,29 @@ export const getInvites = (req: Request, res: Response) => {
     console.error(error);
   }
   return res.status(500).json({
-    message: "INTERNAL SERVER ERROR",
+    message: "Internal server error",
   });
 };
 
 export const updateMemberRole = (req: Request, res: Response) => {
+  /* #swagger.tags = ['Shared Lists']
+     #swagger.description = 'Update a member\'s role within the shared list. Requires OWNER role.'
+     #swagger.security = [{ "bearerAuth": [] }]
+     #swagger.parameters['listId'] = { in: 'path', type: 'integer', required: true, description: 'ID of the shared list' }
+     #swagger.parameters['userId'] = { in: 'path', type: 'integer', required: true, description: 'ID of the target member' }
+     #swagger.parameters['body'] = {
+        in: 'body',
+        name: 'UpdateRoleBody',
+        description: 'The new role for the member',
+        required: true,
+        schema: { $ref: '#/definitions/UpdateRoleBody' }
+     }
+     #swagger.responses[200] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[400] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[403] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[404] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+  */
   const currentUserId = res.locals.userId;
   const currentUserRole = res.locals.userRole;
   const { listId, userId } = req.params;
@@ -617,13 +806,13 @@ export const updateMemberRole = (req: Request, res: Response) => {
   }
 
   if (!userId) {
-    return res.status(400).json({ message: "Missing params" });
+    return res.status(400).json({ message: "Missing parameters" });
   }
 
   try {
     if (currentUserId === Number(userId)) {
       return res.status(400).json({
-        message: "Non puoi modificare il tuo stesso ruolo di OWNER.",
+        message: "You cannot change your own role as an OWNER.",
       });
     }
 
@@ -640,7 +829,7 @@ export const updateMemberRole = (req: Request, res: Response) => {
     if (!targetUserRole) {
       return res
         .status(404)
-        .json({ message: "L'utente specificato non fa parte di questa lista" });
+        .json({ message: "The specified user is not a member of this list" });
     }
 
     SharedList.updateUserRole(Number(listId), Number(userId), newRole);
@@ -650,11 +839,27 @@ export const updateMemberRole = (req: Request, res: Response) => {
       .json({ message: `Role updated to ${newRole} successfully` });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "INTERNAL SERVER ERROR" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
 export const updateSharedListMessage = (req: Request, res: Response) => {
+  /* #swagger.tags = ['Shared Lists']
+     #swagger.description = 'Update the custom broadcast message of the shared list. Allowed only for the active Leader or the OWNER if no leader exists.'
+     #swagger.security = [{ "bearerAuth": [] }]
+     #swagger.parameters['listId'] = { in: 'path', type: 'integer', required: true, description: 'ID of the shared list' }
+     #swagger.parameters['body'] = {
+        in: 'body',
+        name: 'UpdateMessageBody',
+        description: 'New message or null to clear it',
+        required: true,
+        schema: { $ref: '#/definitions/UpdateMessageBody' }
+     }
+     #swagger.responses[200] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[400] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[403] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+  */
   const userId = res.locals.userId;
   const userRole = res.locals.userRole;
   const { listId } = req.params;
@@ -666,7 +871,7 @@ export const updateSharedListMessage = (req: Request, res: Response) => {
     if (message.length > 255) {
       return res
         .status(400)
-        .json({ message: "Il messaggio non può superare i 255 caratteri" });
+        .json({ message: "The message cannot exceed 255 characters" });
     }
 
     if (message === "") {
@@ -683,22 +888,22 @@ export const updateSharedListMessage = (req: Request, res: Response) => {
       if (userRole !== "OWNER") {
         return res.status(403).json({
           message:
-            "Non c'è ancora un Leader in questa lista. Solo il proprietario (OWNER) può modificare il messaggio.",
+            "There is no Leader in this list yet. Only the OWNER can modify the message.",
         });
       }
     } else {
       if (userId !== leader.userId) {
         return res.status(403).json({
-          message: `Solo il Leader attuale della lista (${leader.username}) può modificare questo messaggio!`,
+          message: `Only the current Leader of this list (${leader.username}) can modify this message!`,
         });
       }
     }
 
     SharedList.updateMessage(Number(listId), message);
 
-    return res.status(200).json({ message: "Message updated" });
+    return res.status(200).json({ message: "Message updated successfully" });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "INTERNAL SERVER ERROR" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };

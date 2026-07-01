@@ -9,6 +9,12 @@ import {
 import { User } from "../models/user.model";
 
 export const getFriendsAndRequests = (req: Request, res: Response) => {
+  /* #swagger.tags = ['Friends']
+     #swagger.description = 'Retrieve the current user\'s entire network context, categorizing established friendships and separating incoming versus outgoing pending requests.'
+     #swagger.security = [{ "bearerAuth": [] }]
+     #swagger.responses[200] = { schema: { data: { $ref: '#/definitions/FriendsResponse' } } }
+     #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+  */
   const userId = res.locals.userId;
 
   try {
@@ -39,13 +45,22 @@ export const getFriendsAndRequests = (req: Request, res: Response) => {
   }
 
   return res.status(500).json({
-    message: "INTERNAL SERVER ERROR",
+    message: "Internal server error",
   });
 };
 
 const perPage = 12;
 
 export const searchFriends = (req: Request, res: Response) => {
+  /* #swagger.tags = ['Friends']
+     #swagger.description = 'Search exclusively within the current user\'s accepted friends list by matching their username against a search query.'
+     #swagger.security = [{ "bearerAuth": [] }]
+     #swagger.parameters['q'] = { in: 'query', type: 'string', required: false, description: 'Search query for friend username' }
+     #swagger.parameters['page'] = { in: 'query', type: 'integer', required: false, description: 'Page number for pagination' }
+     #swagger.responses[200] = { schema: { $ref: '#/definitions/SearchFriendsResponse' } }
+     #swagger.responses[400] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+  */
   const userId = res.locals.userId;
 
   try {
@@ -60,9 +75,7 @@ export const searchFriends = (req: Request, res: Response) => {
 
     let searchQuery = typeof q === "string" ? q.trim() : "";
     if (searchQuery.length > 100) {
-      return res
-        .status(400)
-        .json({ message: "La query di ricerca è troppo lunga" });
+      return res.status(400).json({ message: "Search query is too long" });
     }
 
     const friends = Friendship.findFriendishipByName(
@@ -78,11 +91,22 @@ export const searchFriends = (req: Request, res: Response) => {
     console.error(error);
   }
   return res.status(500).json({
-    message: "INTERNAL SERVER ERROR",
+    message: "Internal server error",
   });
 };
 
 export const searchUsers = (req: Request, res: Response) => {
+  /* #swagger.tags = ['Friends']
+     #swagger.description = 'Perform a global search to look up any system user by their username, filtering out the current user.'
+     #swagger.security = [{ "bearerAuth": [] }]
+     #swagger.parameters['q'] = { in: 'query', type: 'string', required: false, description: 'Global search string' }
+     #swagger.parameters['page'] = { in: 'query', type: 'integer', required: false, description: 'Page number' }
+     #swagger.responses[200] = { 
+        schema: { $ref: '#/definitions/GlobalSearchUsersResponse' }
+     }
+     #swagger.responses[400] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+  */
   const userId = res.locals.userId;
 
   try {
@@ -98,9 +122,7 @@ export const searchUsers = (req: Request, res: Response) => {
     let searchQuery = typeof q === "string" ? q.trim() : "";
 
     if (searchQuery.length > 100) {
-      return res
-        .status(400)
-        .json({ message: "La query di ricerca è troppo lunga" });
+      return res.status(400).json({ message: "Search query is too long" });
     }
 
     const foundUsers = User.searchByUsername(
@@ -126,22 +148,36 @@ export const searchUsers = (req: Request, res: Response) => {
   }
 
   return res.status(500).json({
-    message: "INTERNAL SERVER ERROR",
+    message: "Internal server error",
   });
 };
 
 export const addFriendRequest = (req: Request, res: Response) => {
+  /* #swagger.tags = ['Friends']
+     #swagger.description = 'Dispatch a outbound pending friend request to a target system user.'
+     #swagger.security = [{ "bearerAuth": [] }]
+     #swagger.parameters['body'] = {
+        in: 'body',
+        name: 'FriendRequestBody',
+        description: 'Target receiver unique identifier',
+        required: true,
+        schema: { receiverUserId: 42 }
+     }
+     #swagger.responses[200] = { schema: { message: "Friend request sent successfully" } }
+     #swagger.responses[400] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+  */
   const userId = res.locals.userId;
   const { receiverUserId } = req.body;
 
   if (!receiverUserId) {
-    return res.status(400).json({ message: "ID destinatario mancante" });
+    return res.status(400).json({ message: "Missing receiver user ID" });
   }
 
   if (userId === Number(receiverUserId)) {
     return res
       .status(400)
-      .json({ message: "Non puoi inviare una richiesta a te stesso" });
+      .json({ message: "You cannot send a friend request to yourself" });
   }
 
   //* in friendship table, userId1 has to be always the smallest between the two users
@@ -157,36 +193,54 @@ export const addFriendRequest = (req: Request, res: Response) => {
     if (existingFriendship) {
       switch (existingFriendship.status) {
         case "PENDING":
+          return res.status(400).json({
+            message: "A pending request already exists between you two",
+          });
+        case "ACCEPTED":
+          return res.status(400).json({ message: "You are already friends" });
+        default:
           return res
             .status(400)
-            .json({ message: "C'è già una richiesta in sospeso tra voi" });
-
-        case "ACCEPTED":
-          return res.status(400).json({ message: "Siete già amici" });
-
-        default:
-          return res.status(400).json({ message: "Relazione già esistente" });
+            .json({ message: "Relationship already established" });
       }
     }
 
     Friendship.addFriend(userId1, userId2, "PENDING", userId);
 
-    return res.status(200).json({ message: "Sent Request" });
+    return res
+      .status(200)
+      .json({ message: "Friend request sent successfully" });
   } catch (error) {
     console.error(error);
   }
 
   return res.status(500).json({
-    message: "INTERNAL SERVER ERROR",
+    message: "Internal server error",
   });
 };
 
 export const acceptFriendRequest = (req: Request, res: Response) => {
+  /* #swagger.tags = ['Friends']
+     #swagger.description = 'Accept an incoming pending friend request. Validates that the request exists, is currently PENDING, and was not originally sent by the accepting user.'
+     #swagger.security = [{ "bearerAuth": [] }]
+     #swagger.parameters['body'] = {
+        in: 'body',
+        name: 'AcceptFriendBody',
+        description: 'Object containing the user ID of the request sender',
+        required: true,
+        schema: { senderUserId: 42 }
+     }
+     #swagger.responses[200] = { schema: { message: "Friend request accepted successfully" } }
+     #swagger.responses[400] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[403] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[404] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+  */
   const userId = res.locals.userId;
   const { senderUserId } = req.body;
 
   if (!senderUserId) {
-    return res.status(400).json({ message: "Missing Params" });
+    return res.status(400).json({ message: "Missing parameters" });
   }
 
   //* in friendship table, userId1 has to be always the smallest between the two users
@@ -200,42 +254,50 @@ export const acceptFriendRequest = (req: Request, res: Response) => {
     );
 
     if (!existingFriendship) {
-      return res
-        .status(404)
-        .json({ message: "Nessuna richiesta di amicizia trovata" });
+      return res.status(404).json({ message: "No friend request found" });
     }
 
     if (existingFriendship.status !== "PENDING") {
       return res.status(400).json({
-        message: "Impossibile accettare",
+        message: "Action not allowed",
       });
     }
 
     if (existingFriendship.senderUserId === userId) {
       return res.status(403).json({
-        message:
-          "Non puoi accettare una richiesta di amicizia inviata da te stesso!",
+        message: "You cannot accept a friend request sent by yourself",
       });
     }
 
     Friendship.updateFriend(userId1, userId2, "ACCEPTED");
 
-    return res.status(200).json({ message: "Accepted Request" });
+    return res
+      .status(200)
+      .json({ message: "Friend request accepted successfully" });
   } catch (error) {
     console.error(error);
   }
 
   return res.status(500).json({
-    message: "INTERNAL SERVER ERROR",
+    message: "Internal server error",
   });
 };
 
 export const deleteFriendRequest = (req: Request, res: Response) => {
+  /* #swagger.tags = ['Friends']
+     #swagger.description = 'Decline or cancel an existing incoming or outgoing pending friend request.'
+     #swagger.security = [{ "bearerAuth": [] }]
+     #swagger.parameters['senderUserId'] = { in: 'path', type: 'integer', required: true, description: 'ID of the user related to the pending request' }
+     #swagger.responses[200] = { schema: { message: "Friend request declined successfully" } }
+     #swagger.responses[400] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[404] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+  */
   const userId = res.locals.userId;
   const { senderUserId } = req.params;
 
   if (!senderUserId) {
-    return res.status(400).json({ message: "Missing Params" });
+    return res.status(400).json({ message: "Missing parameters" });
   }
 
   //* in friendship table, userId1 has to be always the smallest between the two users
@@ -249,35 +311,44 @@ export const deleteFriendRequest = (req: Request, res: Response) => {
     );
 
     if (!existingFriendship) {
-      return res
-        .status(404)
-        .json({ message: "Nessuna richiesta di amicizia trovata" });
+      return res.status(404).json({ message: "No friend request found" });
     }
 
     if (existingFriendship.status !== "PENDING") {
       return res.status(400).json({
-        message: "Impossibile eliminare",
+        message: "Action not allowed",
       });
     }
 
     Friendship.deleteFriend(userId1, userId2, "PENDING");
 
-    return res.status(200).json({ message: "Declined Request" });
+    return res
+      .status(200)
+      .json({ message: "Friend request declined successfully" });
   } catch (error) {
     console.error(error);
   }
 
   return res.status(500).json({
-    message: "INTERNAL SERVER ERROR",
+    message: "Internal server error",
   });
 };
 
 export const removeFriend = (req: Request, res: Response) => {
+  /* #swagger.tags = ['Friends']
+     #swagger.description = 'Break an established friendship bond, completely removing the specified user from the current friends list.'
+     #swagger.security = [{ "bearerAuth": [] }]
+     #swagger.parameters['friendId'] = { in: 'path', type: 'integer', required: true, description: 'ID of the friend to be removed' }
+     #swagger.responses[200] = { schema: { message: "Friend removed successfully" } }
+     #swagger.responses[400] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[404] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+     #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+  */
   const userId = res.locals.userId;
   const { friendId } = req.params;
 
   if (!friendId) {
-    return res.status(400).json({ message: "MISSING PARAMS" });
+    return res.status(400).json({ message: "Missing parameters" });
   }
 
   //* in friendship table, userId1 has to be always the smallest between the two users
@@ -292,23 +363,23 @@ export const removeFriend = (req: Request, res: Response) => {
 
     if (!existingFriendship) {
       return res.status(404).json({
-        message: "Nessun legame di amicizia trovato con questo utente",
+        message: "No friendship link found with this user",
       });
     }
 
     if (existingFriendship.status !== "ACCEPTED") {
       return res.status(400).json({
-        message: "Impossibile rimuovere l'amico",
+        message: "Action not allowed",
       });
     }
 
     Friendship.deleteFriend(userId1, userId2, "ACCEPTED");
-    return res.status(200).json({ message: "Removed friend" });
+    return res.status(200).json({ message: "Friend removed successfully" });
   } catch (error) {
     console.error(error);
   }
 
   return res.status(500).json({
-    message: "INTERNAL SERVER ERROR",
+    message: "Internal server error",
   });
 };

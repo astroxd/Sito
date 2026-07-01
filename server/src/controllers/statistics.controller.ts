@@ -7,6 +7,31 @@ import {
 } from "../models/statistics.model";
 
 export const getUserStats = (req: Request, res: Response) => {
+  /* #swagger.tags = ['Statistics']
+     #swagger.description = 'Retrieve comprehensive user viewing metrics including aggregated watch time formatted in days/hours/minutes, genre distribution counters, and day-by-day historic graphs comparing the current week with the previous week.'
+     #swagger.security = [{ "bearerAuth": [] }]
+     #swagger.responses[200] = { 
+        description: 'Statistics retrieved successfully',
+        schema: {
+          totalWatchTime: {
+            rawMinutes: 25400,
+            days: 17,
+            hours: 15,
+            minutes: 20,
+            formattedString: "17d 15h 20m"
+          },
+          dailyHistory: {
+            currentWeek: [120, 60, 0, 45, 90, 0, 0],
+            previousWeek: [30, 0, 45, 120, 0, 60, 15]
+          },
+          genres: [
+            { genre: "Action", count: 14 },
+            { genre: "Adventure", count: 8 }
+          ]
+        }
+     }
+     #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
+  */
   const userId = res.locals.userId;
 
   try {
@@ -92,7 +117,7 @@ export const getUserStats = (req: Request, res: Response) => {
     console.error(error);
   }
 
-  return res.status(500).json({ message: "INTERNAL SERVER ERROR" });
+  return res.status(500).json({ message: "Internal server error" });
 };
 
 export const trackWatchTime = (

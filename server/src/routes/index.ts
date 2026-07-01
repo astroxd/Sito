@@ -13,9 +13,13 @@ const router = Router();
 router.use("/", authRoutes);
 
 router.use(requireAuth);
+
 router.use("/", sharedListsRoutes);
+
 router.use("/", listsRoutes);
+
 router.use("/", friendshipRoutes);
+
 router.use("/", statisticsRoutes);
 
 router.post("/anime/sync", syncAnime);
