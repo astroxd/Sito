@@ -1,7 +1,17 @@
-import { Component, computed, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonContent, IonRow, IonGrid, IonCol } from '@ionic/angular/standalone';
+import {
+  IonContent,
+  IonRow,
+  IonGrid,
+  IonCol,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonButtons,
+  IonBackButton,
+} from '@ionic/angular/standalone';
 import { AuthService } from 'src/app/services/auth-service';
 
 import { SharedListsService } from 'src/app/services/shared-lists-service';
@@ -32,6 +42,11 @@ import { AnimesProgressComponent } from './components/animes-progress/animes-pro
     LeaderboardComponent,
     NextEpisodesComponent,
     AnimesProgressComponent,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonButtons,
+    IonBackButton,
   ],
 })
 export class SharedListPage implements OnInit {

@@ -1,9 +1,23 @@
-<ion-content class="ion-padding">
-  <div class="section-header page-header">
-    <div class="section-title">
-      <h4>{{listInfo()?.name}}</h4>
-    </div>
-  </div>
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start" class="ion-margin-end">
+      <ion-back-button default-href="/profile"></ion-back-button>
+    </ion-buttons>
+
+    <ion-title>{{listInfo()?.name}}</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content [fullscreen]="true" class="ion-padding">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <div class="section-header page-header">
+        <div class="section-title">
+          <h4>{{listInfo()?.name}}</h4>
+        </div>
+      </div>
+    </ion-toolbar>
+  </ion-header>
+
   <ion-grid>
     <ion-row>
       <ion-col size="12" size-md="8">

@@ -40,6 +40,9 @@
 @import url("app/components/section/section.scss");
 @import url("app/components/anime-card/anime-card.scss");
 
+@import url("https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Oswald:wght@200..700&display=swap");
+
 :root {
   --bg-primary: rgba(11, 12, 42, 1);
   --bg-secondary: rgba(7, 7, 32, 1);
@@ -79,7 +82,9 @@ body {
   -moz-osx-font-smoothing: grayscale !important;
   background-color: var(--bg-primary) !important;
   font-family: var(--main-font) !important;
-  font-weight: var(--main-font-weight) !important;
+  // font-weight: var(--main-font-weight) !important;
+  font-weight: 400;
+  font-variation-settings: "wght" 400;
 }
 
 a {

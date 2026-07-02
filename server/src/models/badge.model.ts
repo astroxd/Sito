@@ -47,13 +47,13 @@ const createBadge = (badgeInfo: Omit<Badge, "getRankKey">) => {
 };
 
 export const BADGES_LIST: Badge[] = [
-  //* BADGE DI GENRE
+  //* GENRE BADGE
 
-  //*  ACTION & ADVENTURE
+  //* ACTION & ADVENTURE
   createBadge({
     id: "shonen_master",
-    title: "Re dello Shonen",
-    description: "Completa anime pieni di azione e adrenalina",
+    title: "Shonen King",
+    description: "Complete anime packed with action, fights, and adrenaline",
     category: "GENRE",
     isSecret: false,
     thresholds: { BRONZE: 5, SILVER: 15, GOLD: 30, PLATINUM: 50 },
@@ -64,8 +64,9 @@ export const BADGES_LIST: Badge[] = [
   //* SCI-FI & MECHA
   createBadge({
     id: "cyber_pilot",
-    title: "Pilota Leggendario",
-    description: "Esplora il futuro tra mecha, cyberpunk e viaggi nello spazio",
+    title: "Legendary Pilot",
+    description:
+      "Explore the future through mecha, cyberpunk, and space travel",
     category: "GENRE",
     isSecret: false,
     thresholds: { BRONZE: 3, SILVER: 10, GOLD: 20, PLATINUM: 40 },
@@ -76,8 +77,8 @@ export const BADGES_LIST: Badge[] = [
   //* COMEDY & SLICE OF LIFE
   createBadge({
     id: "chill_master",
-    title: "Spensierato",
-    description: "Goditi la vita quotidiana e fatti quattro risate",
+    title: "Carefree",
+    description: "Enjoy daily life and get ready for some good laughs",
     category: "GENRE",
     isSecret: false,
     thresholds: { BRONZE: 5, SILVER: 15, GOLD: 30, PLATINUM: 50 },
@@ -89,9 +90,9 @@ export const BADGES_LIST: Badge[] = [
   //* FANTASY & MAHOU SHOUJO & SUPERNATURAL
   createBadge({
     id: "magic_isekai",
-    title: "Invocatore di Mondi",
+    title: "World Summoner",
     description:
-      "Viaggia in mondi fantasy, magici e ricchi di elementi soprannaturali",
+      "Journey into fantasy, magical worlds, and supernatural realms",
     category: "GENRE",
     isSecret: false,
     thresholds: { BRONZE: 5, SILVER: 15, GOLD: 30, PLATINUM: 50 },
@@ -104,8 +105,8 @@ export const BADGES_LIST: Badge[] = [
   //* DRAMA & ROMANCE
   createBadge({
     id: "heart_breaker",
-    title: "Esperto di Batticuore",
-    description: "Vivi storie d'amore intense, pianti e intrecci drammatici",
+    title: "Heartstring Connoisseur",
+    description: "Experience intense love stories, tears, and dramatic twists",
     category: "GENRE",
     isSecret: false,
     thresholds: { BRONZE: 4, SILVER: 12, GOLD: 25, PLATINUM: 45 },
@@ -116,8 +117,8 @@ export const BADGES_LIST: Badge[] = [
   //* HORROR & THRILLER & PSYCHOLOGICAL & MYSTERY
   createBadge({
     id: "mind_games",
-    title: "Detective del Brivido",
-    description: "Risolvi misteri intricati e sopravvivi a horror psicologici",
+    title: "Thriller Detective",
+    description: "Solve intricate mysteries and survive psychological horror",
     category: "GENRE",
     isSecret: false,
     thresholds: { BRONZE: 3, SILVER: 10, GOLD: 20, PLATINUM: 40 },
@@ -131,8 +132,8 @@ export const BADGES_LIST: Badge[] = [
   //* SPORTS
   createBadge({
     id: "sports_champion",
-    title: "Campione Nazionale",
-    description: "Sudore, lacrime e spirito di squadra sul campo da gioco",
+    title: "National Champion",
+    description: "Sweat, tears, and team spirit on the playing field",
     category: "GENRE",
     isSecret: false,
     thresholds: { BRONZE: 2, SILVER: 6, GOLD: 12, PLATINUM: 25 },
@@ -142,36 +143,36 @@ export const BADGES_LIST: Badge[] = [
   //* MUSIC
   createBadge({
     id: "music_idol",
-    title: "Idolo del Palco",
-    description: "Lasciati trasportare dal ritmo e dalle performance musicali",
+    title: "Stage Idol",
+    description: "Get carried away by the rhythm and musical performances",
     category: "GENRE",
     isSecret: false,
     thresholds: { BRONZE: 2, SILVER: 5, GOLD: 10, PLATINUM: 20 },
     getCurrentValue: (stats) => stats.genres.get("Music") ?? 0,
   }),
 
-  //* BADGE DI TEMPO
+  //* TIME BADGE
   createBadge({
     id: "marathon_runner",
-    title: "Maratona Notturna",
-    description: "Accumula ore totali di tempo speso a guardare anime",
+    title: "Midnight Marathon",
+    description: "Accumulate total time spent watching anime",
     category: "TIME",
     isSecret: false,
     thresholds: {
-      BRONZE: 1440, // 24 ore (1 giorno intero di visione)
-      SILVER: 4320, // 72 ore (3 giorni)
-      GOLD: 8640, // 144 ore (6 giorni)
-      PLATINUM: 14400, // 240 ore (10 giorni completi)
+      BRONZE: 6000, // ~100 hours (250 episodes)
+      SILVER: 18000, // ~300 hours (750 episodes)
+      GOLD: 45000, // ~750 hours (1800 episodes)
+      PLATINUM: 90000, // ~1500 hours (3600 episodes)
     },
     getCurrentValue: (stats) => stats.totalMinutes,
   }),
 
-  //* BADGE SEGRETI
+  //* SECRET BADGES
   createBadge({
     id: "culture_man",
-    title: "Uomo di Cultura",
+    title: "Man of Culture",
     description:
-      "Hai completato il tuo primo anime Ecchi o Hentai... visioni impegnative.",
+      "You've completed your first Ecchi or Hentai anime... sophisticated tastes.",
     category: "SPECIAL",
     isSecret: true,
     thresholds: { SECRET: 1 },

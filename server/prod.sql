@@ -1,12 +1,12 @@
 CREATE TABLE `User`(
     `user_id` INTEGER NOT NULL PRIMARY KEY,
-    `email` VARCHAR(255) NOT NULL UNIQUE,
-    `password` VARCHAR(255) NOT NULL,
-    `username` VARCHAR(255) NOT NULL UNIQUE,
+    `email` TEXT NOT NULL UNIQUE,
+    `password` TEXT NOT NULL,
+    `username` TEXT NOT NULL UNIQUE,
     `created_on` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    `avatar` VARCHAR(255) ,
-    `banner` VARCHAR(255),
-    `refresh_token` VARCHAR(255)
+    `avatar` TEXT ,
+    `banner` TEXT,
+    `refresh_token` TEXT
 );
 
 CREATE TABLE `Private Anime`(
@@ -28,14 +28,13 @@ CREATE TABLE `Private Anime`(
 );
 
 CREATE TABLE `Anime`(
-    `anime_id` BIGINT UNSIGNED NOT NULL,
-    `anime_mal_id` BIGINT UNIQUE NOT NULL,
-    `anime_title` VARCHAR(255) NOT NULL,
-    `anime_cover` VARCHAR(255) NOT NULL,
-    `anime_episodes` BIGINT NOT NULL,
-    `anime_avg_episode_duration` BIGINT NOT NULL,
+    `anime_id` INTEGER NOT NULL PRIMARY KEY,
+    `anime_mal_id` INTEGER UNIQUE NOT NULL,
+    `anime_title` TEXT NOT NULL,
+    `anime_cover` TEXT NOT NULL,
+    `anime_episodes` INTEGER NOT NULL DEFAULT 0,
+    `anime_avg_episode_duration` INTEGER NOT NULL DEFAULT 0,
     `anime_genres` TEXT NOT NULL DEFAULT '',
-    PRIMARY KEY(`anime_id`)
 );
 
 CREATE TABLE `Watched Episodes`(
@@ -51,8 +50,8 @@ CREATE TABLE `Watched Episodes`(
 
 CREATE TABLE `Shared List`(
 `shared_list_id` INTEGER PRIMARY KEY,
-`shared_list_name` VARCHAR(255) NOT NULL,
-`message` VARCHAR(255) NULL
+`shared_list_name` TEXT NOT NULL,
+`message` TEXT NULL
 );
 
 CREATE TABLE `Shared List User`(
@@ -186,9 +185,9 @@ CREATE TABLE `Genre` (
 
 CREATE TABLE `User Badge` (
     `user_id` INTEGER NOT NULL,
-    `badge_id` INTEGER NOT NULL,
+    `badge_id` TEXT NOT NULL,
     `rank` TEXT NOT NULL,
-    `unlocked_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,            -- Data di sblocco in formato ISO string o Timestamp
+    `unlocked_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY(`user_id`, `badge_id`, `rank`),
 
     CONSTRAINT fk_user
