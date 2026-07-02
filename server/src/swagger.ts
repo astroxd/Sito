@@ -2,7 +2,7 @@ import swaggerAutogen from "swagger-autogen";
 
 const doc = {
   info: {
-    title: "My API",
+    title: "AnimeHub API",
     description: "Anime & Lists Management API Documentation",
   },
   host: "localhost:3001",
@@ -15,9 +15,10 @@ const doc = {
       description: "Enter your token in the format: Bearer <your_jwt>",
     },
   },
-  // All Models (Both Request Bodies and Responses)
   definitions: {
-    // --- Request Bodies ---
+    // ==========================================
+    // AUTHENTICATION REQUEST BODIES
+    // ==========================================
     RegisterBody: {
       email: "user@example.com",
       username: "john_doe",
@@ -28,7 +29,9 @@ const doc = {
       password: "securePassword123",
     },
 
-    // --- Responses ---
+    // ==========================================
+    //  AUTHENTICATION RESPONSES
+    // ==========================================
     UserObject: {
       id: 1,
       email: "user@example.com",
@@ -50,7 +53,9 @@ const doc = {
     ErrorResponse: {
       message: "Error description text",
     },
-    // --- Shared Lists Requests ---
+    // ==========================================
+    //  SHARED LISTS REQUEST BODIES
+    // ==========================================
     CreateSharedListBody: {
       name: "My Anime Squad List",
     },
@@ -74,7 +79,7 @@ const doc = {
     },
 
     // ==========================================
-    // RISPOSTE (RESPONSES) - SHARED LISTS
+    // SHARED LISTS DATA MODELS
     // ==========================================
     SharedListObject: {
       id: 10,
@@ -112,8 +117,9 @@ const doc = {
       username: "jane_doe",
       avatar: "avatar_jane.png",
     },
-
-    // --- Complex Response Schemas ---
+    // ==========================================
+    //  SHARED LISTS RESPONSES
+    // ==========================================
     SharedListsResponse: {
       data: [
         {
@@ -172,7 +178,7 @@ const doc = {
       ],
     },
     // ==========================================
-    // DATA MODELS (INTERFACES & ENUMS)
+    // PRIVATE LISTS DATA MODELS
     // ==========================================
     PrivateAnime: {
       userId: 1,
@@ -264,7 +270,7 @@ const doc = {
       },
     },
     // ==========================================
-    // FRIENDS DATA MODELS (REAL INTERFACES)
+    // FRIENDS DATA MODELS
     // ==========================================
     Friendship: {
       userId1: 1,

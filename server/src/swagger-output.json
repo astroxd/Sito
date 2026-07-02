@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "My API",
+    "title": "AnimeHub API",
     "description": "Anime & Lists Management API Documentation",
     "version": "1.0.0"
   },
