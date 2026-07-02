@@ -107,8 +107,7 @@ class LoginForm {
           this._formErrors.update((errors) => ({
             ...errors,
             [formField]:
-              this.formErrorsDict[formField][firstErrorKey] ||
-              'Errore Generico',
+              this.formErrorsDict[formField][firstErrorKey] || 'Generic Error',
           }));
         }
       } else {
@@ -126,19 +125,19 @@ class LoginForm {
     Partial<Record<ErrorType, string>>
   > = {
     email: {
-      required: "L'email è obbligatoria.",
-      email: 'Inserisci un indirizzo email valido.',
+      required: 'Email is required.',
+      email: 'Please enter a valid email address.',
     },
     password: {
-      required: 'La password è obbligatoria.',
-      minlength: 'La password deve contenere almeno 8 caratteri.',
-      maxlength: 'La password non può superare i 50 caratteri.',
+      required: 'Password is required.',
+      minlength: 'Password must be at least 8 characters long.',
+      maxlength: 'Password cannot exceed 50 characters.',
     },
   };
 
   login() {
     if (!this._loginForm.valid) {
-      this._loginError.set('Il form è invalido');
+      this._loginError.set('Invalid Form');
       this.handleFormErrors();
       return;
     }
@@ -146,7 +145,6 @@ class LoginForm {
     const { email, password } = this._loginForm.value;
     this.authService.login(email!, password!).subscribe({
       next: (value: any) => {
-        console.log(value);
         const returnUrl =
           this.activatedRoute.snapshot.queryParamMap.get('returnUrl') ||
           '/home';
@@ -208,7 +206,14 @@ class RegisterForm {
         email: ['', [Validators.required, Validators.email]],
         username: [
           '',
-          [Validators.required, Validators.pattern('^[a-zA-Z0-9_.]+$')],
+          [
+            Validators.required,
+            Validators.pattern(
+              '^[a-zA-Z0-9_.]([a-zA-Z0-9_.- ]*[a-zA-Z0-9_.])?$',
+            ),
+            Validators.minLength(3),
+            Validators.maxLength(50),
+          ],
         ],
         password: [
           '',
@@ -255,8 +260,7 @@ class RegisterForm {
           this.formErrors.update((errors) => ({
             ...errors,
             [formField]:
-              this.formErrorsDict[formField][firstErrorKey] ||
-              'Errore Generico',
+              this.formErrorsDict[formField][firstErrorKey] || 'Generic Error',
           }));
         }
       } else {
@@ -274,23 +278,26 @@ class RegisterForm {
     Partial<Record<ErrorType, string>>
   > = {
     email: {
-      required: "L'email è obbligatoria.",
-      email: 'Inserisci un indirizzo email valido.',
+      required: 'Email is required.',
+      email: 'Please enter a valid email address.',
     },
     username: {
-      required: "L'username è obbligatorio",
-      pattern: 'Pattern?',
+      required: 'Username is required.',
+      pattern:
+        'Username can contain letters, numbers, spaces, underscores, dots, and hyphens, but cannot start or end with a space.',
+      minlength: 'Username must be at least 3 characters long.',
+      maxlength: 'Username cannot exceed 50 characters.',
     },
     password: {
-      required: 'La password è obbligatoria.',
-      minlength: 'La password deve contenere almeno 8 caratteri.',
-      maxlength: 'La password non può superare i 50 caratteri.',
+      required: 'Password is required.',
+      minlength: 'Password must be at least 8 characters long.',
+      maxlength: 'Password cannot exceed 50 characters.',
     },
   };
 
   register() {
     if (!this._registerForm.valid) {
-      this._registerError.set('Il form è invalido');
+      this._registerError.set('Invalid Form');
       this.handleFormErrors();
       return;
     }
@@ -300,14 +307,12 @@ class RegisterForm {
 
     this.authService.register(email!, username!, password!, avatar!).subscribe({
       next: (value: any) => {
-        console.log(value);
         const returnUrl =
           this.activatedRoute.snapshot.queryParamMap.get('returnUrl') ||
           '/home';
         this.router.navigateByUrl(returnUrl);
       },
       error: ({ error }) => {
-        console.log(error.message);
         this._registerError.set(error.message);
       },
     });

@@ -126,8 +126,6 @@ export class AuthService {
     const formData = new FormData();
     formData.append('avatar', avatar, avatar.name);
 
-    console.log('Chiamata');
-
     return this.apiService
       .post<{ data: { id: number; avatar: string } }>('update-avatar', formData)
       .pipe(

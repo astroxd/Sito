@@ -73,7 +73,10 @@ function handleBackendRequests(request: HttpRequest<any>, next: HttpHandlerFn) {
           router.navigate(['/profile']);
         }
 
-        if (!cloned.url.includes('/register')) {
+        if (
+          !cloned.url.includes('/register') &&
+          !cloned.url.includes('/refresh-token')
+        ) {
           toastService.showToast(error.error?.message, false);
         }
       }
