@@ -219,3 +219,23 @@ ion-action-sheet.actionsheet {
     color: var(--ion-color-danger) !important;
   }
 }
+
+ion-toast.toast-success {
+  --background: var(--bg-ternary);
+  --border-color: var(--ion-color-success-shade);
+  --border-style: solid;
+  --border-width: 0 0 0 4px;
+  --color: var(--text-primary);
+}
+
+ion-toast.toast-error {
+  --background: var(--bg-ternary);
+  --color: var(--text-primary);
+  --border-color: var(--ion-color-danger-shade);
+  --border-style: solid;
+  --border-width: 0 0 0 4px;
+}
+
+ion-toast::part(button) {
+  color: var(--text-primary);
+}

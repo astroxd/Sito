@@ -6,6 +6,7 @@ import {
   HttpEvent,
   HttpHandlerFn,
   HttpRequest,
+  HttpResponse,
 } from '@angular/common/http';
 import {
   BehaviorSubject,
@@ -14,11 +15,13 @@ import {
   Observable,
   switchMap,
   take,
+  tap,
   throwError,
 } from 'rxjs';
 import { inject } from '@angular/core';
 import { AuthService } from '../services/auth-service';
 import { Router } from '@angular/router';
+import { ToastService } from '../services/toast-service';
 
 let isRefreshing = false;
 const refreshTokenSubject: BehaviorSubject<any> = new BehaviorSubject<any>(
@@ -38,23 +41,41 @@ export function AuthInterceptor(
 function handleBackendRequests(request: HttpRequest<any>, next: HttpHandlerFn) {
   const authService = inject(AuthService);
   const router = inject(Router);
+  const toastService = inject(ToastService);
   const accessToken = authService.token();
 
   const cloned = addTokenHeader(request, accessToken);
 
   return next(cloned).pipe(
-    catchError((error) => {
-      //* Se l'errore è 401 dobbiamo refreshare l'accessToken
-      if (error instanceof HttpErrorResponse && error.status === 401) {
-        return handle401Error(cloned, next, error, authService);
-      }
+    tap((event) => {
+      if (event instanceof HttpResponse) {
+        //* Non mostro messaggio di conferma se è una GET o se è il refresh token o se sto syncando l'anime
+        const isGetRequest = request.method === 'GET';
+        const isRefresh = request.url.includes('/refresh-token');
+        const isAnimeSync = request.url.includes('/anime/sync');
 
-      if (
-        error instanceof HttpErrorResponse &&
-        error.status === 403 &&
-        cloned.url.includes('/shared-list')
-      ) {
-        router.navigate(['/profile']);
+        const body = event.body as any;
+
+        if (!isGetRequest && !isRefresh && !isAnimeSync) {
+          const successMessage = body.message;
+          toastService.showToast(successMessage, true);
+        }
+      }
+    }),
+    catchError((error) => {
+      if (error instanceof HttpErrorResponse) {
+        //* Se l'errore è 401 dobbiamo refreshare l'accessToken
+        if (error.status === 401) {
+          return handle401Error(cloned, next, error, authService, toastService);
+        }
+
+        if (error.status === 403 && cloned.url.includes('/shared-list')) {
+          router.navigate(['/profile']);
+        }
+
+        if (!cloned.url.includes('/register')) {
+          toastService.showToast(error.error?.message, false);
+        }
       }
       return throwError(() => error);
     }),
@@ -66,6 +87,7 @@ function handle401Error(
   next: HttpHandlerFn,
   error: HttpErrorResponse,
   authService: AuthService,
+  toastService: ToastService,
 ) {
   //* Evitiamo di fare il refresh se la richiesta che è fallita era già quella di login o quella di refresh
   if (
@@ -91,6 +113,8 @@ function handle401Error(
       catchError((refreshErr) => {
         isRefreshing = false;
         authService.logout(); //* Se fallisce anche il refresh token, fai il logout
+
+        toastService.showToast(error.error?.message, false);
 
         return throwError(() => refreshErr);
       }),
