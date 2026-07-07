@@ -208,9 +208,9 @@ class RegisterForm {
           '',
           [
             Validators.required,
-            Validators.pattern(
-              '^[a-zA-Z0-9_.]([a-zA-Z0-9_.- ]*[a-zA-Z0-9_.])?$',
-            ),
+            // Validators.pattern(
+            //   '^[a-zA-Z0-9_.]([a-zA-Z0-9_.- ]*[a-zA-Z0-9_.])?$',
+            // ),
             Validators.minLength(3),
             Validators.maxLength(50),
           ],
