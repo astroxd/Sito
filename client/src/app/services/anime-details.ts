@@ -7,6 +7,7 @@ import {
   AnimeTag,
 } from '../models/AnimeDetails';
 import { APIService } from './apiservice';
+import { AuthService } from './auth-service';
 
 @Injectable({
   providedIn: 'root',
@@ -14,10 +15,10 @@ import { APIService } from './apiservice';
 export class AnimeDetails {
   private http = inject(HttpClient);
   private apiService = inject(APIService);
-
+  private authService = inject(AuthService);
   private readonly url = 'https://graphql.anilist.co';
 
-  GetAnimeDetails(animeId: string) {
+  GetAnimeDetails(animeId: number) {
     const query = {
       query: `
         query($id: Int){
@@ -85,12 +86,16 @@ export class AnimeDetails {
             : (media.episodes ?? 0),
         };
 
-        this.apiService.post('anime/sync', { anime: animePayload }).subscribe();
+        if (this.authService.user()) {
+          this.apiService
+            .post('anime/sync', { anime: animePayload })
+            .subscribe();
+        }
       }),
     ) as Observable<AnimeDetail>;
   }
 
-  GetAnimeTags(animeId: string) {
+  GetAnimeTags(animeId: number) {
     const query = {
       query: `
         query($id: Int){
@@ -112,7 +117,7 @@ export class AnimeDetails {
     ) as Observable<AnimeTag>;
   }
 
-  GetAnimeRecommendations(animeId: string) {
+  GetAnimeRecommendations(animeId: number) {
     const query = {
       query: `
         query($id: Int){
@@ -152,7 +157,7 @@ export class AnimeDetails {
     ) as Observable<AnimeRecommendation>;
   }
 
-  GetAnimeCharacters(animeId: string, page = 1) {
+  GetAnimeCharacters(animeId: number, page = 1) {
     const query = {
       query: `
         query($id: Int, $pageNumber: Int){

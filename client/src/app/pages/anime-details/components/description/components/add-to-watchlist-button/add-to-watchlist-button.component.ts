@@ -1,26 +1,20 @@
-import {
-  Component,
-  computed,
-  effect,
-  inject,
-  input,
-  OnInit,
-  signal,
-} from '@angular/core';
-import { finalize } from 'rxjs';
+import { Component, computed, inject, input, OnInit } from '@angular/core';
 import { AnimeDetail } from 'src/app/models/AnimeDetails';
 import {
   AnimeStatus,
   AnimeStatusLabels,
   iterableAnimeStatusLabels,
 } from 'src/app/models/List';
-import { AuthService } from 'src/app/services/auth-service';
 import { ListsService } from 'src/app/services/lists-service';
 import { SharedListsService } from 'src/app/services/shared-lists-service';
 import { Anime } from 'src/app/models/Anime';
-
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
+import { ClickOutsideDirective } from 'src/app/directives/click-outside.directive';
 @Component({
   selector: 'app-add-to-watchlist-button',
+  standalone: true,
+  imports: [FontAwesomeModule, ClickOutsideDirective],
   templateUrl: './add-to-watchlist-button.component.html',
   styleUrls: [
     './add-to-watchlist-button.component.scss',
@@ -30,14 +24,14 @@ import { Anime } from 'src/app/models/Anime';
 export class AddToWatchlistButtonComponent implements OnInit {
   private listsService = inject(ListsService);
   private sharedListsService = inject(SharedListsService);
-  private authService = inject(AuthService);
   private readonly AnimeStatusLabels = AnimeStatusLabels;
   readonly iterableAnimeStatusLabels = iterableAnimeStatusLabels;
 
   animeDetails = input.required<AnimeDetail | undefined>();
   animeId = computed(() => this.animeDetails()?.id);
 
-  animeStatus = signal<AnimeStatus | null>(null);
+  animeStatus = this.listsService.animeStatus;
+  sharedLists = this.sharedListsService.sharedListsWithAnime;
 
   formattedAnimeStatus = computed(() => {
     const status = this.animeStatus();
@@ -46,42 +40,22 @@ export class AddToWatchlistButtonComponent implements OnInit {
 
   showWatchlistMenu = false;
 
-  constructor() {
-    effect(() => {
-      this.getAnimeStatus();
-      this.getSharedLists();
-    });
-  }
+  faChevronDown = faChevronDown;
+  faChevronUp = faChevronUp;
+  constructor() {}
 
   ngOnInit() {}
 
-  getAnimeStatus() {
-    if (this.animeId() && this.authService.user()) {
-      this.listsService.getListedAnime(this.animeId()!).subscribe((res) => {
-        this.animeStatus.set(res?.data?.status ?? null);
-      });
-    }
-  }
-
   addToList(status: AnimeStatus) {
-    this.listsService
-      .addAnime(status, this.animeDetails()!)
-      .pipe(finalize(() => this.getAnimeStatus()))
-      .subscribe();
+    this.listsService.addAnime(status, this.animeDetails()!).subscribe();
   }
 
   removeFromList() {
-    this.listsService
-      .removeAnime(this.animeId()!)
-      .pipe(finalize(() => this.getAnimeStatus()))
-      .subscribe();
+    this.listsService.removeAnime(this.animeId()!).subscribe();
   }
 
   updateStatusList(status: AnimeStatus) {
-    this.listsService
-      .updateAnime(this.animeId()!, status)
-      .pipe(finalize(() => this.getAnimeStatus()))
-      .subscribe();
+    this.listsService.updateAnime(this.animeId()!, status).subscribe();
   }
 
   handleList(status: AnimeStatus, isInList: boolean) {
@@ -93,24 +67,6 @@ export class AddToWatchlistButtonComponent implements OnInit {
       this.updateStatusList(status);
     } else {
       this.addToList(status);
-    }
-  }
-
-  sharedLists = signal<
-    {
-      sharedListId: number;
-      sharedListName: string;
-      animeId?: number;
-    }[]
-  >([]);
-
-  getSharedLists() {
-    if (this.animeId() && this.authService.user()) {
-      this.sharedListsService
-        .getSharedListsWithAnimeId(this.animeId()!)
-        .subscribe((res) => {
-          this.sharedLists.set(res.data);
-        });
     }
   }
 
@@ -164,16 +120,14 @@ export class AddToWatchlistButtonComponent implements OnInit {
         genres: [],
       };
 
-      if (this.animeId() && this.authService.user()) {
-        this.sharedListsService
-          .addAnimeToSharedList(listId, anime)
-          .pipe(
-            finalize(() => {
-              this.getSharedLists();
-            }),
-          )
-          .subscribe();
-      }
+      // if (this.animeId() && this.authService.user()) {
+      this.sharedListsService
+        .addAnimeToSharedList(listId, anime, false)
+        .subscribe();
+      // }
     }
+  }
+  close() {
+    this.showWatchlistMenu = false;
   }
 }

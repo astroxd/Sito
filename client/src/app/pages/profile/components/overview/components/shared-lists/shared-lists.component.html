@@ -1,7 +1,7 @@
 <div class="shared-lists">
   <div class="section-header">
     <div class="section-title">
-      <h5>Liste condivise</h5>
+      <h5>Shared Lists</h5>
     </div>
     <div class="section-button">
       <button id="open-modal" class="primary-btn" (click)="openModal()">
@@ -14,10 +14,7 @@
       <app-shared-list [sharedList]="sharedList" />
     }
     @for (invitation of sharedListInvitations(); track $index) {
-      <app-shared-list-invitation
-        [invitation]="invitation"
-        (onAction)="reloadSharedListsAndInvites()"
-      />
+      <app-shared-list-invitation [invitation]="invitation" />
     }
   </div>
 </div>

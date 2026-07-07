@@ -1,7 +1,6 @@
 import {
   Component,
   computed,
-  effect,
   inject,
   OnInit,
   signal,
@@ -26,13 +25,7 @@ import {
 } from '@ionic/angular/standalone';
 import { IonInfiniteScrollCustomEvent } from '@ionic/core';
 import { debounceTime, distinctUntilChanged, finalize, Subject } from 'rxjs';
-import {
-  FoundUser,
-  FriendUser,
-  PendingFriendUser,
-  FriendshipRequestStatus,
-} from 'src/app/models/Friendship';
-import { AuthService } from 'src/app/services/auth-service';
+import { FoundUser, FriendshipRequestStatus } from 'src/app/models/Friendship';
 import { FriendshipService } from 'src/app/services/friendship-service';
 
 @Component({
@@ -58,11 +51,10 @@ import { FriendshipService } from 'src/app/services/friendship-service';
   styleUrls: ['./friend-list.component.scss'],
 })
 export class FriendListComponent implements OnInit {
-  private authService = inject(AuthService);
   private friendshipService = inject(FriendshipService);
 
-  pendingRequests = signal<PendingFriendUser[]>([]);
-  friends = signal<FriendUser[]>([]);
+  pendingRequests = this.friendshipService.pendingRequest;
+  friends = this.friendshipService.friends;
 
   friendsAndPendingMap = computed(() => {
     const newMap = new Map<
@@ -88,13 +80,22 @@ export class FriendListComponent implements OnInit {
   });
 
   searchedUsers = signal<FoundUser[]>([]);
-
-  private query: string = '';
-  private page: number = 1;
+  private searchSubject = new Subject<string>();
 
   @ViewChild(IonModal) modal!: IonModal;
 
-  name!: string;
+  name = '';
+  private page: number = 1;
+
+  constructor() {
+    this.searchSubject
+      .pipe(debounceTime(300), distinctUntilChanged())
+      .subscribe((query) => {
+        this.page = 1;
+        this.searchUsers(query, this.page, true);
+      });
+  }
+  ngOnInit() {}
 
   cancel() {
     this.modal.dismiss(null, 'cancel');
@@ -108,40 +109,13 @@ export class FriendListComponent implements OnInit {
     dismiss.finally(() => {
       this.name = '';
       this.searchedUsers.set([]);
-      this.query = '';
       this.page = 1;
     });
   }
 
-  private searchSubject = new Subject<string>();
-
   onSearch(event: Event) {
     const query = (event.target as HTMLInputElement).value;
     this.searchSubject.next(query);
-  }
-
-  constructor() {
-    effect(() => {
-      this.loadFriendsAndRequest();
-    });
-
-    this.searchSubject
-      .pipe(debounceTime(300), distinctUntilChanged())
-      .subscribe((query) => {
-        this.query = query;
-        this.page = 1;
-        this.searchUsers(query, this.page, true);
-      });
-  }
-
-  loadFriendsAndRequest() {
-    if (this.authService.user()) {
-      this.friendshipService.getFriends().subscribe(({ data }) => {
-        console.log(data);
-        this.pendingRequests.set(data.pending);
-        this.friends.set(data.accepted);
-      });
-    }
   }
 
   searchUsers(
@@ -179,36 +153,22 @@ export class FriendListComponent implements OnInit {
   }
 
   onIonInfinite($event: IonInfiniteScrollCustomEvent<void>) {
-    this.searchUsers(this.query, ++this.page, false, $event);
+    this.searchUsers(this.name, ++this.page, false, $event);
   }
 
-  ngOnInit() {}
-
   sendFriendRequest(newFriendId: number) {
-    this.friendshipService
-      .addFriend(newFriendId)
-      .pipe(finalize(() => this.loadFriendsAndRequest()))
-      .subscribe();
+    this.friendshipService.addFriend(newFriendId).subscribe();
   }
 
   acceptFriendRequest(senderUserId: number) {
-    this.friendshipService
-      .acceptFriend(senderUserId)
-      .pipe(finalize(() => this.loadFriendsAndRequest()))
-      .subscribe();
+    this.friendshipService.acceptFriend(senderUserId).subscribe();
   }
 
   declineFriendRequest(newFriendId: number) {
-    this.friendshipService
-      .declineFriend(newFriendId)
-      .pipe(finalize(() => this.loadFriendsAndRequest()))
-      .subscribe();
+    this.friendshipService.declineFriend(newFriendId).subscribe();
   }
 
   removeFriend(friendId: number) {
-    this.friendshipService
-      .removeFriend(friendId)
-      .pipe(finalize(() => this.loadFriendsAndRequest()))
-      .subscribe();
+    this.friendshipService.removeFriend(friendId).subscribe();
   }
 }

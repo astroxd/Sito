@@ -28,7 +28,7 @@
 
       <ion-list>
         @for (anime of searchedAnime(); track $index) {
-          @let isAlreadyAdded = sharedListAnimeIds().has(anime.id);
+          @let isAlreadyAdded = sharedListAnimesSet().has(anime.id);
           <ion-item>
             <ion-thumbnail slot="start">
               <img [src]="anime.coverImage.large" />

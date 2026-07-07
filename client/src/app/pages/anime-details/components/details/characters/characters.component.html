@@ -1,35 +1,48 @@
-<div class="anime-details-character">
-  <ion-row>
-    <ion-col>
-      <div class="section-header">
-        <div class="section-title">
-          @if (isFullPage) {
-            <h4>Characters</h4>
-          } @else {
-            <h5>Characters</h5>
-          }
-        </div>
-        @if (!isFullPage) {
-          <div class="section-button-all">
-            <a routerLink="characters">View All</a>
-          </div>
-        }
+@if (!isFullPage) {
+  <div class="anime-details-character">
+    <div class="section-header">
+      <div class="section-title">
+        <h5>Characters</h5>
       </div>
-    </ion-col>
-  </ion-row>
-  <ion-row>
-    <!-- <ion-col> -->
 
-    <div class="characters" [class]="isFullPage ? 'full' : ''">
-      @for (character of characters(); track $index) {
+      <div class="section-button-all">
+        <a routerLink="characters"
+          >View All
+
+          <fa-icon [icon]="faLongArrowAltRight" />
+        </a>
+      </div>
+    </div>
+
+    <div class="characters">
+      @for (character of characters().slice(0, 16); track $index) {
         <app-character-card [character]="character" />
       }
-      @if (isFullPage) {
-        <ion-infinite-scroll (ionInfinite)="loadMore($event)">
-          <ion-infinite-scroll-content></ion-infinite-scroll-content>
-        </ion-infinite-scroll>
-      }
     </div>
-    <!-- </ion-col> -->
-  </ion-row>
-</div>
+  </div>
+} @else {
+  <div class="anime-details-character">
+    <ion-row>
+      <ion-col>
+        <div class="section-header">
+          <div class="section-title">
+            <h4>Characters</h4>
+          </div>
+        </div>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col>
+        <div class="characters">
+          @for (character of characters(); track $index) {
+            <app-character-card [character]="character" />
+          }
+
+          <ion-infinite-scroll (ionInfinite)="loadMore($event)">
+            <ion-infinite-scroll-content></ion-infinite-scroll-content>
+          </ion-infinite-scroll>
+        </div>
+      </ion-col>
+    </ion-row>
+  </div>
+}

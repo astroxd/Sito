@@ -116,11 +116,13 @@
               </ion-col>
             </ion-row>
           </div>
-          <div class="anime-details-buttons">
-            <app-add-to-watchlist-button
-              [animeDetails]="details() ?? undefined"
-            />
-          </div>
+          @if (authService.user()) {
+            <div class="anime-details-buttons">
+              <app-add-to-watchlist-button
+                [animeDetails]="details() ?? undefined"
+              />
+            </div>
+          }
         </div>
       </ion-col>
     </ion-row>

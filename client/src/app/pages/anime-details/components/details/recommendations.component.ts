@@ -26,11 +26,14 @@ export class Recommendations implements OnInit {
   recommendations$: any;
 
   constructor() {
-    const animeId = this.route.snapshot.paramMap.get('id');
-    if (animeId) {
-      this.recommendations$ =
-        this.AnimeDetailsService.GetAnimeRecommendations(animeId);
-    }
+    this.route.paramMap.subscribe((params) => {
+      const animeId = Number(params.get('id'));
+
+      if (animeId && !isNaN(animeId)) {
+        this.recommendations$ =
+          this.AnimeDetailsService.GetAnimeRecommendations(animeId);
+      }
+    });
   }
 
   ngOnInit() {}

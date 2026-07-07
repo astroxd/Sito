@@ -16,7 +16,7 @@ export class GetAnimes {
 
   FetchAnime(query: Object) {
     return this.http.post<any>(this.url, query).pipe(
-      tap(({ data: Page }) => console.log(Page.Page.media)),
+      // tap(({ data: Page }) => console.log(Page.Page.media)),
       map(
         ({
           data: {
@@ -63,7 +63,7 @@ export class GetAnimes {
       query: `
         query($page: Int, $perPage: Int, $seasonYear: Int, $season: MediaSeason){
           Page(page: $page, perPage: $perPage){
-            media (seasonYear: $seasonYear, season: $season, type: ANIME, sort: POPULARITY_DESC){
+            media (seasonYear: $seasonYear, season: $season, type: ANIME, sort: TRENDING_DESC){
               id
               idMal
               title{
@@ -205,11 +205,8 @@ export class GetAnimes {
       variables: { page: page, perPage: 12, sort: sort, ...searchOptions },
     };
 
-    console.log(sort);
-    console.log(searchOptions);
-
     return this.http.post<any>(this.url, query).pipe(
-      tap(({ data: Page }) => console.log(Page.Page.media)),
+      // tap(({ data: Page }) => console.log(Page.Page.media)),
       map(({ data: { Page } }) => Page),
     ) as Observable<SearchResultsData>;
   }

@@ -4,6 +4,7 @@
   padding: 4px;
   background-color: var(--bg-ternary);
   border-radius: 8px;
+  display: flex;
 }
 
 .character-card-left,
@@ -11,6 +12,7 @@
   height: 112px;
   display: flex;
   color: var(--text-primary);
+  flex: 1;
 }
 
 .character-card .character-card-right {

@@ -1,0 +1,60 @@
+<div class="leaderboard-container widget">
+  <div class="section-header">
+    <div class="section-title">
+      <h5>Top Viewers</h5>
+    </div>
+  </div>
+  <div class="leaderboard-content">
+    <ion-list>
+      @for (member of members(); track $index) {
+        <ion-item [lines]="$index + 1 === members().length ? 'none' : 'full'">
+          <span class="rank">{{ `#${$index + 1}` }}</span>
+          <ion-avatar>
+            <img [src]="member.avatar" [alt]="member.username" />
+          </ion-avatar>
+
+          <ion-label>{{ member.username }}</ion-label>
+          <ion-label class="role">
+            <span
+              [class.owner]="member.role === 'OWNER'"
+              [class.editor]="member.role === 'EDITOR'"
+            >
+              {{ member.role }}
+            </span>
+          </ion-label>
+          <span>{{ member.totalEpisodes }}</span>
+          @if (member.id === authService.user()?.id) {
+            <ion-button
+              slot="end"
+              style="margin-left: 1rem"
+              (click)="confirmListDestruction()"
+              >Leave</ion-button
+            >
+          } @else if (isOwner()) {
+            <ion-button
+              fill="clear"
+              size="default"
+              class="more-actions"
+              (click)="presentActionSheet(member)"
+            >
+              <fa-icon [icon]="faEllipsisV" />
+            </ion-button>
+          }
+        </ion-item>
+      }
+      @for (pending of pendingMembers(); track $index) {
+        <ion-item
+          [lines]="$index + 1 === pendingMembers().length ? 'none' : 'full'"
+        >
+          <ion-avatar>
+            <img [src]="pending.avatar" [alt]="pending.username" />
+          </ion-avatar>
+          <ion-label>{{ pending.username }}</ion-label>
+          <ion-button slot="end" (click)="cancelInvite(pending.userId)">
+            Cancel
+          </ion-button>
+        </ion-item>
+      }
+    </ion-list>
+  </div>
+</div>

@@ -1,16 +1,14 @@
 import {
   Component,
+  computed,
   inject,
-  input,
   OnInit,
-  output,
   signal,
   ViewChild,
 } from '@angular/core';
 import { IonInfiniteScrollCustomEvent } from '@ionic/core';
 import {
   IonModal,
-  ModalController,
   IonHeader,
   IonToolbar,
   IonButtons,
@@ -25,7 +23,7 @@ import {
   IonInfiniteScroll,
   IonInfiniteScrollContent,
 } from '@ionic/angular/standalone';
-import { debounceTime, distinctUntilChanged, finalize, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { SharedListsService } from 'src/app/services/shared-lists-service';
 import { FriendUser } from 'src/app/models/Friendship';
 import { FriendshipService } from 'src/app/services/friendship-service';
@@ -54,18 +52,29 @@ import { FormsModule } from '@angular/forms';
   ],
 })
 export class AddMemberButtonComponent implements OnInit {
-  onAdd = output();
-  sharedListId = input<number>();
-  sharedListMembers = input(new Set<number>());
-  sharedListInvited = input(new Set<number>());
+  private sharedListService = inject(SharedListsService);
+  private friendshipService = inject(FriendshipService);
 
-  sharedListService = inject(SharedListsService);
-  friendshipService = inject(FriendshipService);
-  modalController = inject(ModalController);
+  listId = this.sharedListService.listInfo()?.id!;
+  members = this.sharedListService.members;
+  pendingMember = this.sharedListService.pendingMembers;
+
+  membersSet = computed(
+    () => new Set(this.members().map((member) => member.id)),
+  );
+
+  pendingMembersSet = computed(
+    () => new Set(this.pendingMember().map((member) => member.userId)),
+  );
+
+  searchedFriends = signal<FriendUser[]>([]);
+
+  private searchSubject = new Subject<string>();
 
   @ViewChild(IonModal) modal!: IonModal;
 
-  name!: string;
+  name = '';
+  private page: number = 1;
 
   cancel() {
     this.modal.dismiss(null, 'cancel');
@@ -78,33 +87,26 @@ export class AddMemberButtonComponent implements OnInit {
     const dismiss = this.modal.onDidDismiss();
     dismiss.finally(() => {
       this.name = '';
-      this.searchedFriends.set([]);
-      this.query = '';
       this.page = 1;
+      this.searchedFriends.set([]);
     });
   }
-
-  private searchSubject = new Subject<string>();
-
-  onSearch(event: Event) {
-    const query = (event.target as HTMLInputElement).value;
-    this.searchSubject.next(query);
-  }
-
-  private query: string = '';
-  private page: number = 1;
 
   constructor() {
     this.searchSubject
       .pipe(debounceTime(300), distinctUntilChanged())
       .subscribe((query) => {
-        this.query = query;
         this.page = 1;
         this.searchFriends(query, this.page, true);
       });
   }
 
-  searchedFriends = signal<FriendUser[]>([]);
+  ngOnInit() {}
+
+  onSearch(event: Event) {
+    const query = (event.target as HTMLInputElement).value;
+    this.searchSubject.next(query);
+  }
 
   searchFriends(
     query: string,
@@ -112,13 +114,8 @@ export class AddMemberButtonComponent implements OnInit {
     isNewQuery = false,
     infiniteEvent?: IonInfiniteScrollCustomEvent<void>,
   ) {
-    console.log(query);
-
     this.friendshipService.searchAmongFriends(query.trim(), page).subscribe({
-      next: ({ data, hasNextPage }) => {
-        const foundFriends = data;
-        console.log(data);
-
+      next: ({ data: foundFriends, hasNextPage }) => {
         if (isNewQuery) {
           this.searchedFriends.set(foundFriends);
         } else {
@@ -144,15 +141,10 @@ export class AddMemberButtonComponent implements OnInit {
   }
 
   onIonInfinite($event: IonInfiniteScrollCustomEvent<void>) {
-    this.searchFriends(this.query, ++this.page, false, $event);
+    this.searchFriends(this.name, ++this.page, false, $event);
   }
 
   invite(invitedUserId: number) {
-    this.sharedListService
-      .inviteMember(this.sharedListId()!, invitedUserId)
-      .pipe(finalize(() => this.onAdd.emit()))
-      .subscribe();
+    this.sharedListService.inviteMember(this.listId, invitedUserId).subscribe();
   }
-
-  ngOnInit() {}
 }

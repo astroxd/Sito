@@ -1,0 +1,34 @@
+<div class="anime-carousel-container widget">
+  @if (userSharedAnimesProgress().length > 0) {
+    <ul class="anime-carousel">
+      @for (userProgress of userSharedAnimesProgress(); track $index) {
+        @if (userProgress.currentEpisode !== userProgress.animeEpisodes) {
+          @let progress =
+            userProgress.currentEpisode / userProgress.animeEpisodes;
+          <li class="anime-episode-card">
+            <div class="anime-episode-card-image">
+              <img
+                [src]="userProgress.animeCover"
+                [alt]="userProgress.animeTitle"
+              />
+              <button class="primary-btn" (click)="addEpisode(userProgress)">
+                <fa-icon [icon]="faPlus"></fa-icon>
+              </button>
+            </div>
+            <div class="anime-progress">
+              <ion-progress-bar
+                [value]="progress"
+                class="progress"
+              ></ion-progress-bar>
+            </div>
+            <span>Mark Ep: {{ userProgress.currentEpisode + 1 }}</span>
+          </li>
+        }
+      }
+    </ul>
+  } @else {
+    <div class="no-results">
+      <span>You haven't started an anime yet</span>
+    </div>
+  }
+</div>

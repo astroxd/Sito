@@ -1,6 +1,6 @@
 import db from "../config/database";
 import { Anime } from "./anime.model";
-const serverUrl = "http://localhost:3001";
+import { User } from "./user.model";
 
 export type SharedListRole = "OWNER" | "EDITOR" | "MEMBER";
 export type SharedListInvitationStatus = "PENDING" | "ACCEPTED";
@@ -23,7 +23,7 @@ export interface SharedList {
   message?: string;
 
   sharedListUser?: SharedListUser;
-  sharedListMembers: SharedListMember[];
+  // sharedListMembers: SharedListMember[];
 }
 
 export interface SharedListMember {
@@ -61,14 +61,32 @@ export interface AnimeProgress {
 }
 
 export interface SharedListInvitation {
-  sharedListId: number;
-  sharedListName: string;
-  senderUserId: number;
-  senderUsername: string;
-  senderAvatar: string;
+  sharedList: {
+    sharedListId: number;
+    sharedListName: string;
+  };
+  senderInfo: {
+    senderUserId: number;
+    senderUsername: string;
+    senderAvatar: string;
+  };
 }
 
 export const SharedList = {
+  exists: (listId: number) => {
+    const result = db
+      .prepare(
+        `
+          SELECT COUNT(*) as total
+          FROM 'Shared List'
+          WHERE shared_list_id = ?
+        `,
+      )
+      .get(listId) as { total: number };
+
+    return result.total > 0;
+  },
+
   findAllByUserId: (userId: number) => {
     return db
       .prepare(
@@ -92,7 +110,8 @@ export const SharedList = {
             INNER JOIN 'User' ON User.user_id = u.user_id
             WHERE u.shared_list_id = ?
             GROUP BY u.user_id
-            ORDER BY totalEpisodes DESC
+            ORDER BY totalEpisodes DESC,
+                  CASE WHEN u.role = 'OWNER' THEN 0 ELSE 1 END ASC
             LIMIT 5
         `,
       )
@@ -101,9 +120,7 @@ export const SharedList = {
     return foundMembers.map((member) => {
       return {
         ...member,
-        avatar: member.avatar
-          ? `${serverUrl}/static/avatar/${member.avatar}`
-          : `https://api.dicebear.com/9.x/initials/svg?seed=${member.username}`,
+        avatar: User.formatUserAvatar(member.username, member.avatar),
       };
     });
   },
@@ -184,9 +201,7 @@ export const SharedList = {
     return foundProgress.map((member) => {
       return {
         ...member,
-        avatar: member.avatar
-          ? `${serverUrl}/static/avatar/${member.avatar}`
-          : `https://api.dicebear.com/9.x/initials/svg?seed=${member.username}`,
+        avatar: User.formatUserAvatar(member.username, member.avatar),
       };
     });
   },
@@ -264,6 +279,35 @@ export const SharedList = {
       .get(listId, userId) as { role: SharedListRole } | undefined;
   },
 
+  getLeader: (listId: number) => {
+    const row = db
+      .prepare(
+        `
+          SELECT p.user_id as userId, u.username as username, u.avatar as avatar
+          FROM 'Shared List Progress' p
+          JOIN 'Shared List User' su ON p.user_id = su.user_id AND p.shared_list_id = su.shared_list_id
+          JOIN 'User' u ON p.user_id = u.user_id
+          WHERE p.shared_list_id = ?
+          GROUP BY p.user_id
+          ORDER BY 
+            SUM(p.current_episode) DESC,  
+            MIN(p.updated_at) ASC        
+          LIMIT 1;
+  `,
+      )
+      .get(listId) as any | undefined;
+
+    if (!row) return undefined;
+
+    const avatarUrl = User.formatUserAvatar(row.username, row.avatar);
+
+    return {
+      userId: row.userId,
+      username: row.username,
+      avatar: avatarUrl,
+    };
+  },
+
   addSharedAnime: (listId: number, animeId: number) => {
     return db
       .prepare(
@@ -314,6 +358,20 @@ export const SharedList = {
     ).run(listId, userId, role);
   },
 
+  checkIfInvitationPending: (listId: number, invitedUserId: number) => {
+    const row = db
+      .prepare(
+        `
+        SELECT 1
+        FROM 'SharedListInvitation'
+        WHERE shared_list_id = ? AND invited_user_id = ? AND status = 'PENDING';
+      `,
+      )
+      .get(listId, invitedUserId) as { "1": number } | undefined;
+
+    return !!row;
+  },
+
   insertUserInvitation: (
     listId: number,
     senderUserId: number,
@@ -362,7 +420,7 @@ export const SharedList = {
           WHERE shared_list_id = ?
         `,
       )
-      .get(listId) as number | 0;
+      .get(listId) as { count: number };
   },
 
   updateNewOwner: (listId: number, userId: number) => {
@@ -418,9 +476,7 @@ export const SharedList = {
     return foundUsers.map((user) => {
       return {
         ...user,
-        avatar: user.avatar
-          ? `${serverUrl}/static/avatar/${user.avatar}`
-          : `https://api.dicebear.com/9.x/initials/svg?seed=${user.username}`,
+        avatar: User.formatUserAvatar(user.username, user.avatar),
       };
     });
   },
@@ -446,14 +502,24 @@ export const SharedList = {
           ORDER BY i.created_at DESC
       `,
       )
-      .all(userId, status) as SharedListInvitation[];
+      .all(userId, status) as any[];
 
-    return foundInvitation.map((sender) => {
+    return foundInvitation.map((invitation) => {
+      const avatarUrl = User.formatUserAvatar(
+        invitation.username,
+        invitation.senderAvatar,
+      );
+
       return {
-        ...sender,
-        senderAvatar: sender.senderAvatar
-          ? `${serverUrl}/static/avatar/${sender.senderAvatar}`
-          : `https://api.dicebear.com/9.x/initials/svg?seed=${sender.senderUsername}`,
+        sharedList: {
+          sharedListId: invitation.sharedListId,
+          sharedListName: invitation.sharedListName,
+        },
+        senderInfo: {
+          senderUserId: invitation.senderUserId,
+          senderUsername: invitation.senderUsername,
+          senderAvatar: avatarUrl,
+        },
       };
     });
   },

@@ -24,6 +24,9 @@ export class TimeChartComponent implements OnInit {
     const currentData = history?.currentWeek ?? [0, 0, 0, 0, 0, 0, 0];
     const previousData = history?.previousWeek ?? [0, 0, 0, 0, 0, 0, 0];
 
+    const currentHours = currentData.map((data) => data / 60);
+    const previousHours = previousData.map((data) => data / 60);
+
     return {
       labels: [
         'Monday',
@@ -36,7 +39,7 @@ export class TimeChartComponent implements OnInit {
       ],
       datasets: [
         {
-          data: currentData,
+          data: currentHours,
           label: 'This Week',
           backgroundColor: 'rgba(229,54,55,0.2)',
           borderColor: 'rgba(229,54,55,1)',
@@ -44,7 +47,7 @@ export class TimeChartComponent implements OnInit {
           fill: true,
         },
         {
-          data: previousData,
+          data: previousHours,
           label: 'Previous Week',
           backgroundColor: 'rgba(172, 172, 172, 0.1)',
           borderColor: 'rgb(140, 140, 140)',
@@ -65,11 +68,11 @@ export class TimeChartComponent implements OnInit {
     scales: {
       y: {
         beginAtZero: true,
-        suggestedMax: 60,
-        title: { display: true, text: 'Minutes' },
+        suggestedMax: 24,
+        title: { display: true, text: 'Hours' },
         ticks: {
           precision: 0,
-          stepSize: 200,
+          stepSize: 2,
         },
       },
     },

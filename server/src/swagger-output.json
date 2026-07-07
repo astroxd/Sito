@@ -1,0 +1,3645 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "AnimeHub API",
+    "description": "Anime & Lists Management API Documentation",
+    "version": "1.0.0"
+  },
+  "host": "localhost:3001",
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+  "securityDefinitions": {
+    "bearerAuth": {
+      "type": "apiKey",
+      "in": "header",
+      "name": "Authorization",
+      "description": "Enter your token in the format: Bearer <your_jwt>"
+    }
+  },
+  "paths": {
+    "/anime/sync": {
+      "post": {
+        "tags": [
+          "Anime Metadata"
+        ],
+        "description": "Synchronize or upsert sanitized anime data into the local catalog/database mapping.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "SyncAnimeBody",
+            "in": "body",
+            "description": "Raw anime details from external provider to sanitize and sync",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SyncAnimeBody"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/register": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "description": "Register a new user. Supports optional avatar upload using multipart/form-data.",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "avatar",
+            "in": "formData",
+            "type": "file",
+            "required": false,
+            "description": "Optional profile picture file"
+          },
+          {
+            "name": "email",
+            "in": "formData",
+            "required": true,
+            "type": "string",
+            "example": "user@example.com"
+          },
+          {
+            "name": "username",
+            "in": "formData",
+            "required": true,
+            "type": "string",
+            "example": "john_doe"
+          },
+          {
+            "name": "password",
+            "in": "formData",
+            "required": true,
+            "type": "string",
+            "example": "password123"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "schema": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/AuthResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "description": "Authenticate user, set refresh token in httpOnly cookie and return access token.",
+        "parameters": [
+          {
+            "name": "LoginBody",
+            "in": "body",
+            "description": "User login credentials",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/LoginBody"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/AuthResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/refresh-token": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "description": "Renew access token using the refresh token provided via httpOnly cookie.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "accessToken": {
+                  "type": "string",
+                  "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Missing token cookie"
+          },
+          "403": {
+            "description": "Forbidden - Invalid token"
+          }
+        }
+      }
+    },
+    "/session": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "description": "Retrieve current session and user details. Requires both a valid Bearer Token and the jwt refresh token cookie.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "jwt",
+            "in": "cookie",
+            "type": "string",
+            "required": true,
+            "description": "Refresh token stored in httpOnly cookie"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "user": {
+                  "$ref": "#/definitions/UserObject"
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/logout": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "description": "Log out the user, revoke the refresh token and clear cookies.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/update-avatar": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "description": "Update the profile picture (avatar) for the authenticated user.",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "avatar",
+            "in": "formData",
+            "type": "file",
+            "required": true,
+            "description": "New avatar image file"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/AvatarUpdateResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/shared-lists": {
+      "get": {
+        "tags": [
+          "Shared Lists"
+        ],
+        "description": "Retrieve all shared lists associated with the authenticated user, including member details.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/SharedListsResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/shared-list": {
+      "post": {
+        "tags": [
+          "Shared Lists"
+        ],
+        "description": "Create a new shared list for the authenticated user.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "CreateSharedListBody",
+            "in": "body",
+            "description": "Details for the new shared list",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateSharedListBody"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/shared-list/entrie/{animeId}": {
+      "get": {
+        "tags": [
+          "Shared Lists"
+        ],
+        "description": "Retrieve all shared lists associated with the user, indicating if the specific anime is present or not.",
+        "parameters": [
+          {
+            "name": "animeId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the anime to check"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/SharedListsWithAnimeResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/shared-list/{listId}/accept": {
+      "post": {
+        "tags": [
+          "Shared Lists"
+        ],
+        "description": "Accept a pending invitation to join a shared list.",
+        "parameters": [
+          {
+            "name": "listId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the shared list invitation to accept"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/shared-list/{listId}/decline": {
+      "delete": {
+        "tags": [
+          "Shared Lists"
+        ],
+        "description": "Decline a pending invitation to a shared list.",
+        "parameters": [
+          {
+            "name": "listId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the shared list invitation to decline"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/shared-lists/invite": {
+      "get": {
+        "tags": [
+          "Shared Lists"
+        ],
+        "description": "Retrieve all pending shared list invitations received by the authenticated user, including list info, sender data, and current members.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/InvitesListResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/shared-list/{listId}": {
+      "get": {
+        "tags": [
+          "Shared Lists"
+        ],
+        "description": "Retrieve full details of a specific shared list by ID, including its members.",
+        "parameters": [
+          {
+            "name": "listId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the shared list"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/SingleSharedListResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/shared-list/{listId}/animes": {
+      "get": {
+        "tags": [
+          "Shared Lists"
+        ],
+        "description": "Retrieve the anime progress of the authenticated user within a specific shared list.",
+        "parameters": [
+          {
+            "name": "listId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the shared list"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/UserProgressResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/shared-list/{listId}/animes/all": {
+      "get": {
+        "tags": [
+          "Shared Lists"
+        ],
+        "description": "Retrieve the combined progress of all users for every anime in a specific shared list.",
+        "parameters": [
+          {
+            "name": "listId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the shared list"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/SharedAnimesProgressResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/shared-list/{listId}/progress/entrie/{animeId}": {
+      "post": {
+        "tags": [
+          "Shared Lists"
+        ],
+        "description": "Increment the authenticated user\\'s watched episode count for a specific anime inside a shared list and sync stats.",
+        "parameters": [
+          {
+            "name": "listId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the shared list"
+          },
+          {
+            "name": "animeId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the anime to update"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/shared-list/{listId}/entrie": {
+      "post": {
+        "tags": [
+          "Shared Lists"
+        ],
+        "description": "Add an anime to the shared list. Requires OWNER or EDITOR role.",
+        "parameters": [
+          {
+            "name": "listId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the shared list"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "AddSharedAnimeBody",
+            "in": "body",
+            "description": "Details of the anime to add",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AddSharedAnimeBody"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/shared-list/{listId}/entrie/{animeId}": {
+      "delete": {
+        "tags": [
+          "Shared Lists"
+        ],
+        "description": "Remove an anime from the shared list. Requires OWNER or EDITOR role.",
+        "parameters": [
+          {
+            "name": "listId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the shared list"
+          },
+          {
+            "name": "animeId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the anime to remove"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/shared-list/{listId}/member": {
+      "post": {
+        "tags": [
+          "Shared Lists"
+        ],
+        "description": "Invite a new user to the shared list. Requires OWNER role.",
+        "parameters": [
+          {
+            "name": "listId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the shared list"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "InviteMemberBody",
+            "in": "body",
+            "description": "ID of the user to invite",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/InviteMemberBody"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/shared-list/{listId}/cancel/{userId}": {
+      "delete": {
+        "tags": [
+          "Shared Lists"
+        ],
+        "description": "Cancel a pending invitation sent to a user. Requires OWNER role.",
+        "parameters": [
+          {
+            "name": "listId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the shared list"
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the invited user"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/shared-list/{listId}/remove/{userId}": {
+      "delete": {
+        "tags": [
+          "Shared Lists"
+        ],
+        "description": "Remove a member from the shared list or leave the list. Requires OWNER role unless removing oneself.",
+        "parameters": [
+          {
+            "name": "listId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the shared list"
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the member to remove"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/shared-list/{listId}/pending": {
+      "get": {
+        "tags": [
+          "Shared Lists"
+        ],
+        "description": "Retrieve a list of users who have pending invitations for this shared list.",
+        "parameters": [
+          {
+            "name": "listId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the shared list"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/PendingMembersResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/shared-list/{listId}/member/{userId}/role": {
+      "patch": {
+        "tags": [
+          "Shared Lists"
+        ],
+        "description": "Update a member\\'s role within the shared list. Requires OWNER role.",
+        "parameters": [
+          {
+            "name": "listId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the shared list"
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the target member"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "UpdateRoleBody",
+            "in": "body",
+            "description": "The new role for the member",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UpdateRoleBody"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/shared-list/{listId}/message": {
+      "patch": {
+        "tags": [
+          "Shared Lists"
+        ],
+        "description": "Update the custom broadcast message of the shared list. Allowed only for the active Leader or the OWNER if no leader exists.",
+        "parameters": [
+          {
+            "name": "listId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the shared list"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "UpdateMessageBody",
+            "in": "body",
+            "description": "New message or null to clear it",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UpdateMessageBody"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/lists/{status}/{page}": {
+      "get": {
+        "tags": [
+          "Private Lists"
+        ],
+        "description": "Retrieve a paginated list of anime from the user\\'s private list, filtered by status.",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Anime status (WATCHING, COMPLETED, DROPPED)"
+          },
+          {
+            "name": "page",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "Page number"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/PaginatedPrivateListResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/lists/{status}": {
+      "get": {
+        "tags": [
+          "Private Lists"
+        ],
+        "description": "Search for anime inside the user\\'s private list filtering by status and title query.",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Anime status"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "type": "string",
+            "required": true,
+            "description": "Search query string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "type": "integer",
+            "required": false,
+            "description": "Page number"
+          },
+          {
+            "name": "schema",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/PaginatedPrivateListResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/list/entrie/{animeId}": {
+      "get": {
+        "tags": [
+          "Private Lists"
+        ],
+        "description": "Check and retrieve details of a specific anime entry in the user\\'s private list.",
+        "parameters": [
+          {
+            "name": "animeId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the anime"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/SinglePrivateAnimeResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Private Lists"
+        ],
+        "description": "Remove an anime entirely from the user\\'s private list.",
+        "parameters": [
+          {
+            "name": "animeId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the anime to delete"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Anime deleted successfully",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Deleted Anime from list successfully"
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/list/entrie": {
+      "post": {
+        "tags": [
+          "Private Lists"
+        ],
+        "description": "Add an anime to the user\\'s private tracking list. Handles statistics, genre tracking, and badge verification if marked as COMPLETED.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "AddAnimePrivateBody",
+            "in": "body",
+            "description": "Status and complete anime details to save",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AddAnimePrivateBody"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "Private Lists"
+        ],
+        "description": "Update the tracking status of an anime entry within the user\\'s private list. Recalculates statistics, watch time, and genre counters based on status transition.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "UpdateAnimeListBody",
+            "in": "body",
+            "description": "Anime ID and the new status to apply",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UpdateAnimeListBody"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/list/{status}/progress": {
+      "get": {
+        "tags": [
+          "Private Lists"
+        ],
+        "description": "Retrieve the comprehensive playback and episode tracking progress for all anime in a specified tracking status.",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Anime tracking status filter",
+            "enum": [
+              "WATCHING",
+              "COMPLETED",
+              "DROPPED"
+            ]
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "schema": {
+              "$ref": "#/definitions/UserAnimesProgressResponse"
+            },
+            "description": "OK"
+          },
+          "400": {
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/list/{status}/progress/entry/{animeId}": {
+      "post": {
+        "tags": [
+          "Private Lists"
+        ],
+        "description": "Increment the watched episode counter by 1 for a specific anime in the user list.",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "animeId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "schema": {
+              "$ref": "#/definitions/UpdateProgressSuccessResponse"
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/anime/episodes/watch": {
+      "post": {
+        "tags": [
+          "Private Lists"
+        ],
+        "description": "Bulk update the last watched episode checkpoint for a specific anime.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BulkWatchBody"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Success"
+                },
+                "currentEpisode": {
+                  "type": "number",
+                  "example": 15
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/anime/episodes/{animeId}": {
+      "get": {
+        "tags": [
+          "Private Lists"
+        ],
+        "description": "Retrieve metadata and the last watched episode indicator for a specific anime.",
+        "parameters": [
+          {
+            "name": "animeId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "schema": {
+              "$ref": "#/definitions/LastWatchedEpisodeResponse"
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/friends": {
+      "get": {
+        "tags": [
+          "Friends"
+        ],
+        "description": "Retrieve the current user\\'s entire network context, categorizing established friendships and separating incoming versus outgoing pending requests.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "$ref": "#/definitions/FriendsResponse"
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/friends/my/search": {
+      "get": {
+        "tags": [
+          "Friends"
+        ],
+        "description": "Search exclusively within the current user\\'s accepted friends list by matching their username against a search query.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "description": "Search query for friend username"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "type": "integer",
+            "required": false,
+            "description": "Page number for pagination"
+          },
+          {
+            "name": "schema",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/SearchFriendsResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/friends/search": {
+      "get": {
+        "tags": [
+          "Friends"
+        ],
+        "description": "Perform a global search to look up any system user by their username, filtering out the current user.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "description": "Global search string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "type": "integer",
+            "required": false,
+            "description": "Page number"
+          },
+          {
+            "name": "schema",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/GlobalSearchUsersResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/friends/request": {
+      "post": {
+        "tags": [
+          "Friends"
+        ],
+        "description": "Dispatch a outbound pending friend request to a target system user.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "FriendRequestBody",
+            "in": "body",
+            "description": "Target receiver unique identifier",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "receiverUserId": {
+                  "type": "number",
+                  "example": 42
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Friend request sent successfully"
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/friends/accept": {
+      "post": {
+        "tags": [
+          "Friends"
+        ],
+        "description": "Accept an incoming pending friend request. Validates that the request exists, is currently PENDING, and was not originally sent by the accepting user.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "AcceptFriendBody",
+            "in": "body",
+            "description": "Object containing the user ID of the request sender",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "senderUserId": {
+                  "type": "number",
+                  "example": 42
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Friend request accepted successfully"
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/friends/decline/{senderUserId}": {
+      "delete": {
+        "tags": [
+          "Friends"
+        ],
+        "description": "Decline or cancel an existing incoming or outgoing pending friend request.",
+        "parameters": [
+          {
+            "name": "senderUserId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the user related to the pending request"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Friend request declined successfully"
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/friends/remove/{friendId}": {
+      "delete": {
+        "tags": [
+          "Friends"
+        ],
+        "description": "Break an established friendship bond, completely removing the specified user from the current friends list.",
+        "parameters": [
+          {
+            "name": "friendId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the friend to be removed"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Friend removed successfully"
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/my-stats": {
+      "get": {
+        "tags": [
+          "Statistics"
+        ],
+        "description": "Retrieve comprehensive user viewing metrics including aggregated watch time formatted in days/hours/minutes, genre distribution counters, and day-by-day historic graphs comparing the current week with the previous week.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Statistics retrieved successfully",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "totalWatchTime": {
+                  "type": "object",
+                  "properties": {
+                    "rawMinutes": {
+                      "type": "number",
+                      "example": 25400
+                    },
+                    "days": {
+                      "type": "number",
+                      "example": 17
+                    },
+                    "hours": {
+                      "type": "number",
+                      "example": 15
+                    },
+                    "minutes": {
+                      "type": "number",
+                      "example": 20
+                    },
+                    "formattedString": {
+                      "type": "string",
+                      "example": "17d 15h 20m"
+                    }
+                  }
+                },
+                "dailyHistory": {
+                  "type": "object",
+                  "properties": {
+                    "currentWeek": {
+                      "type": "array",
+                      "example": [
+                        120,
+                        60,
+                        0,
+                        45,
+                        90,
+                        0,
+                        0
+                      ],
+                      "items": {
+                        "type": "number"
+                      }
+                    },
+                    "previousWeek": {
+                      "type": "array",
+                      "example": [
+                        30,
+                        0,
+                        45,
+                        120,
+                        0,
+                        60,
+                        15
+                      ],
+                      "items": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                },
+                "genres": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "genre": {
+                        "type": "string",
+                        "example": "Adventure"
+                      },
+                      "count": {
+                        "type": "number",
+                        "example": 8
+                      }
+                    }
+                  }
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/my-badges": {
+      "get": {
+        "tags": [
+          "Statistics"
+        ],
+        "description": "Retrieve the complete badges catalog tailored to the current user. Includes calculation of progression metrics towards next tiers, unlocked states, and resolves localized asset paths for badge icons.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User badges catalog compiled successfully",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "example": "shonen_master"
+                      },
+                      "title": {
+                        "type": "string",
+                        "example": "Re dello Shonen"
+                      },
+                      "description": {
+                        "type": "string",
+                        "example": "Completa anime pieni di azione e adrenalina"
+                      },
+                      "image": {
+                        "type": "string",
+                        "example": "shonen_master.png"
+                      },
+                      "category": {
+                        "type": "string",
+                        "example": "GENRE"
+                      },
+                      "isSecret": {
+                        "type": "boolean",
+                        "example": false
+                      },
+                      "unlocked": {
+                        "type": "boolean",
+                        "example": true
+                      },
+                      "highestRankUnlocked": {
+                        "type": "string",
+                        "example": "SILVER"
+                      },
+                      "nextRank": {
+                        "type": "string",
+                        "example": "GOLD"
+                      },
+                      "nextRankThreshold": {
+                        "type": "number",
+                        "example": 30
+                      },
+                      "currentValue": {
+                        "type": "number",
+                        "example": 18
+                      },
+                      "progressPercentage": {
+                        "type": "number",
+                        "example": 60
+                      },
+                      "unlockedAt": {
+                        "type": "string",
+                        "example": "2026-06-25T14:30:00.000Z"
+                      },
+                      "imageUrl": {
+                        "type": "string",
+                        "example": "http://localhost:3000/static/badges/shonen_master.png"
+                      }
+                    }
+                  }
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "RegisterBody": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "example": "user@example.com"
+        },
+        "username": {
+          "type": "string",
+          "example": "john_doe"
+        },
+        "password": {
+          "type": "string",
+          "example": "securePassword123"
+        }
+      }
+    },
+    "LoginBody": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "example": "user@example.com"
+        },
+        "password": {
+          "type": "string",
+          "example": "securePassword123"
+        }
+      }
+    },
+    "UserObject": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number",
+          "example": 1
+        },
+        "email": {
+          "type": "string",
+          "example": "user@example.com"
+        },
+        "username": {
+          "type": "string",
+          "example": "john_doe"
+        },
+        "avatar": {
+          "type": "string",
+          "example": "http://localhost:3001/static/avatar/default.png"
+        }
+      }
+    },
+    "AuthResponse": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "$ref": "#/definitions/UserObject"
+        },
+        "accessToken": {
+          "type": "string",
+          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        },
+        "message": {
+          "type": "string",
+          "example": "User registered successfully"
+        }
+      }
+    },
+    "AvatarUpdateResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "number",
+              "example": 1
+            },
+            "avatar": {
+              "type": "string",
+              "example": "http://localhost:3001/static/avatar/new_avatar.png"
+            }
+          }
+        },
+        "message": {
+          "type": "string",
+          "example": "Avatar updated successfully"
+        }
+      }
+    },
+    "ErrorResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "Error description text"
+        }
+      }
+    },
+    "CreateSharedListBody": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "My Anime Squad List"
+        }
+      }
+    },
+    "AddSharedAnimeBody": {
+      "type": "object",
+      "properties": {
+        "animeDetails": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "number",
+              "example": 21
+            },
+            "animeTitle": {
+              "type": "string",
+              "example": "One Piece"
+            },
+            "animeEpisodes": {
+              "type": "number",
+              "example": 1080
+            },
+            "animeGenres": {
+              "type": "string",
+              "example": "Action, Adventure, Fantasy"
+            },
+            "animeAvgEpisodeDuration": {
+              "type": "number",
+              "example": 24
+            }
+          }
+        }
+      }
+    },
+    "InviteMemberBody": {
+      "type": "object",
+      "properties": {
+        "memberId": {
+          "type": "number",
+          "example": 5
+        }
+      }
+    },
+    "UpdateRoleBody": {
+      "type": "object",
+      "properties": {
+        "newRole": {
+          "type": "string",
+          "example": "EDITOR"
+        }
+      }
+    },
+    "UpdateMessageBody": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "Check out the new episodes added today!"
+        }
+      }
+    },
+    "SharedListObject": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number",
+          "example": 10
+        },
+        "name": {
+          "type": "string",
+          "example": "My Anime Squad List"
+        },
+        "message": {
+          "type": "string",
+          "example": "Welcome to our shared tracking list!"
+        }
+      }
+    },
+    "SharedMemberObject": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number",
+          "example": 1
+        },
+        "username": {
+          "type": "string",
+          "example": "john_doe"
+        },
+        "avatar": {
+          "type": "string",
+          "example": "avatar_file.png"
+        },
+        "role": {
+          "type": "string",
+          "example": "OWNER"
+        },
+        "totalEpisodes": {
+          "type": "number",
+          "example": 120
+        },
+        "length": {
+          "type": "number",
+          "example": 5
+        }
+      }
+    },
+    "AnimeProgressObject": {
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string",
+          "example": "john_doe"
+        },
+        "avatar": {
+          "type": "string",
+          "example": "avatar_file.png"
+        },
+        "currentEpisode": {
+          "type": "number",
+          "example": 12
+        },
+        "animeId": {
+          "type": "number",
+          "example": 21
+        },
+        "updatedAt": {
+          "type": "string",
+          "example": "2026-07-01T15:30:00.000Z"
+        }
+      }
+    },
+    "CatalogAnimeObject": {
+      "type": "object",
+      "properties": {
+        "sharedListId": {
+          "type": "number",
+          "example": 10
+        },
+        "animeId": {
+          "type": "number",
+          "example": 21
+        },
+        "addedOn": {
+          "type": "string",
+          "example": "2026-03-31T10:00:00.000Z"
+        },
+        "lastActivityAt": {
+          "type": "string",
+          "example": "2026-07-01T01:20:00.000Z"
+        },
+        "id": {
+          "type": "number",
+          "example": 21
+        },
+        "animeTitle": {
+          "type": "string",
+          "example": "One Piece"
+        },
+        "animeEpisodes": {
+          "type": "number",
+          "example": 1080
+        },
+        "animeGenres": {
+          "type": "array",
+          "example": [
+            "Action",
+            "Adventure",
+            "Fantasy"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "animeAvgEpisodeDuration": {
+          "type": "number",
+          "example": 24
+        }
+      }
+    },
+    "InvitedUserObject": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "number",
+          "example": 5
+        },
+        "username": {
+          "type": "string",
+          "example": "jane_doe"
+        },
+        "avatar": {
+          "type": "string",
+          "example": "avatar_jane.png"
+        }
+      }
+    },
+    "SharedListsResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "sharedList": {
+                "$ref": "#/definitions/SharedListObject"
+              },
+              "members": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/SharedMemberObject"
+                }
+              },
+              "sharedListMembersNumber": {
+                "type": "number",
+                "example": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "SingleSharedListResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "object",
+          "properties": {
+            "sharedList": {
+              "$ref": "#/definitions/SharedListObject"
+            },
+            "members": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/SharedMemberObject"
+              }
+            },
+            "sharedListMembersNumber": {
+              "type": "number",
+              "example": 1
+            }
+          }
+        }
+      }
+    },
+    "UserProgressResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AnimeProgressObject"
+          }
+        }
+      }
+    },
+    "SharedAnimesProgressResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "anime": {
+                "$ref": "#/definitions/CatalogAnimeObject"
+              },
+              "progress": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/AnimeProgressObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "PendingMembersResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/InvitedUserObject"
+          }
+        }
+      }
+    },
+    "SharedListsWithAnimeResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "number",
+                "example": 10
+              },
+              "name": {
+                "type": "string",
+                "example": "My Anime Squad List"
+              },
+              "message": {
+                "type": "string",
+                "example": "Welcome to our shared tracking list!"
+              },
+              "animeId": {
+                "type": "number",
+                "example": 21
+              }
+            }
+          }
+        }
+      }
+    },
+    "InvitesListResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "sharedList": {
+                "type": "object",
+                "properties": {
+                  "sharedListId": {
+                    "type": "number",
+                    "example": 10
+                  },
+                  "sharedListName": {
+                    "type": "string",
+                    "example": "My Anime Squad List"
+                  }
+                }
+              },
+              "members": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/SharedMemberObject"
+                }
+              },
+              "sharedListMembersNumber": {
+                "type": "number",
+                "example": 1
+              },
+              "senderInfo": {
+                "type": "object",
+                "properties": {
+                  "senderUserId": {
+                    "type": "number",
+                    "example": 1
+                  },
+                  "senderUsername": {
+                    "type": "string",
+                    "example": "john_doe"
+                  },
+                  "senderAvatar": {
+                    "type": "string",
+                    "example": "avatar_file.png"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "PrivateAnime": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "number",
+          "example": 1
+        },
+        "animeId": {
+          "type": "number",
+          "example": 21
+        },
+        "status": {
+          "type": "string",
+          "example": "WATCHING"
+        },
+        "addedOn": {
+          "type": "string",
+          "example": "2026-07-01T12:00:00.000Z"
+        },
+        "updatedAt": {
+          "type": "string",
+          "example": "2026-07-01T12:00:00.000Z"
+        }
+      }
+    },
+    "ListedAnime": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "number",
+          "example": 1
+        },
+        "animeId": {
+          "type": "number",
+          "example": 21
+        },
+        "status": {
+          "type": "string",
+          "example": "WATCHING"
+        },
+        "addedOn": {
+          "type": "string",
+          "example": "2026-07-01T12:00:00.000Z"
+        },
+        "updatedAt": {
+          "type": "string",
+          "example": "2026-07-01T12:00:00.000Z"
+        },
+        "animeMalId": {
+          "type": "number",
+          "example": 21
+        },
+        "animeTitle": {
+          "type": "string",
+          "example": "One Piece"
+        },
+        "animeCover": {
+          "type": "string",
+          "example": "https://example.com/cover.jpg"
+        },
+        "animeEpisodes": {
+          "type": "number",
+          "example": 1080
+        },
+        "lastEpisodeWatched": {
+          "type": "number",
+          "example": 15
+        },
+        "length": {
+          "type": "number",
+          "example": 1
+        }
+      }
+    },
+    "AddAnimePrivateBody": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "example": "WATCHING"
+        },
+        "anime": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "number",
+              "example": 21
+            },
+            "idMal": {
+              "type": "number",
+              "example": 12345
+            },
+            "title": {
+              "type": "string",
+              "example": "One Piece"
+            },
+            "coverImage": {
+              "type": "string",
+              "example": "https://example.com/cover.jpg"
+            },
+            "episodes": {
+              "type": "number",
+              "example": 1080
+            },
+            "duration": {
+              "type": "number",
+              "example": 24
+            },
+            "genres": {
+              "type": "array",
+              "example": [
+                "Action",
+                "Adventure",
+                "Fantasy"
+              ],
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "UpdateAnimeListBody": {
+      "type": "object",
+      "properties": {
+        "animeId": {
+          "type": "number",
+          "example": 21
+        },
+        "status": {
+          "type": "string",
+          "example": "COMPLETED"
+        }
+      }
+    },
+    "BulkWatchBody": {
+      "type": "object",
+      "properties": {
+        "animeId": {
+          "type": "number",
+          "example": 21
+        },
+        "episodeTarget": {
+          "type": "number",
+          "example": 15
+        }
+      }
+    },
+    "SyncAnimeBody": {
+      "type": "object",
+      "properties": {
+        "anime": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "number",
+              "example": 21
+            },
+            "idMal": {
+              "type": "number",
+              "example": 12345
+            },
+            "title": {
+              "type": "string",
+              "example": "One Piece"
+            },
+            "coverImage": {
+              "type": "string",
+              "example": "https://example.com/cover.jpg"
+            },
+            "episodes": {
+              "type": "number",
+              "example": 1080
+            },
+            "duration": {
+              "type": "number",
+              "example": 24
+            },
+            "genres": {
+              "type": "array",
+              "example": [
+                "Action",
+                "Adventure",
+                "Fantasy"
+              ],
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "PaginatedPrivateListResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ListedAnime"
+          }
+        },
+        "page": {
+          "type": "number",
+          "example": 1
+        },
+        "perPage": {
+          "type": "number",
+          "example": 6
+        },
+        "hasNextPage": {
+          "type": "boolean",
+          "example": true
+        }
+      }
+    },
+    "SinglePrivateAnimeResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/definitions/PrivateAnime"
+        }
+      }
+    },
+    "PrivateProgressObject": {
+      "type": "object",
+      "properties": {
+        "animeId": {
+          "type": "number",
+          "example": 21
+        },
+        "animeTitle": {
+          "type": "string",
+          "example": "One Piece"
+        },
+        "currentEpisode": {
+          "type": "number",
+          "example": 14
+        },
+        "totalEpisodes": {
+          "type": "number",
+          "example": 1080
+        },
+        "status": {
+          "type": "string",
+          "example": "WATCHING"
+        },
+        "lastWatchedAt": {
+          "type": "string",
+          "example": "2026-07-01T12:00:00.000Z"
+        }
+      }
+    },
+    "UserAnimesProgressResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PrivateProgressObject"
+          }
+        }
+      }
+    },
+    "UpdateProgressSuccessResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "Private progress updated successfully"
+        },
+        "currentEpisode": {
+          "type": "number",
+          "example": 15
+        }
+      }
+    },
+    "LastWatchedEpisodeResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "object",
+          "properties": {
+            "lastEpisodeWatched": {
+              "type": "number",
+              "example": 14
+            },
+            "animeInfo": {
+              "$ref": "#/definitions/PrivateAnime"
+            }
+          }
+        }
+      }
+    },
+    "Friendship": {
+      "type": "object",
+      "properties": {
+        "userId1": {
+          "type": "number",
+          "example": 1
+        },
+        "userId2": {
+          "type": "number",
+          "example": 42
+        },
+        "status": {
+          "type": "string",
+          "example": "PENDING"
+        },
+        "senderUserId": {
+          "type": "number",
+          "example": 1
+        }
+      }
+    },
+    "FriendUser": {
+      "type": "object",
+      "properties": {
+        "friendUserId": {
+          "type": "number",
+          "example": 42
+        },
+        "friendUsername": {
+          "type": "string",
+          "example": "MonkeyDLuffy"
+        },
+        "friendAvatar": {
+          "type": "string",
+          "example": "https://example.com/avatar.jpg"
+        },
+        "count": {
+          "type": "number",
+          "example": 12
+        }
+      }
+    },
+    "FriendshipInfo": {
+      "type": "object",
+      "properties": {
+        "friendUserId": {
+          "type": "number",
+          "example": 42
+        },
+        "friendUsername": {
+          "type": "string",
+          "example": "MonkeyDLuffy"
+        },
+        "friendAvatar": {
+          "type": "string",
+          "example": "https://example.com/avatar.jpg"
+        },
+        "count": {
+          "type": "number",
+          "example": 12
+        },
+        "senderUserId": {
+          "type": "number",
+          "example": 1
+        },
+        "status": {
+          "type": "string",
+          "example": "PENDING"
+        }
+      }
+    },
+    "FriendsResponse": {
+      "type": "object",
+      "properties": {
+        "accepted": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FriendUser"
+          }
+        },
+        "pending": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "friendUserId": {
+                "type": "number",
+                "example": 42
+              },
+              "friendUsername": {
+                "type": "string",
+                "example": "RoronoaZoro"
+              },
+              "friendAvatar": {
+                "type": "string",
+                "example": "https://example.com/zoro.jpg"
+              },
+              "count": {
+                "type": "number",
+                "example": 12
+              },
+              "isIncoming": {
+                "type": "boolean",
+                "example": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "SearchFriendsResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FriendUser"
+          }
+        }
+      }
+    },
+    "GlobalSearchUsersResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FriendUser"
+          }
+        },
+        "page": {
+          "type": "number",
+          "example": 1
+        },
+        "perPage": {
+          "type": "number",
+          "example": 12
+        },
+        "hasNextPage": {
+          "type": "boolean",
+          "example": false
+        }
+      }
+    },
+    "UserTotalWatchTime": {
+      "type": "object",
+      "properties": {
+        "rawMinutes": {
+          "type": "number",
+          "example": 25400
+        },
+        "days": {
+          "type": "number",
+          "example": 17
+        },
+        "hours": {
+          "type": "number",
+          "example": 15
+        },
+        "minutes": {
+          "type": "number",
+          "example": 20
+        },
+        "formattedString": {
+          "type": "string",
+          "example": "17d 15h 20m"
+        }
+      }
+    },
+    "UserDailyHistory": {
+      "type": "object",
+      "properties": {
+        "currentWeek": {
+          "type": "array",
+          "example": [
+            120,
+            60,
+            0,
+            45,
+            90,
+            0,
+            0
+          ],
+          "items": {
+            "type": "number"
+          }
+        },
+        "previousWeek": {
+          "type": "array",
+          "example": [
+            30,
+            0,
+            45,
+            120,
+            0,
+            60,
+            15
+          ],
+          "items": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "UserGenreStat": {
+      "type": "object",
+      "properties": {
+        "genre": {
+          "type": "string",
+          "example": "Action"
+        },
+        "count": {
+          "type": "number",
+          "example": 14
+        }
+      }
+    },
+    "UserStatsResponse": {
+      "type": "object",
+      "properties": {
+        "totalWatchTime": {
+          "$ref": "#/definitions/UserTotalWatchTime"
+        },
+        "dailyHistory": {
+          "$ref": "#/definitions/UserDailyHistory"
+        },
+        "genres": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/UserGenreStat"
+          }
+        }
+      }
+    },
+    "CatalogBadgeItem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "shonen_master"
+        },
+        "title": {
+          "type": "string",
+          "example": "Re dello Shonen"
+        },
+        "description": {
+          "type": "string",
+          "example": "Completa anime pieni di azione e adrenalina"
+        },
+        "image": {
+          "type": "string",
+          "example": "shonen_master.png"
+        },
+        "category": {
+          "type": "string",
+          "example": "GENRE"
+        },
+        "isSecret": {
+          "type": "boolean",
+          "example": false
+        },
+        "unlocked": {
+          "type": "boolean",
+          "example": true
+        },
+        "highestRankUnlocked": {
+          "type": "string",
+          "example": "SILVER"
+        },
+        "nextRank": {
+          "type": "string",
+          "example": "GOLD"
+        },
+        "nextRankThreshold": {
+          "type": "number",
+          "example": 30
+        },
+        "currentValue": {
+          "type": "number",
+          "example": 18
+        },
+        "progressPercentage": {
+          "type": "number",
+          "example": 60
+        },
+        "unlockedAt": {
+          "type": "string",
+          "example": "2026-06-25T14:30:00.000Z"
+        },
+        "imageUrl": {
+          "type": "string",
+          "example": "http://localhost:3000/static/badges/shonen_master.png"
+        }
+      }
+    },
+    "UserBadgesResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CatalogBadgeItem"
+          }
+        }
+      }
+    }
+  }
+}

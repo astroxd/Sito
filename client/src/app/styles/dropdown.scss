@@ -8,16 +8,18 @@
   width: 200px;
   z-index: 2;
   opacity: 0;
-  visibility: hidden;
+  // visibility: hidden;
+  pointer-events: none;
   transform: translateY(-10px);
   transition:
-    opacity 0.15s ease-in,
-    transform 0.15s ease-in;
+    opacity 0.15s ease-out,
+    transform 0.15s ease-out;
 }
 .dropdown-menu.show {
   opacity: 1;
   visibility: visible;
   transform: translateY(0px);
+  pointer-events: all;
 }
 
 .dropdown-menu::before {

@@ -53,7 +53,7 @@ export class AuthService {
   refreshToken() {
     return this.apiService.get('refresh-token').pipe(
       tap((res: any) => {
-        console.log('REFRESHED TOKEN: ', res.accessToken);
+        // console.log('REFRESHED TOKEN: ', res.accessToken);
         this.setToken(res.accessToken);
       }),
       shareReplay(1),
@@ -61,7 +61,6 @@ export class AuthService {
   }
 
   initSession() {
-    console.log('INIT SESSION');
     this.refreshToken().subscribe({
       next: () => this.loadUser(),
       error: () => {
@@ -73,7 +72,7 @@ export class AuthService {
   loadUser() {
     this.apiService
       .get<any>('session')
-      .pipe(tap((data) => console.log(data)))
+      // .pipe(tap((data) => console.log(data)))
       .subscribe(({ user }: { user: User }) => {
         if (!user) {
           this.setUser(null);
@@ -121,6 +120,29 @@ export class AuthService {
       }),
       shareReplay(1),
     );
+  }
+
+  updateAvatar(avatar: File) {
+    const formData = new FormData();
+    formData.append('avatar', avatar, avatar.name);
+
+    return this.apiService
+      .post<{ data: { id: number; avatar: string } }>('update-avatar', formData)
+      .pipe(
+        tap({
+          next: ({ data }) => {
+            const newAvatarUrl = data.avatar;
+
+            this.user.update((u) => {
+              if (!u) return u;
+              return { ...u, avatar: newAvatarUrl };
+            });
+          },
+          error: (err) => {
+            console.log(err);
+          },
+        }),
+      );
   }
 
   isAuthenticated() {

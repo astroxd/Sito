@@ -19,11 +19,34 @@ import {
   updateSharedListMessage,
   removeSharedAnime,
 } from "../controllers/sharedLists.controller";
+import { checkSharedListAccess } from "../middlewares/sharedList.middleware";
 
 const router = Router();
 
+//* PUBLIC ROUTES
+
 router.get("/shared-lists", getSharedLists);
 router.post("/shared-list", createSharedList);
+
+//* Ritorna tutte le liste condivise dell'utente
+//* se l'anime è presente il campo "animeId" !== null
+//* se l'anime non è presente il campo "animeId" === null
+router.get("/shared-list/entrie/:animeId", getAllSharedListsWithAnimeId);
+
+//* Accetta l'invito alla lista
+router.post("/shared-list/:listId/accept", acceptSharedListRequest);
+
+//* Rifiuta l'invito alla lista
+router.delete("/shared-list/:listId/decline", declineSharedListRequest);
+
+//* Ottiene la lista degli inviti
+router.get("/shared-lists/invite", getInvites);
+
+//* ----------------------------------------------
+
+//* PRIVATE ROUTES
+
+router.use("/shared-list/:listId", checkSharedListAccess);
 
 //* Informazioni lista specifica, chiamata quando carica shared-list.page
 router.get("/shared-list/:listId", getSharedList);
@@ -45,18 +68,10 @@ router.post("/shared-list/:listId/entrie", addSharedAnime);
 //* Rimuovi anime da lista condivisa
 router.delete("/shared-list/:listId/entrie/:animeId", removeSharedAnime);
 
-//* Ritorna tutte le liste condivise dell'utente
-//* se l'anime è presente il campo "animeId" !== null
-//* se l'anime non è presente il campo "animeId" === null
-router.get("/shared-list/entrie/:animeId", getAllSharedListsWithAnimeId);
-
 //* Inviti e gestione dei Membri
 router.post("/shared-list/:listId/member", addMemberRequest);
-router.post("/shared-list/:listId/accept", acceptSharedListRequest);
-router.delete("/shared-list/:listId/decline", declineSharedListRequest);
 router.delete("/shared-list/:listId/cancel/:userId", cancelSharedListRequest);
 router.delete("/shared-list/:listId/remove/:userId", removeMember);
-router.get("/shared-lists/invite", getInvites);
 router.get("/shared-list/:listId/pending", getPendingMembers);
 router.patch("/shared-list/:listId/member/:userId/role", updateMemberRole);
 //*//////////////////////////

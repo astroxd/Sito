@@ -15,7 +15,8 @@ import {
   AnimeCharacter,
   AnimeCharacterApiRes,
 } from 'src/app/models/AnimeDetails';
-
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faLongArrowAltRight } from '@fortawesome/free-solid-svg-icons';
 @Component({
   selector: 'app-characters',
   templateUrl: './characters.component.html',
@@ -28,10 +29,11 @@ import {
     IonRouterLinkWithHref,
     IonInfiniteScroll,
     IonInfiniteScrollContent,
+    FontAwesomeModule,
   ],
 })
 export class Characters implements OnInit {
-  outletData = inject(ROUTER_OUTLET_DATA) as Signal<{ id: string }>;
+  outletData = inject(ROUTER_OUTLET_DATA) as Signal<{ id: number }>;
   public router = inject(Router);
   private AnimeDetailsService = inject(AnimeDetails);
 
@@ -41,7 +43,8 @@ export class Characters implements OnInit {
   public isFullPage = false;
 
   private page = 1;
-  public isLoading = false;
+
+  faLongArrowAltRight = faLongArrowAltRight;
 
   constructor() {
     this.isFullPage = this.router.url.endsWith('characters');
@@ -53,51 +56,50 @@ export class Characters implements OnInit {
   ngOnInit() {}
 
   loadCharacters(event?: InfiniteScrollCustomEvent) {
-    this.isLoading = true;
     this.AnimeDetailsService.GetAnimeCharacters(this.animeId, this.page)
       .pipe(
         finalize(() => {
           if (event) {
             event.target.complete();
-            this.isLoading = false;
           }
         }),
         map((res: AnimeCharacterApiRes) => {
+          return {
+            characters: res.edges.map(
+              ({ node: { image, name }, role, voiceActors }) => {
+                const character: AnimeCharacter = {
+                  image,
+                  name,
+                  role,
+                  voiceActors,
+                };
+                return character;
+              },
+            ),
+            pageInfo: res.pageInfo,
+          };
+        }),
+      )
+      .subscribe({
+        next: (newCharactersInfo) => {
           this.characters.update((characters) => [
             ...characters,
-            ...res.edges.map(({ node: { image, name }, role, voiceActors }) => {
-              const character: AnimeCharacter = {
-                image,
-                name,
-                role,
-                voiceActors,
-              };
-              return character;
-            }),
+            ...newCharactersInfo.characters,
           ]);
           if (event) {
-            event.target.disabled = !res.pageInfo.hasNextPage;
+            event.target.disabled = !newCharactersInfo.pageInfo.hasNextPage;
           }
-        }),
-
-        // catchError((err: any, caught) => {
-        //   console.log(err);
-        //   return;
-        // }),
-      )
-      .subscribe();
+        },
+        complete: () => {
+          if (event) {
+            event.target.complete();
+          }
+        },
+      });
   }
 
   loadMore(event: InfiniteScrollCustomEvent) {
     this.page++;
     this.loadCharacters(event);
   }
-
-  // getParams = (route: any) => ({
-  //   ...route.params,
-  //   ...route.children.reduce(
-  //     (acc: any, child: any) => ({ ...this.getParams(child), ...acc }),
-  //     {},
-  //   ),
-  // });
 }

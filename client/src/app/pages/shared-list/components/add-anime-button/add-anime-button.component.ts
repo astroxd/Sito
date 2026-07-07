@@ -1,9 +1,8 @@
 import {
   Component,
+  computed,
   inject,
-  input,
   OnInit,
-  output,
   signal,
   ViewChild,
 } from '@angular/core';
@@ -56,17 +55,27 @@ import { SharedListsService } from 'src/app/services/shared-lists-service';
   ],
 })
 export class AddAnimeButtonComponent implements OnInit {
-  onAdd = output();
-  sharedListId = input<number>();
-  sharedListAnimeIds = input(new Set<number>());
-
   animeService = inject(GetAnimes);
   sharedListService = inject(SharedListsService);
   modalController = inject(ModalController);
 
+  sharedListId = this.sharedListService.listInfo()?.id!;
+  sharedListAnimesSet = computed(
+    () =>
+      new Set(
+        this.sharedListService
+          .sharedListAnimes()
+          .map((anime) => anime.anime.animeId),
+      ),
+  );
+
+  searchedAnime = signal<Anime[]>([]);
+  private searchSubject = new Subject<string>();
+
   @ViewChild(IonModal) modal!: IonModal;
 
-  name!: string;
+  name = '';
+  private page: number = 1;
 
   cancel() {
     this.modal.dismiss(null, 'cancel');
@@ -75,37 +84,31 @@ export class AddAnimeButtonComponent implements OnInit {
   async openModal() {
     this.searchAnimes('');
     this.modal.present();
+    console.log(this.name);
 
     const dismiss = this.modal.onDidDismiss();
     dismiss.finally(() => {
       this.name = '';
       this.searchedAnime.set([]);
-      this.query = '';
       this.page = 1;
     });
   }
-
-  private searchSubject = new Subject<string>();
 
   onSearch(event: Event) {
     const query = (event.target as HTMLInputElement).value;
     this.searchSubject.next(query);
   }
 
-  private query: string = '';
-  private page: number = 1;
-
   constructor() {
     this.searchSubject
       .pipe(debounceTime(300), distinctUntilChanged())
       .subscribe((query) => {
-        this.query = query;
         this.page = 1;
         this.searchAnimes(query, this.page, true);
       });
   }
 
-  searchedAnime = signal<Anime[]>([]);
+  ngOnInit() {}
 
   searchAnimes(
     query: string,
@@ -113,8 +116,6 @@ export class AddAnimeButtonComponent implements OnInit {
     isNewQuery = false,
     infiniteEvent?: IonInfiniteScrollCustomEvent<void>,
   ) {
-    console.log(query);
-
     const queryOptions: QueryOptions = { page };
     if (query.trim().length > 0) {
       queryOptions.searchOptions = { search: query };
@@ -149,23 +150,14 @@ export class AddAnimeButtonComponent implements OnInit {
   }
 
   onIonInfinite($event: IonInfiniteScrollCustomEvent<void>) {
-    this.searchAnimes(this.query, ++this.page, false, $event);
+    this.searchAnimes(this.name, ++this.page, false, $event);
   }
 
   addToSharedList(anime: Anime) {
     this.sharedListService
-      .addAnimeToSharedList(this.sharedListId()!, anime)
-      .pipe(
-        finalize(() => {
-          this.onAdd.emit();
-        }),
-      )
+      .addAnimeToSharedList(this.sharedListId, anime)
       .subscribe((res) => {
         console.log(res.message);
       });
-
-    this.modal.dismiss();
   }
-
-  ngOnInit() {}
 }

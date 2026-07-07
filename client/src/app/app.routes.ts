@@ -19,4 +19,9 @@ export const routes: Routes = [
         (m) => m.RegisterPage,
       ),
   },
+  {
+    path: '**',
+    loadComponent: () =>
+      import('./pages/not-found/not-found.page').then((m) => m.NotFoundPage),
+  },
 ];

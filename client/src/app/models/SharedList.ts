@@ -3,9 +3,7 @@ export interface SharedList {
   name: string;
   message?: string;
   userId: number;
-  role: number;
-
-  members: SharedListMember[];
+  role: SharedListRole;
 }
 
 export type SharedListRole = 'OWNER' | 'EDITOR' | 'MEMBER';
@@ -80,12 +78,15 @@ export interface SharedListInvitation {
   sharedList: {
     sharedListId: number;
     sharedListName: string;
+  };
+  senderInfo: {
     senderUserId: number;
     senderUsername: string;
     senderAvatar: string;
   };
 
   members: SharedListMember[];
+  sharedListMembersNumber: number;
 }
 
 export interface SharedListInvitationResApi {

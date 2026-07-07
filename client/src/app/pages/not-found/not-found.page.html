@@ -1,0 +1,26 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button default-href="/"></ion-back-button>
+    </ion-buttons>
+    <ion-title class="ion-margin-start">Not Found</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Not Found</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <div>
+    <h2>
+      This route hasn&apos;t yet been discovered <br />
+      Maybe it&apos;s better to go
+      <a routerLink="/home">Home</a>
+    </h2>
+
+    <img src="assets/images/NoRoute.svg" alt="No Route" />
+  </div>
+</ion-content>

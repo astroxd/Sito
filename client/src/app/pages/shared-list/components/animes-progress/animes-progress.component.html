@@ -1,0 +1,50 @@
+<div class="anime-progress-container">
+  <ion-accordion-group expand="inset">
+    @for (animeProgress of sharedListAnimes(); track $index) {
+      <ion-accordion [value]="$index">
+        <ion-item slot="header">
+          <img
+            [src]="animeProgress.anime.animeCover"
+            [alt]="animeProgress.anime.animeTitle"
+          />
+          <span class="ellipsis">{{ animeProgress.anime.animeTitle }}</span>
+        </ion-item>
+        <div class="ion-padding" slot="content">
+          @if (animeProgress.progress.length > 0) {
+            <ul class="progresses">
+              @for (progress of animeProgress.progress; track $index) {
+                @let userProgress =
+                  progress.currentEpisode / animeProgress.anime.animeEpisodes;
+                <li class="user-progress">
+                  <div class="user-info">
+                    <img [src]="progress.avatar" [alt]="progress.username" />
+                    <span>{{ progress.username }}</span>
+                  </div>
+                  <div class="progress">
+                    <ion-progress-bar [value]="userProgress"></ion-progress-bar>
+
+                    <span>{{
+                      `${progress.currentEpisode} /
+                        ${animeProgress.anime.animeEpisodes}`
+                    }}</span>
+                  </div>
+                </li>
+              }
+            </ul>
+          } @else {
+            <div class="no-results">
+              <span> No one started this anime yet </span>
+            </div>
+          }
+          @if (canEditAnime()) {
+            <div class="anime-action">
+              <ion-button (click)="removeAnime(animeProgress.anime.animeId)"
+                >Remove</ion-button
+              >
+            </div>
+          }
+        </div>
+      </ion-accordion>
+    }
+  </ion-accordion-group>
+</div>

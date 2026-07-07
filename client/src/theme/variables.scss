@@ -65,7 +65,8 @@
   --ion-background-color-step-900: #e7e7ea;
   --ion-background-color-step-950: #f3f3f4;
 
-  --ion-font-familiy: "Mulish", sans-serif;
+  // --ion-font-family: var(--main-font);
+  // --ion-font-weight: var(--main-font-weight);
 
   ion-input {
     --highlight-color-valid: var(--ion-color-primary);

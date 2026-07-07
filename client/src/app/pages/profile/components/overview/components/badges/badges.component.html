@@ -11,12 +11,12 @@
   </div>
   <div class="badge-container">
     @for (badge of unlockedBadges(); track badge.id) {
-      <div class="badge">
-        <img
-          [src]="badge.imageUrl"
-          [alt]="badge.title"
-          [class]="badge.unlocked ? '' : 'locked'"
-        />
+      <div
+        class="badge"
+        [class]="badge.unlocked ? '' : 'locked'"
+        (click)="openModal()"
+      >
+        <img [src]="badge.imageUrl" [alt]="badge.title" />
         <span class="badge-title">{{ badge.title }}</span>
         <span
           class="badge-rank"

@@ -6,14 +6,19 @@ import {
   OnInit,
   signal,
 } from '@angular/core';
-import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  of,
+  Subject,
+  switchMap,
+} from 'rxjs';
 import {
   AnimeStatus,
   ListedAnime,
   ListedAnimeApiRes,
 } from 'src/app/models/List';
 
-import { AuthService } from 'src/app/services/auth-service';
 import { IonRow, IonCol } from '@ionic/angular/standalone';
 import { AnimeCard } from 'src/app/components/anime-card/anime-card';
 import { ListsService } from 'src/app/services/lists-service';
@@ -25,8 +30,6 @@ import { ListsService } from 'src/app/services/lists-service';
   imports: [IonRow, IonCol, AnimeCard],
 })
 export class ListComponent implements OnInit {
-  private authService = inject(AuthService);
-
   private listsService = inject(ListsService);
 
   public readonly name = input.required<string>();
@@ -47,28 +50,39 @@ export class ListComponent implements OnInit {
 
   constructor() {
     effect(() => {
-      if (this.authService.user()) {
-        this.searchAnimes();
-      }
-    });
-
-    effect(() => {
-      if (
-        this.listsService.listShouldRefetch() &&
-        this.status() === AnimeStatus.Completed
-      ) {
-        this.listsService.setListShouldRefetech(false);
+      if (this.status() && this.query === '') {
+        const serviceData = this.listsService.getSignalByStatus(
+          this.status(),
+        )();
+        this.listedAnimes.set(serviceData);
         this.page = 1;
-        this.searchAnimes(this.query, this.page, true);
       }
     });
 
     this.searchSubject
-      .pipe(debounceTime(300), distinctUntilChanged())
-      .subscribe((query) => {
-        this.query = query;
-        this.page = 1;
-        this.searchAnimes(query, 1, true);
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        //* SwitchMap: se modifico la query mentre una richiesta è ancora in corso,
+        //* annulla automaticamente la vecchia richiesta e avvia la nuova.
+        switchMap((query) => {
+          if (query === '') {
+            const serviceData = this.listsService.getSignalByStatus(
+              this.status(),
+            )();
+            this.listedAnimes.set(serviceData);
+            this.page = 1;
+            //* per non farlo arrivare al subscribe, ho aggiornato i dati qui
+            return of(null);
+          }
+          return this.listsService.searchAnimes(this.status(), query, 1);
+        }),
+      )
+      .subscribe((res) => {
+        if (res) {
+          this.listedAnimes.set(res.data);
+          this.listedAnimesInfo.set(res);
+        }
       });
   }
 
@@ -76,28 +90,19 @@ export class ListComponent implements OnInit {
 
   onSearch(event: Event) {
     const query = (event.target as HTMLInputElement).value;
-    this.searchSubject.next(query);
     this.query = query;
-    this.page = 1;
-  }
-
-  searchAnimes(query = '', page = 1, isNewQuery = false) {
-    this.listsService
-      .searchAnimes(this.status(), query, page)
-      .subscribe((res) => {
-        if (isNewQuery) {
-          this.listedAnimes.set(res.data);
-        } else {
-          this.listedAnimes.update((currentAnimes) => [
-            ...currentAnimes,
-            ...res.data,
-          ]);
-        }
-        this.listedAnimesInfo.set(res);
-      });
+    this.searchSubject.next(query);
   }
 
   loadMore() {
-    this.searchAnimes(this.query, ++this.page);
+    this.listsService
+      .searchAnimes(this.status(), this.query, ++this.page)
+      .subscribe((res) => {
+        this.listedAnimes.update((currentAnimes) => [
+          ...currentAnimes,
+          ...res.data,
+        ]);
+        this.listedAnimesInfo.set(res);
+      });
   }
 }

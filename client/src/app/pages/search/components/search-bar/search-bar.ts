@@ -1,15 +1,6 @@
-import {
-  Component,
-  effect,
-  inject,
-  model,
-  OnDestroy,
-  OnInit,
-  signal,
-  untracked,
-} from '@angular/core';
+import { Component, effect, inject, model, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { IonRow, IonCol, IonIcon } from '@ionic/angular/standalone';
+import { IonRow, IonCol } from '@ionic/angular/standalone';
 
 import { SelectMenu } from '../../../../components/select-menu/select-menu';
 import {
@@ -23,21 +14,18 @@ import {
   getStatus,
   sortOptions,
 } from '../../../../helpers/animeSearchOptions';
-import { SearchOption, SearchOptions } from '../../../../models/Search';
+import {
+  ParamOptions,
+  SearchOption,
+  SearchOptions,
+} from '../../../../models/Search';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faSearch, faTags, faTimes } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-search-bar',
-  imports: [
-    ReactiveFormsModule,
-    SelectMenu,
-    IonRow,
-    IonCol,
-    IonIcon,
-    FontAwesomeModule,
-  ],
+  imports: [ReactiveFormsModule, SelectMenu, IonRow, IonCol, FontAwesomeModule],
   templateUrl: './search-bar.html',
   styleUrl: './search-bar.scss',
 })
@@ -54,9 +42,8 @@ import { faSearch, faTags, faTimes } from '@fortawesome/free-solid-svg-icons';
 //* meanwhile the URL is updated through the @updateQueryParams function
 //* which sends the queryParams to the search parent who updates the URL
 //* it's important to note that the updated URL doesn't change the signals
-export class SearchBar implements OnInit {
+export class SearchBar {
   private activatedRoute = inject(ActivatedRoute);
-  private routeSnapshot = this.activatedRoute.snapshot;
 
   genreOptions = genreOptions;
   yearOptions = yearOptions;
@@ -67,16 +54,12 @@ export class SearchBar implements OnInit {
   faTags = faTags;
   faTimes = faTimes;
 
-  searchOptions = model<SearchOptions | null>({});
+  searchOptions = model<SearchOptions | null>();
   page = model<number>(1);
   sort = model<string>(sortOptions[0].name);
-  queryParamOptions = model({});
+  queryParamOptions = model<ParamOptions | null>(null);
 
-  inputSearch = new FormControl(
-    this.activatedRoute.snapshot.queryParamMap.get('query') ?? '',
-  );
-
-  cleanupTrigger = model<boolean>(false);
+  inputSearch = new FormControl('');
 
   onSubmit(event: Event) {
     event.preventDefault();
@@ -89,64 +72,101 @@ export class SearchBar implements OnInit {
       this.inputSearch.value === this.searchOptions()?.search
     )
       return;
+    this.shouldReset = true;
     this.search();
   }
+  genres = signal<SearchOption[]>([]);
+  year = signal<SearchOption[]>([]);
+  formats = signal<SearchOption[]>([]);
+  status = signal<SearchOption[]>([]);
+  season = signal<string>('');
 
-  //* On page load
-  genres = signal(
-    getGenres(this.routeSnapshot.queryParamMap.get('genres') || ''),
-  );
-  year = signal(getYear(this.routeSnapshot.queryParamMap.get('year') || ''));
-  formats = signal(
-    getFormats(this.routeSnapshot.queryParamMap.get('formats') || ''),
-  );
-  status = signal(
-    getStatus(this.routeSnapshot.queryParamMap.get('status') || ''),
-  );
-  season = signal(this.routeSnapshot.queryParamMap.get('season') || '');
-
-  private firstRender = true;
+  private shouldReset = false;
   constructor() {
+    this.activatedRoute.queryParamMap.subscribe((params) => {
+      //* array to string conversion necessary for checking inequality
+      //* two different arrays with the same items are different
+
+      //* GENRES
+      const urlGenresStr = params.get('genres') || '';
+      const localGenresStr = this.genres()
+        .map((g) => g.name)
+        .join(',');
+
+      if (urlGenresStr !== localGenresStr) {
+        console.log(this.genres());
+        console.log(getGenres(params.get('genres') || ''));
+        this.genres.set(getGenres(urlGenresStr));
+      }
+
+      //* YEAR
+      const urlYearStr = params.get('year') || '';
+      const localYearStr = this.year()
+        .map((y) => y.name)
+        .join(',');
+      if (urlYearStr !== localYearStr) {
+        this.year.set(getYear(urlYearStr));
+      }
+
+      //* FORMATS
+      const urlFormatsStr = params.get('formats') || '';
+      const localFormatsStr = this.formats()
+        .map((f) => f.name)
+        .join(',');
+      if (urlFormatsStr !== localFormatsStr) {
+        this.formats.set(getFormats(urlFormatsStr));
+      }
+
+      //* STATUS
+      const urlStatusStr = params.get('status') || '';
+      const localStatusStr = this.status()
+        .map((s) => s.name)
+        .join(',');
+      if (urlStatusStr !== localStatusStr) {
+        this.status.set(getStatus(urlStatusStr));
+      }
+
+      //* SEASON
+      this.season.set(params.get('season') || '');
+
+      //* SEARCH
+      if (this.inputSearch.value !== (params.get('query') || '')) {
+        this.inputSearch.setValue(params.get('query') || '', {
+          emitEvent: false,
+        });
+      }
+    });
+
     effect(() => {
       this.search();
-      this.firstRender = false;
-    });
-    effect(() => {
-      if (this.cleanupTrigger()) {
-        console.log('CLEANUP');
-
-        this.season.set('');
-
-        this.cleanupTrigger.set(false);
-      }
     });
   }
 
-  ngOnInit(): void {
-    this.activatedRoute.queryParams.subscribe((param) => {
-      // if (param['sort'] === undefined) {
-      //   console.log('test');
-      //   // this.searchForm().value.set({ search: '' });
-      //   this.genres.set([]);
-      //   this.year.set([]);
-      //   this.formats.set([]);
-      //   this.status.set([]);
-      //   return;
-      // }
+  // ngOnInit(): void {
+  //   this.activatedRoute.queryParams.subscribe((param) => {
+  //     // if (param['sort'] === undefined) {
+  //     //   console.log('test');
+  //     //   // this.searchForm().value.set({ search: '' });
+  //     //   this.genres.set([]);
+  //     //   this.year.set([]);
+  //     //   this.formats.set([]);
+  //     //   this.status.set([]);
+  //     //   return;
+  //     // }
 
-      const searchParamFromHeader = param['query'];
-      if (searchParamFromHeader === undefined) return;
-      if (searchParamFromHeader !== this.inputSearch.value) {
-        // this.searchForm().value.set({ search: searchParamFromHeader });
-        this.genres.set([]);
-        this.year.set([]);
-        this.formats.set([]);
-        this.status.set([]);
-        this.season.set('');
-        //* The signals update trigger the @search() function
-      }
-    });
-  }
+  //     const searchParamFromHeader = param['query'];
+  //     if (searchParamFromHeader === undefined) return;
+  //     if (searchParamFromHeader !== this.inputSearch.value) {
+  //       // this.searchForm().value.set({ search: searchParamFromHeader });
+  //       this.genres.set([]);
+  //       this.year.set([]);
+  //       this.formats.set([]);
+  //       this.status.set([]);
+  //       this.season.set('');
+  //       //* The signals update trigger the @search() function
+  //     }
+  //   });
+  // }
   search() {
     let searchOptions: SearchOptions = {
       search: this.inputSearch.value!,
@@ -157,24 +177,19 @@ export class SearchBar implements OnInit {
       season: this.season(),
     };
 
-    console.log(searchOptions);
-
     for (const [key, param] of Object.entries(searchOptions)) {
-      console.log(key, param);
       if (param.length <= 0) {
         delete searchOptions[key as keyof SearchOptions];
       }
     }
-    console.log('search');
-    this.updateQueryParams();
 
-    console.log(searchOptions);
+    this.updateQueryParams();
 
     this.searchOptions.set(searchOptions);
   }
 
   updateQueryParams() {
-    let params: any = {
+    let params: ParamOptions = {
       query: this.inputSearch.value!,
       genres: this.genres()
         .map((genre) => genre.name)
@@ -189,36 +204,50 @@ export class SearchBar implements OnInit {
 
     //* remove empty values, prevent url like query=&genres=&year=
     for (const [key, param] of Object.entries(params)) {
-      if ((param as any).length <= 0) {
-        delete params[key];
+      if (param.length <= 0) {
+        delete params[key as keyof ParamOptions];
       }
     }
 
     //* resets page number when query changes or any filter is added/removed
-    if (!this.firstRender) {
-      this.page.set(1);
-      this.season.set('');
-      // this.sort.set(sortOptions[0].name);
+    if (this.shouldReset) {
+      if (this.page() !== 1) {
+        this.page.set(1);
+      }
+
+      if (this.season() !== '') {
+        this.season.set('');
+      }
+
+      this.shouldReset = false;
     }
     this.queryParamOptions.set(params);
+  }
+
+  resetOnFilter() {
+    this.shouldReset = true;
   }
 
   deleteGenre(genre: SearchOption) {
     this.genres.set(
       this.genres().filter((_genre) => _genre.name !== genre.name),
     );
+    this.resetOnFilter();
   }
   deleteYear(year: SearchOption) {
     this.year.set(this.year().filter((_year) => _year.name !== year.name));
+    this.resetOnFilter();
   }
   deleteFormat(format: SearchOption) {
     this.formats.set(
       this.formats().filter((_format) => _format.name !== format.name),
     );
+    this.resetOnFilter();
   }
   deleteStatus(status: SearchOption) {
     this.status.set(
       this.status().filter((_status) => _status.name !== status.name),
     );
+    this.resetOnFilter();
   }
 }
