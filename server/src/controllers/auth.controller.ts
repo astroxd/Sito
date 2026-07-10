@@ -1,12 +1,12 @@
 import jwt from "jsonwebtoken";
 import { Request, Response } from "express";
 import { User } from "../models/user.model";
-import { hashSync, compareSync } from "bcrypt";
+import { hashSync, compareSync, compare } from "bcrypt";
 import { existsSync, unlinkSync } from "node:fs";
 
 const JWTSECRET = process.env.JWT_SECRET || "RSAPRIVATEKEY";
 
-export const register = (req: Request, res: Response) => {
+export const register = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Authentication']
      #swagger.description = 'Register a new user. Supports optional avatar upload using multipart/form-data.'
      #swagger.consumes = ['multipart/form-data']
@@ -35,20 +35,20 @@ export const register = (req: Request, res: Response) => {
   const avatar = req.file?.filename;
 
   try {
-    if (User.findByEmail(email)) {
+    if (await User.findByEmail(email)) {
       return res
         .status(409)
         .json({ message: "A user with this email already exists" });
     }
 
-    if (User.findByUsername(username)) {
+    if (await User.findByUsername(username)) {
       return res.status(409).json({
         message:
           "A user with this username already exists, please choose another one",
       });
     }
 
-    const userId = User.createUser(
+    const userId = await User.createUser(
       email,
       hashValue(password),
       username,
@@ -79,7 +79,7 @@ export const register = (req: Request, res: Response) => {
   return res.status(401).json({ message: "Generic error" });
 };
 
-export const login = (req: Request, res: Response) => {
+export const login = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Authentication']
      #swagger.description = 'Authenticate user, set refresh token in httpOnly cookie and return access token.'
      #swagger.parameters['body'] = {
@@ -102,21 +102,21 @@ export const login = (req: Request, res: Response) => {
   }
 
   try {
-    const user = User.findByEmail(email);
+    const user = await User.findByEmail(email);
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const userPassword = User.getPasswordFromEmail(email);
+    const userPassword = await User.getPasswordFromEmail(email);
 
-    const passwordMatch = compareSync(password, userPassword!);
+    const passwordMatch = await compare(password, userPassword!);
 
     if (!passwordMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
     const { accessToken, refreshToken } = generateJwt(user.id);
-    User.updateRefreshToken(user.id, refreshToken);
+    await User.updateRefreshToken(user.id, refreshToken);
 
     res.cookie("jwt", refreshToken, {
       httpOnly: true,
@@ -136,7 +136,7 @@ export const login = (req: Request, res: Response) => {
   return res.status(401).json({ message: "Invalid credentials" });
 };
 
-export const refreshToken = (req: Request, res: Response) => {
+export const refreshToken = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Authentication']
      #swagger.description = 'Renew access token using the refresh token provided via httpOnly cookie.'
      #swagger.responses[200] = { 
@@ -151,7 +151,7 @@ export const refreshToken = (req: Request, res: Response) => {
 
   const refreshToken = cookies.jwt;
   try {
-    const user = User.findByRefreshToken(refreshToken);
+    const user = await User.findByRefreshToken(refreshToken);
 
     if (!user) return res.sendStatus(403);
 
@@ -168,10 +168,10 @@ export const refreshToken = (req: Request, res: Response) => {
   } catch (error) {
     console.log(error);
   }
-  res.sendStatus(403);
+  return res.sendStatus(403);
 };
 
-export const session = (req: Request, res: Response) => {
+export const session = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Authentication']
      #swagger.description = 'Retrieve current session and user details. Requires both a valid Bearer Token and the jwt refresh token cookie.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -194,7 +194,7 @@ export const session = (req: Request, res: Response) => {
 
     const refreshToken = cookies.jwt;
 
-    const user = User.findByRefreshToken(refreshToken);
+    const user = await User.findByRefreshToken(refreshToken);
 
     if (!user) return res.sendStatus(401);
 
@@ -206,7 +206,7 @@ export const session = (req: Request, res: Response) => {
   }
 };
 
-export const logout = (req: Request, res: Response) => {
+export const logout = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Authentication']
      #swagger.description = 'Log out the user, revoke the refresh token and clear cookies.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -216,7 +216,7 @@ export const logout = (req: Request, res: Response) => {
   const userId = res.locals.userId;
 
   try {
-    User.revokeRefreshToken(userId);
+    await User.revokeRefreshToken(userId);
 
     res.clearCookie("jwt");
 
@@ -226,7 +226,7 @@ export const logout = (req: Request, res: Response) => {
   }
 };
 
-export const updateAvatar = (req: Request, res: Response) => {
+export const updateAvatar = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Authentication']
      #swagger.description = 'Update the profile picture (avatar) for the authenticated user.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -247,17 +247,20 @@ export const updateAvatar = (req: Request, res: Response) => {
   const newAvatar = req.file?.filename!;
 
   try {
-    const foundUser = User.findById(userId);
+    const foundUser = await User.findById(userId);
 
     if (!foundUser) {
       return res.status(400).json({ message: "No user found with this ID" });
     }
 
-    if (foundUser.avatar && existsSync(`static/avatar/${foundUser.avatar}`)) {
-      unlinkSync(`static/avatar/${foundUser.avatar}`);
+    if (
+      foundUser.avatarUrl &&
+      existsSync(`static/avatar/${foundUser.avatarUrl}`)
+    ) {
+      unlinkSync(`static/avatar/${foundUser.avatarUrl}`);
     }
 
-    User.updateAvatar(userId, newAvatar);
+    await User.updateAvatar(userId, newAvatar);
 
     return res.status(200).json({
       data: {
@@ -278,7 +281,7 @@ const hashValue = (value: string) => {
   return hashSync(value, saltRounds);
 };
 
-const generateJwt = (userId: number | bigint) => {
+const generateJwt = (userId: number) => {
   const accessToken = jwt.sign(
     {
       userId: userId,

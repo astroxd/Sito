@@ -288,7 +288,7 @@ export const updateSharedUserProgress = (req: Request, res: Response) => {
           anime?.animeAvgEpisodeDuration!,
         );
       } else {
-        const lastWatchedPrivate = watchedEpisode?.lastEpisodeWatched || 0;
+        const lastWatchedPrivate = watchedEpisode?.lastEpisode || 0;
         if (lastWatchedPrivate < newCurrentEpisode) {
           //* Se la lista condivisa è più avanti di quella privata, aumento il counter privato
           User.updateLastWatchedEpisode(
