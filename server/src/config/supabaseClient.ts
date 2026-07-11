@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { Pool } from "pg";
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -17,3 +18,10 @@ export const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 });
 
 console.log("Supabase client initialized successfully!");
+
+export const dbPool = new Pool({
+  connectionString: process.env.DATABASE_TRANSACTION_URL,
+  max: 10,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
+});
