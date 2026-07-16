@@ -68,6 +68,7 @@ export class ListsService {
   }
 
   getListedAnime(animeId: number) {
+    console.log('CHIAMATO?');
     return this.apiService
       .get<PrivateAnimeApiRes>(`list/entrie/${animeId}`)
       .pipe(
@@ -114,6 +115,7 @@ export class ListsService {
         tap({
           next: () => {
             // this.getListedAnime(id).subscribe();
+            console.log('Qui');
             this.animeStatus.set(animeStatus);
           },
           error: (err) => {
@@ -178,12 +180,26 @@ export class ListsService {
       );
   }
 
-  addWatchedEpisode(animeId: number, status = AnimeStatus.Watching) {
+  addWatchedEpisode(
+    animeId: number,
+    isLastEpisode = false,
+    status = AnimeStatus.Watching,
+  ) {
     return this.apiService
       .post(`list/${status}/progress/entry/${animeId}`, {})
       .pipe(
         tap({
           next: () => {
+            this.userProgress.update((oldProgress) =>
+              oldProgress.map((anime) =>
+                anime.animeId === animeId
+                  ? {
+                      ...anime,
+                      lastEpisodeWatched: anime.lastEpisodeWatched + 1,
+                    }
+                  : anime,
+              ),
+            );
             this.getUserProgress().subscribe();
             this.searchAnimes(AnimeStatus.Completed).subscribe({
               next: ({ data: listedAnimes }) => {
@@ -193,6 +209,14 @@ export class ListsService {
                 console.log(err);
               },
             });
+            if (isLastEpisode) {
+              this.userLists.update((state) => ({
+                ...state,
+                [AnimeStatus.Watching]: state[AnimeStatus.Watching].filter(
+                  (anime) => anime.animeId !== animeId,
+                ),
+              }));
+            }
           },
           error: (err) => {
             console.log(err);

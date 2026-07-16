@@ -258,12 +258,12 @@ export const SharedList = {
         `
         shared_list_id,
         anime: anime_id (
-          anime_id,
-          anime_mal_id,
-          anime_title,
-          anime_cover,
-          anime_episodes,
-          anime_genres
+          animeId: anime_id,
+          malId: mal_id,
+          animeTitle: title,
+          animeCover: cover_url,
+          animeEpisodes: episodes,
+          animeGenres: genres
         ),
         progress: shared_list_progress (
           current_episode,
@@ -294,12 +294,12 @@ export const SharedList = {
         userId: progress ? progress.user_id : userId,
         currentEpisode: progress ? progress.current_episode : null,
         updatedAt: progress ? progress.updated_at : null,
-        animeId: anime.anime_id,
-        animeMalId: anime.anime_mal_id,
-        animeTitle: anime.anime_title,
-        animeCover: anime.anime_cover,
-        animeEpisodes: anime.anime_episodes,
-        animeGenres: anime.anime_genres,
+        animeId: anime.animeId,
+        animeMalId: anime.animeMalId,
+        animeTitle: anime.animeTitle,
+        animeCover: anime.animeCover,
+        animeEpisodes: anime.animeEpisodes,
+        animeGenres: anime.animeGenres,
       } as SharedListUserProgress;
     });
 
@@ -320,12 +320,12 @@ export const SharedList = {
         shared_list_id,
         last_activity_at,
         anime: anime_id (
-          anime_id,
-          anime_mal_id,
-          anime_title,
-          anime_cover,
-          anime_episodes,
-          anime_genres
+          animeId: anime_id,
+          animeMalId: mal_id,
+          animeTitle: title,
+          animeCover: cover_url,
+          animeEpisodes: episodes,
+          animeGenres: genres
         )
       `,
       )
@@ -347,12 +347,12 @@ export const SharedList = {
       return {
         sharedListId: row.shared_list_id,
         lastActivityAt: row.last_activity_at,
-        animeId: anime.anime_id,
-        animeMalId: anime.anime_mal_id,
-        animeTitle: anime.anime_title,
-        animeCover: anime.anime_cover,
-        animeEpisodes: anime.anime_episodes,
-        animeGenres: anime.anime_genres,
+        animeId: anime.animeId,
+        animeMalId: anime.animeMalId,
+        animeTitle: anime.animeTitle,
+        animeCover: anime.animeCover,
+        animeEpisodes: anime.animeEpisodes,
+        animeGenres: anime.animeGenres,
       } as SharedListAnime & Anime;
     });
   },

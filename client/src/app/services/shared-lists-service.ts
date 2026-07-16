@@ -81,6 +81,7 @@ export class SharedListsService {
       tap({
         next: ({ data }) => {
           this.userSharedLists.set(data);
+          console.log(data);
         },
         error: (err) => {
           console.log(err);
@@ -195,6 +196,7 @@ export class SharedListsService {
       )
       .subscribe({
         next: ({ data: animesProgress }) => {
+          console.log(animesProgress);
           this.sharedListAnimes.set(animesProgress);
         },
         error: (err) => {

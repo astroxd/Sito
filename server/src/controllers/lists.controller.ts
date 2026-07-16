@@ -8,7 +8,7 @@ import { checkAndUnlockBadges } from "./badge.controller";
 
 const perPage = 6;
 
-export const getList = (req: Request, res: Response) => {
+export const getList = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Private Lists']
      #swagger.description = 'Retrieve a paginated list of anime from the user\'s private list, filtered by status.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -33,16 +33,22 @@ export const getList = (req: Request, res: Response) => {
 
     const offset = (Number(page) - 1) * perPage;
 
-    const list = List.findAllByStatus(userId, animeStatus, perPage, offset);
+    const list = await List.findAllByStatus(
+      userId,
+      animeStatus,
+      perPage,
+      offset,
+    );
 
     let hasNextPage = false;
 
-    if (list.length > 0) {
-      hasNextPage = list[0].length! > Number(page) * perPage;
+    if (list.totalCount > 0) {
+      hasNextPage = list.totalCount > Number(page) * perPage;
     }
 
     return res.status(200).json({
-      data: list,
+      data: list.items,
+      count: list.totalCount,
       page: Number(page),
       perPage: perPage,
       hasNextPage,
@@ -56,7 +62,7 @@ export const getList = (req: Request, res: Response) => {
   });
 };
 
-export const searchInList = (req: Request, res: Response) => {
+export const searchInList = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Private Lists']
      #swagger.description = 'Search for anime inside the user\'s private list filtering by status and title query.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -83,7 +89,7 @@ export const searchInList = (req: Request, res: Response) => {
     const p = parseInt((page as string) ?? 1);
     const offset = (p - 1) * perPage;
 
-    const list = List.findByAnimeTitle(
+    const list = await List.findByAnimeTitle(
       userId,
       animeStatus,
       perPage,
@@ -93,11 +99,17 @@ export const searchInList = (req: Request, res: Response) => {
 
     let hasNextPage = false;
 
-    if (list.length > 0) {
-      hasNextPage = list[0].length! > p * perPage;
+    if (list.totalCount > 0) {
+      hasNextPage = list.totalCount > p * perPage;
     }
 
-    return res.status(200).json({ data: list, page: p, perPage, hasNextPage });
+    return res.status(200).json({
+      data: list.items,
+      count: list.totalCount,
+      page: p,
+      perPage,
+      hasNextPage,
+    });
   } catch (error) {
     console.error(error);
   }
@@ -107,7 +119,7 @@ export const searchInList = (req: Request, res: Response) => {
   });
 };
 
-export const getAnimeInList = (req: Request, res: Response) => {
+export const getAnimeInList = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Private Lists']
      #swagger.description = 'Check and retrieve details of a specific anime entry in the user\'s private list.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -124,7 +136,10 @@ export const getAnimeInList = (req: Request, res: Response) => {
   }
 
   try {
-    const listedAnime = List.findPrivateAnimeByAnimeId(userId, Number(animeId));
+    const listedAnime = await List.findPrivateAnimeByAnimeId(
+      userId,
+      Number(animeId),
+    );
 
     return res.status(200).json({ data: listedAnime ?? null });
   } catch (error) {
@@ -136,7 +151,7 @@ export const getAnimeInList = (req: Request, res: Response) => {
   });
 };
 
-export const addAnimeToList = (req: Request, res: Response) => {
+export const addAnimeToList = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Private Lists']
      #swagger.description = 'Add an anime to the user\'s private tracking list. Handles statistics, genre tracking, and badge verification if marked as COMPLETED.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -167,54 +182,54 @@ export const addAnimeToList = (req: Request, res: Response) => {
     const { animeId, animeAvgEpisodeDuration, animeEpisodes } =
       Anime.sanitizeAnime(anime);
 
-    db.transaction(() => {
-      Anime.animeUpsert(Anime.sanitizeAnime(anime));
+    // db.transaction(() => {
+    await Anime.animeUpsert(Anime.sanitizeAnime(anime));
 
-      const listedAnime = List.findPrivateAnimeByAnimeId(userId, animeId);
+    const listedAnime = await List.findPrivateAnimeByAnimeId(userId, animeId);
 
-      if (listedAnime) {
-        return res
-          .status(400)
-          .json({ message: "This anime is already in a list" });
+    if (listedAnime) {
+      return res
+        .status(400)
+        .json({ message: "This anime is already in a list" });
+    }
+
+    await List.insertPrivateAnime(userId, animeId, status);
+
+    if (animeStatus === AnimeStatus.Completed) {
+      const totalAnimeMinutes = animeEpisodes! * animeAvgEpisodeDuration!;
+      if (totalAnimeMinutes > 0) {
+        trackWatchTime(userId, animeEpisodes!, animeAvgEpisodeDuration!);
       }
 
-      List.insertPrivateAnime(userId, animeId, status);
+      const genresArray = Array.isArray(anime.genres)
+        ? anime.genres.map((g: string) => g.trim())
+        : [];
 
-      if (animeStatus === AnimeStatus.Completed) {
-        const totalAnimeMinutes = animeEpisodes! * animeAvgEpisodeDuration!;
-        if (totalAnimeMinutes > 0) {
-          trackWatchTime(userId, animeEpisodes!, animeAvgEpisodeDuration!);
-        }
+      //* Aumento il count dei generi dell'anime appena finito
+      updateGenreStats(userId, genresArray, "INCREMENT");
 
-        const genresArray = Array.isArray(anime.genres)
-          ? anime.genres.map((g: string) => g.trim())
-          : [];
+      //* Controllo se ha sbloccato dei badge
+      checkAndUnlockBadges(userId);
+    }
 
-        //* Aumento il count dei generi dell'anime appena finito
-        updateGenreStats(userId, genresArray, "INCREMENT");
-
-        //* Controllo se ha sbloccato dei badge
-        checkAndUnlockBadges(userId);
-      }
-
-      //* Aggiungo l'anime in watched Episodes perché così mi spunta sul profilo,
-      //* in sharedList non lo faccio senno mi spunterebbero sul profilo tutti gli anime delle shared list,
-      //* invece lì li aggiungo quando effettivamente segno la puntata
-      User.insertAnimeIntoWatchedEpisodes(userId, animeId, 0);
-    })();
+    //* Aggiungo l'anime in watched Episodes perché così mi spunta sul profilo,
+    //* in sharedList non lo faccio senno mi spunterebbero sul profilo tutti gli anime delle shared list,
+    //* invece lì li aggiungo quando effettivamente segno la puntata
+    await User.insertAnimeIntoWatchedEpisodes(userId, animeId, 0);
+    // })();
     //TODO forse il return dentro la transaction mi fa arrivare qui
     return res
       .status(200)
       .json({ message: "Added Anime to list successfully" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(500).json({
       message: "Internal server error",
     });
   }
 };
 
-export const updateAnimeList = (req: Request, res: Response) => {
+export const updateAnimeList = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Private Lists']
      #swagger.description = 'Update the tracking status of an anime entry within the user\'s private list. Recalculates statistics, watch time, and genre counters based on status transition.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -243,57 +258,49 @@ export const updateAnimeList = (req: Request, res: Response) => {
   }
 
   try {
-    db.transaction(() => {
-      const oldStatus = List.findPrivateAnimeByAnimeId(userId, animeId)?.status;
+    // db.transaction(() => {
+    const oldStatus = await List.findPrivateAnimeByAnimeId(
+      userId,
+      animeId,
+    ).then((s) => s?.status);
 
-      if (!oldStatus) {
-        return res.status(404).json({ message: "No anime in private lists" });
+    if (!oldStatus) {
+      return res.status(404).json({ message: "No anime in private lists" });
+    }
+
+    const currentProgress =
+      (await User.findLastEpisodeWatchedByAnimeId(userId, animeId)) ?? 0;
+    const animeInfo = await Anime.findAnimeById(animeId);
+
+    const genresArray = animeInfo?.animeGenres || [];
+
+    if (animeStatus === AnimeStatus.Completed) {
+      if (animeInfo?.animeEpisodes && animeInfo.animeAvgEpisodeDuration) {
+        const episodeDiff = animeInfo?.animeEpisodes - currentProgress;
+
+        trackWatchTime(userId, episodeDiff, animeInfo.animeAvgEpisodeDuration);
       }
 
-      const currentProgress =
-        User.findLastEpisodeWatchedByAnimeId(userId, animeId)
-          ?.lastEpisodeWatched ?? 0;
-      const animeInfo = Anime.findAnimeById(animeId);
+      //* Aumento il count dei generi dell'anime appena finito
+      updateGenreStats(userId, genresArray, "INCREMENT");
+    } else if (oldStatus === AnimeStatus.Completed) {
+      if (animeInfo?.animeEpisodes && animeInfo.animeAvgEpisodeDuration) {
+        const episodeDiff = currentProgress - animeInfo?.animeEpisodes;
 
-      const genresArray = animeInfo?.animeGenres
-        ? animeInfo.animeGenres.split(",").map((g) => g.trim())
-        : [];
-
-      if (animeStatus === AnimeStatus.Completed) {
-        if (animeInfo?.animeEpisodes && animeInfo.animeAvgEpisodeDuration) {
-          const episodeDiff = animeInfo?.animeEpisodes - currentProgress;
-
-          trackWatchTime(
-            userId,
-            episodeDiff,
-            animeInfo.animeAvgEpisodeDuration,
-          );
-        }
-
-        //* Aumento il count dei generi dell'anime appena finito
-        updateGenreStats(userId, genresArray, "INCREMENT");
-      } else if (oldStatus === AnimeStatus.Completed) {
-        if (animeInfo?.animeEpisodes && animeInfo.animeAvgEpisodeDuration) {
-          const episodeDiff = currentProgress - animeInfo?.animeEpisodes;
-
-          trackWatchTime(
-            userId,
-            episodeDiff,
-            animeInfo.animeAvgEpisodeDuration,
-          );
-        }
-        //* Abbasso il count dei generi dell'anime passato in watching
-        updateGenreStats(userId, genresArray, "DECREMENT");
+        trackWatchTime(userId, episodeDiff, animeInfo.animeAvgEpisodeDuration);
       }
+      //* Abbasso il count dei generi dell'anime passato in watching
+      updateGenreStats(userId, genresArray, "DECREMENT");
+    }
 
-      //* Controllo se ha sbloccato dei badge
-      checkAndUnlockBadges(userId);
-      List.updateAnimeStatus(userId, animeId, animeStatus);
-    })();
+    //* Controllo se ha sbloccato dei badge
+    checkAndUnlockBadges(userId);
+    await List.updateAnimeStatus(userId, animeId, animeStatus);
+    // })();
     //TODO forse il return dentro la transaction mi fa arrivare qui
     return res.status(200).json({ message: "Updated Anime list successfully" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 
   return res.status(500).json({
@@ -301,7 +308,7 @@ export const updateAnimeList = (req: Request, res: Response) => {
   });
 };
 
-export const deleteAnimeFromList = (req: Request, res: Response) => {
+export const deleteAnimeFromList = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Private Lists']
      #swagger.description = 'Remove an anime entirely from the user\'s private list. Deducts watch time and rolls back related statistics.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -319,57 +326,53 @@ export const deleteAnimeFromList = (req: Request, res: Response) => {
   }
 
   try {
-    db.transaction(() => {
-      const oldStatus = List.findPrivateAnimeByAnimeId(
-        userId,
-        Number(animeId),
-      )?.status;
+    // db.transaction(() => {
+    const oldStatus = await List.findPrivateAnimeByAnimeId(
+      userId,
+      Number(animeId),
+    ).then((s) => s?.status);
 
-      if (!oldStatus) {
-        return res
-          .status(404)
-          .json({ message: "Anime not found in your list" });
+    if (!oldStatus) {
+      return res.status(404).json({ message: "Anime not found in your list" });
+    }
+
+    const currentProgress =
+      (await User.findLastEpisodeWatchedByAnimeId(userId, Number(animeId))) ??
+      0;
+    const animeInfo = await Anime.findAnimeById(Number(animeId));
+
+    const genresArray = animeInfo?.animeGenres || [];
+
+    if (animeInfo && animeInfo.animeAvgEpisodeDuration) {
+      let episodesToSubtract = 0;
+
+      if (oldStatus === AnimeStatus.Completed) {
+        episodesToSubtract = animeInfo.animeEpisodes!;
+
+        updateGenreStats(userId, genresArray, "DECREMENT");
+      } else {
+        episodesToSubtract = currentProgress;
       }
 
-      const currentProgress =
-        User.findLastEpisodeWatchedByAnimeId(userId, Number(animeId))
-          ?.lastEpisodeWatched ?? 0;
-      const animeInfo = Anime.findAnimeById(Number(animeId));
-
-      const genresArray = animeInfo?.animeGenres
-        ? animeInfo.animeGenres.split(",").map((g) => g.trim())
-        : [];
-
-      if (animeInfo && animeInfo.animeAvgEpisodeDuration) {
-        let episodesToSubtract = 0;
-
-        if (oldStatus === AnimeStatus.Completed) {
-          episodesToSubtract = animeInfo.animeEpisodes!;
-
-          updateGenreStats(userId, genresArray, "DECREMENT");
-        } else {
-          episodesToSubtract = currentProgress;
-        }
-
-        if (episodesToSubtract > 0) {
-          trackWatchTime(
-            userId,
-            -episodesToSubtract,
-            animeInfo.animeAvgEpisodeDuration,
-          );
-        }
+      if (episodesToSubtract > 0) {
+        trackWatchTime(
+          userId,
+          -episodesToSubtract,
+          animeInfo.animeAvgEpisodeDuration,
+        );
       }
+    }
 
-      List.deleteByAnimeId(userId, Number(animeId));
+    await List.deleteByAnimeId(userId, Number(animeId));
 
-      User.deleteFromWatchingByAnimeId(userId, Number(animeId));
-    })();
+    await User.deleteFromWatchingByAnimeId(userId, Number(animeId));
+    // })();
 
     return res
       .status(200)
       .json({ message: "Deleted Anime from list successfully" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 
   return res.status(500).json({
@@ -377,7 +380,7 @@ export const deleteAnimeFromList = (req: Request, res: Response) => {
   });
 };
 
-export const getUserAnimesProgress = (req: Request, res: Response) => {
+export const getUserAnimesProgress = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Private Lists']
      #swagger.description = 'Retrieve the comprehensive playback and episode tracking progress for all anime in a specified tracking status.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -400,7 +403,7 @@ export const getUserAnimesProgress = (req: Request, res: Response) => {
     if (!animeStatus) {
       return res.status(400).json({ message: "Status not valid" });
     }
-    const userAnimesProgress = List.findAnimesProgressByUserId(
+    const userAnimesProgress = await List.findAnimesProgressByUserId(
       userId,
       animeStatus,
     );
@@ -414,7 +417,7 @@ export const getUserAnimesProgress = (req: Request, res: Response) => {
   }
 };
 
-export const updateUserProgress = (req: Request, res: Response) => {
+export const updateUserProgress = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Private Lists']
      #swagger.description = 'Increment the private tracking progress of an anime entry by exactly +1 episode. Updates status to COMPLETED and adds statistics if max episodes are reached.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -433,7 +436,7 @@ export const updateUserProgress = (req: Request, res: Response) => {
   }
 
   try {
-    const anime = Anime.findAnimeById(Number(animeId));
+    const anime = await Anime.findAnimeById(Number(animeId));
     if (!anime?.animeEpisodes) {
       return res
         .status(404)
@@ -441,7 +444,7 @@ export const updateUserProgress = (req: Request, res: Response) => {
     }
     const maxEpisodes = anime.animeEpisodes;
 
-    const privateAnime = List.findPrivateAnimeByAnimeId(
+    const privateAnime = await List.findPrivateAnimeByAnimeId(
       userId,
       Number(animeId),
     );
@@ -454,46 +457,48 @@ export const updateUserProgress = (req: Request, res: Response) => {
       return res.status(400).json({ message: "Anime is already completed" });
     }
 
-    const watchedEpisode = User.findLastEpisodeWatchedByAnimeId(
+    const watchedEpisode = await User.findLastEpisodeWatchedByAnimeId(
       userId,
       Number(animeId),
     );
 
-    const genresArray = anime?.animeGenres
-      ? anime.animeGenres.split(",").map((g) => g.trim())
-      : [];
+    const genresArray = anime?.animeGenres || [];
 
     let newCurrentEpisode = 1; //* Default se è la prima volta che clicca l'anime
 
-    if (watchedEpisode?.lastEpisodeWatched) {
-      newCurrentEpisode = watchedEpisode.lastEpisodeWatched + 1;
+    if (watchedEpisode) {
+      newCurrentEpisode = watchedEpisode + 1;
     }
 
     if (newCurrentEpisode > maxEpisodes) {
       return res.status(200).json({ message: "Already completed or in par" });
     }
 
-    db.transaction(() => {
-      if (anime.animeAvgEpisodeDuration) {
-        trackWatchTime(userId, 1, anime.animeAvgEpisodeDuration);
-      }
+    // db.transaction(() => {
+    if (anime.animeAvgEpisodeDuration) {
+      trackWatchTime(userId, 1, anime.animeAvgEpisodeDuration);
+    }
 
-      //* Update privato
-      User.updateLastWatchedEpisode(userId, Number(animeId), newCurrentEpisode);
+    //* Update privato
+    await User.updateLastWatchedEpisode(
+      userId,
+      Number(animeId),
+      newCurrentEpisode,
+    );
 
-      //* Update stato anime
-      //* Se sono arrivato fin qui vuol dire che animeStatus = Watching o Dropped
-      //* in entrambi i casi lo stato deve diventare Watching o Completed
-      let calculatedStatus = AnimeStatus.Watching;
-      if (newCurrentEpisode === maxEpisodes) {
-        calculatedStatus = AnimeStatus.Completed;
-        updateGenreStats(userId, genresArray, "INCREMENT");
-      }
+    //* Update stato anime
+    //* Se sono arrivato fin qui vuol dire che animeStatus = Watching o Dropped
+    //* in entrambi i casi lo stato deve diventare Watching o Completed
+    let calculatedStatus = AnimeStatus.Watching;
+    if (newCurrentEpisode === maxEpisodes) {
+      calculatedStatus = AnimeStatus.Completed;
+      updateGenreStats(userId, genresArray, "INCREMENT");
+    }
 
-      checkAndUnlockBadges(userId);
+    checkAndUnlockBadges(userId);
 
-      List.updateAnimeStatus(userId, Number(animeId), calculatedStatus!);
-    })();
+    await List.updateAnimeStatus(userId, Number(animeId), calculatedStatus!);
+    // })();
 
     return res.status(200).json({
       message: "Private progress updated successfully",
@@ -505,7 +510,7 @@ export const updateUserProgress = (req: Request, res: Response) => {
   }
 };
 
-export const syncAnime = (req: Request, res: Response) => {
+export const syncAnime = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Anime Metadata']
      #swagger.description = 'Synchronize or upsert sanitized anime data into the local catalog/database mapping.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -528,11 +533,11 @@ export const syncAnime = (req: Request, res: Response) => {
   try {
     const cleanAnime = Anime.sanitizeAnime(anime);
 
-    Anime.animeUpsert(cleanAnime);
+    await Anime.animeUpsert(cleanAnime);
 
     return res.status(200).json({ message: "Anime synced successfully" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     const clientErrors = ["MISSING_PARAMS", "INVALID_IDS", "MISSING_TITLE"];
     if (clientErrors.includes(error.message)) {
       return res.status(400).json({ message: "Missing parameters" });
@@ -544,7 +549,7 @@ export const syncAnime = (req: Request, res: Response) => {
   }
 };
 
-export const updateLastWatchedEpisode = (req: Request, res: Response) => {
+export const updateLastWatchedEpisode = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Private Lists']
      #swagger.description = 'Bulk update or manually set the exact target episode reached by the user. Automatically shifts status to COMPLETED if the target matches or exceeds max episodes, recalculating stats accordingly.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -572,7 +577,7 @@ export const updateLastWatchedEpisode = (req: Request, res: Response) => {
   }
 
   try {
-    const anime = Anime.findAnimeById(animeId);
+    const anime = await Anime.findAnimeById(animeId);
     if (!anime || !anime.animeEpisodes) {
       return res
         .status(404)
@@ -585,40 +590,45 @@ export const updateLastWatchedEpisode = (req: Request, res: Response) => {
       });
     }
 
-    const privateAnime = List.findPrivateAnimeByAnimeId(userId, animeId);
+    const privateAnime = await List.findPrivateAnimeByAnimeId(userId, animeId);
     if (!privateAnime) {
       return res.status(404).json({ message: "Anime not found in your list" });
     }
 
-    const genresArray = anime.animeGenres
-      ? anime.animeGenres.split(",").map((g) => g.trim())
-      : [];
+    const genresArray = anime.animeGenres || [];
 
-    db.transaction(() => {
-      const currentProgress =
-        User.findLastEpisodeWatchedByAnimeId(userId, animeId)
-          ?.lastEpisodeWatched ?? 0;
+    // db.transaction(() => {
+    const currentProgress =
+      (await User.findLastEpisodeWatchedByAnimeId(userId, animeId)) ?? 0;
 
-      const episodeDiff = episodeTarget - currentProgress;
-      if (episodeDiff !== 0) {
-        trackWatchTime(userId, episodeDiff, anime.animeAvgEpisodeDuration!);
-      }
+    const episodeDiff = episodeTarget - currentProgress;
+    if (episodeDiff !== 0) {
+      trackWatchTime(userId, episodeDiff, anime.animeAvgEpisodeDuration!);
+    }
 
-      User.updateLastWatchedEpisode(userId, animeId, episodeTarget);
+    await User.updateLastWatchedEpisode(userId, animeId, episodeTarget);
 
-      if (
-        episodeTarget >= anime.animeEpisodes! &&
-        anime.animeEpisodes! > 0 &&
-        privateAnime.status !== AnimeStatus.Completed
-      ) {
-        List.updateAnimeStatus(userId, Number(animeId), AnimeStatus.Completed);
-        updateGenreStats(userId, genresArray, "INCREMENT");
-      } else if (privateAnime.status === AnimeStatus.Dropped) {
-        List.updateAnimeStatus(userId, Number(animeId), AnimeStatus.Watching);
-      }
+    if (
+      episodeTarget >= anime.animeEpisodes! &&
+      anime.animeEpisodes! > 0 &&
+      privateAnime.status !== AnimeStatus.Completed
+    ) {
+      await List.updateAnimeStatus(
+        userId,
+        Number(animeId),
+        AnimeStatus.Completed,
+      );
+      updateGenreStats(userId, genresArray, "INCREMENT");
+    } else if (privateAnime.status === AnimeStatus.Dropped) {
+      await List.updateAnimeStatus(
+        userId,
+        Number(animeId),
+        AnimeStatus.Watching,
+      );
+    }
 
-      checkAndUnlockBadges(userId);
-    })();
+    checkAndUnlockBadges(userId);
+    // })();
 
     return res
       .status(200)
@@ -632,7 +642,7 @@ export const updateLastWatchedEpisode = (req: Request, res: Response) => {
   });
 };
 
-export const getLastWatchedEpisode = (req: Request, res: Response) => {
+export const getLastWatchedEpisode = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Anime Episodes']
      #swagger.description = 'Retrieve the last tracked episode alongside full listing metadata for a specific anime inside the user\'s private list.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -649,20 +659,15 @@ export const getLastWatchedEpisode = (req: Request, res: Response) => {
   }
 
   try {
-    const lastEpisodeWatched = User.findLastEpisodeWatchedByAnimeId(
-      userId,
-      Number(animeId),
-    );
-
-    const privateAnime = List.findPrivateAnimeByAnimeId(
-      userId,
-      Number(animeId),
-    );
+    const [lastEpisodeWatched, privateAnime] = await Promise.all([
+      User.findLastEpisodeWatchedByAnimeId(userId, Number(animeId)),
+      List.findPrivateAnimeByAnimeId(userId, Number(animeId)),
+    ]);
 
     return res.status(200).json({
       data: {
-        lastEpisodeWatched: lastEpisodeWatched?.lastEpisodeWatched ?? 0,
-        animeInfo: privateAnime ?? null,
+        lastEpisodeWatched: lastEpisodeWatched ?? 0,
+        animeInfo: privateAnime,
       },
     });
   } catch (error) {

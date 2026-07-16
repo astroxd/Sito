@@ -8,17 +8,17 @@ import {
 import { Statistics } from "../models/statistics.model";
 import { existsSync } from "node:fs";
 
-export const checkAndUnlockBadges = (userId: number) => {
-  const unlockedBadges = Badge.getUserBadges(userId);
+export const checkAndUnlockBadges = async (userId: number) => {
+  const unlockedBadges = await Badge.getUserBadges(userId);
 
   //* Fast look-up set
   const alreadyUnlocked = new Set<string>(unlockedBadges.map((b) => b.rankKey));
 
   //* get user stats (totalTime & genres)
-  const totalTime = Statistics.getUserTotalTime(userId);
+  const totalTime = await Statistics.getUserTotalTime(userId);
   const totalMinutes = totalTime ? totalTime.totalTime : 0;
 
-  const userGenres = Statistics.getUserGenres(userId);
+  const userGenres = await Statistics.getUserGenres(userId);
   const genresMap = new Map<string, number>(
     userGenres.map((r) => [r.genre, r.watchedAnimes]),
   );
@@ -37,14 +37,14 @@ export const checkAndUnlockBadges = (userId: number) => {
 
       //* unlock badge
       if (userProgress >= threshold) {
-        Badge.insertUserBadge(userId, badge.id, rank as BadgeRank);
+        await Badge.insertUserBadge(userId, badge.id, rank as BadgeRank);
       }
     }
   }
 };
 
-const getUserBadgesCatalog = (userId: number) => {
-  const unlockedBadges = Badge.getUserBadges(userId);
+const getUserBadgesCatalog = async (userId: number) => {
+  const unlockedBadges = await Badge.getUserBadges(userId);
 
   //* Fast look-up map {badge.id, [bronze, silver,...]}
   const unlockedBadgesMap = new Map<
@@ -63,10 +63,10 @@ const getUserBadgesCatalog = (userId: number) => {
   });
 
   //* get user stats (totalTime & genres)
-  const totalTime = Statistics.getUserTotalTime(userId);
+  const totalTime = await Statistics.getUserTotalTime(userId);
   const totalMinutes = totalTime ? totalTime.totalTime : 0;
 
-  const userGenres = Statistics.getUserGenres(userId);
+  const userGenres = await Statistics.getUserGenres(userId);
   const genresMap = new Map<string, number>(
     userGenres.map((r) => [r.genre, r.watchedAnimes]),
   );
@@ -128,7 +128,7 @@ const getUserBadgesCatalog = (userId: number) => {
   });
 };
 
-export const getUserBadges = (req: Request, res: Response) => {
+export const getUserBadges = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Statistics']
      #swagger.description = 'Retrieve the complete badges catalog tailored to the current user. Includes calculation of progression metrics towards next tiers, unlocked states, and resolves localized asset paths for badge icons.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -158,7 +158,7 @@ export const getUserBadges = (req: Request, res: Response) => {
   const userId = res.locals.userId;
 
   try {
-    const catalog = getUserBadgesCatalog(userId);
+    const catalog = await getUserBadgesCatalog(userId);
 
     const serverUrl = `${req.protocol}://${req.get("host")}`;
 

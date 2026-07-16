@@ -42,6 +42,7 @@ export class ListComponent implements OnInit {
     page: 0,
     perPage: 0,
     hasNextPage: false,
+    count: 0,
   });
 
   private searchSubject = new Subject<string>();

@@ -60,8 +60,8 @@ export const User = {
         id: user_id,
         email,
         username,
-        avatarUrl: avatar,
-        bannerUrl: banner,
+        avatarUrl: avatar_url,
+        bannerUrl: banner_url,
         createdAt: created_at,
         refreshToken: refresh_token
       `,
@@ -123,8 +123,8 @@ export const User = {
         id: user_id,
         email,
         username,
-        avatarUrl: avatar,
-        bannerUrl: banner,
+        avatarUrl: avatar_url,
+        bannerUrl: banner_url,
         createdAt: created_at,
         refreshToken: refresh_token
       `,
@@ -161,7 +161,7 @@ export const User = {
         `
         userId: user_id,
         username,
-        avatar
+        avatarUrl: avatar_url
       `,
       )
       .neq("user_id", userId)
@@ -181,7 +181,7 @@ export const User = {
       return {
         userId: user.userId,
         username: user.username,
-        avatarUrl: User.formatUserAvatar(user.username, user.avatar),
+        avatarUrl: User.formatUserAvatar(user.username, user.avatarUrl),
       };
     });
   },

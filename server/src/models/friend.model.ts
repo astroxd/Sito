@@ -1,4 +1,4 @@
-import db from "../config/database";
+import { dbPool, supabase } from "../config/supabaseClient";
 import { User } from "./user.model";
 
 export type FriendshipRequestStatus = "PENDING" | "ACCEPTED";
@@ -13,7 +13,7 @@ export interface Friendship {
 export interface FriendUser {
   friendUserId: number;
   friendUsername: string;
-  friendAvatar: string;
+  friendAvatarUrl: string;
   count?: number;
 }
 
@@ -28,119 +28,200 @@ export interface FriendsResponse {
 }
 
 export const Friendship = {
-  findAllFriendship: (userId: number) => {
-    const foundFriendship = db
-      .prepare(
-        `
-            SELECT f.sender_user_id as senderUserId, f.status, u.user_id as friendUserId, u.username as friendUsername, u.avatar as friendAvatar 
-            FROM 'Friendship' f
-            JOIN 'User' u ON (u.user_id = f.user_id_1 OR u.user_id = f.user_id_2) AND u.user_id != @currentUserId
-            WHERE f.user_id_1 = @currentUserId OR f.user_id_2 = @currentUserId
-        `,
-      )
-      .all({ currentUserId: userId }) as FriendshipInfo[];
+  findAllFriendship: async (userId: number): Promise<FriendshipInfo[]> => {
+    const client = await dbPool.connect();
 
-    return foundFriendship.map((user) => {
-      return {
-        ...user,
-        friendAvatar: User.formatUserAvatar(
-          user.friendUsername,
-          user.friendAvatar,
-        ),
-      };
-    });
+    try {
+      const query = `
+        SELECT 
+          f.sender_user_id as "senderUserId", 
+          f.status, 
+          u.user_id as "friendUserId", 
+          u.username as "friendUsername", 
+          u.avatar_url as "friendAvatarUrl"
+        FROM friendship f
+        JOIN "user" u ON (u.user_id = f.user_id_1 OR u.user_id = f.user_id_2) AND u.user_id != $1
+        WHERE f.user_id_1 = $1 OR f.user_id_2 = $1
+      `;
+
+      const result = await client.query(query, [userId]);
+
+      return result.rows.map((row: any) => {
+        const avatarUrl = User.formatUserAvatar(
+          row.friendUsername,
+          row.friendAvatarUrl,
+        );
+
+        return {
+          senderUserId: Number(row.senderUserId),
+          status: row.status as FriendshipRequestStatus,
+          friendUserId: Number(row.friendUserId),
+          friendUsername: row.friendUsername,
+          friendAvatarUrl: avatarUrl,
+        };
+      });
+    } catch (error) {
+      console.error(`Error in findAllFriendship:`, error);
+      throw error;
+    } finally {
+      client.release();
+    }
   },
 
-  findFriendishipByName: (
+  findFriendshipByName: async (
     userId: number,
     status: FriendshipRequestStatus,
     name: string,
     perPage: number,
     offset = 0,
-  ) => {
-    const foundFriendship = db
-      .prepare(
-        `
-            SELECT u.user_id as friendUserId, u.username as friendUsername, u.avatar as friendAvatar, COUNT(*) OVER() as count
-            FROM 'Friendship' f
-            JOIN 'User' u ON (u.user_id = f.user_id_1 OR u.user_id = f.user_id_2) AND u.user_id != @currentUserId
-            WHERE (f.user_id_1 = @currentUserId OR f.user_id_2 = @currentUserId) AND f.status = @status
-            AND u.username COLLATE UTF8_GENERAL_CI LIKE @query
-            LIMIT @limit
-            OFFSET @offset
-    `,
-      )
-      .all({
-        currentUserId: userId,
-        query: name + "%",
-        status,
-        limit: perPage,
-        offset,
-      }) as FriendUser[];
+  ): Promise<{ items: FriendUser[]; totalCount: number }> => {
+    const client = await dbPool.connect();
 
-    return foundFriendship.map((user) => {
+    try {
+      const dataQuery = `
+        SELECT 
+          u.user_id as "friendUserId", 
+          u.username as "friendUsername", 
+          u.avatar_url as "friendAvatarUrl"
+        FROM friendship f
+        JOIN "user" u ON (u.user_id = f.user_id_1 OR u.user_id = f.user_id_2) AND u.user_id != $1
+        WHERE (f.user_id_1 = $1 OR f.user_id_2 = $1) 
+          AND f.status = $2
+          AND u.username ILIKE $3
+        LIMIT $4 OFFSET $5
+      `;
+
+      const countQuery = `
+        SELECT COUNT(*) as "count"
+        FROM friendship f
+        JOIN "user" u ON (u.user_id = f.user_id_1 OR u.user_id = f.user_id_2) AND u.user_id != $1
+        WHERE (f.user_id_1 = $1 OR f.user_id_2 = $1) 
+          AND f.status = $2
+          AND u.username ILIKE $3
+      `;
+
+      const queryPattern = `${name}%`;
+
+      const [dataResult, countResult] = await Promise.all([
+        client.query(dataQuery, [
+          userId,
+          status,
+          queryPattern,
+          perPage,
+          offset,
+        ]),
+        client.query(countQuery, [userId, status, queryPattern]),
+      ]);
+
+      const items: FriendUser[] = dataResult.rows.map((row: any) => {
+        const avatarUrl = User.formatUserAvatar(
+          row.friendUsername,
+          row.friendAvatarUrl,
+        );
+
+        return {
+          friendUserId: Number(row.friendUserId),
+          friendUsername: row.friendUsername,
+          friendAvatarUrl: avatarUrl,
+        };
+      });
+
+      const totalCount = Number(countResult.rows[0]?.count || 0);
+
       return {
-        ...user,
-        friendAvatar: User.formatUserAvatar(
-          user.friendUsername,
-          user.friendAvatar,
-        ),
+        items,
+        totalCount,
       };
-    });
+    } catch (error) {
+      console.error(`Error in findFriendshipByName:`, error);
+      throw error;
+    } finally {
+      client.release();
+    }
   },
 
-  findFriendshipByUsers: (userId1: number, userId2: number) => {
-    return db
-      .prepare(
+  findFriendshipByUsers: async (
+    userId1: number,
+    userId2: number,
+  ): Promise<Friendship | null> => {
+    const { data, error } = await supabase
+      .from("friendship")
+      .select(
         `
-        SELECT user_id_1 as userId1, user_id_2 as userId2, status, sender_user_id as senderUserId
-        FROM 'Friendship'
-        WHERE user_id_1 = ? AND user_id_2 = ?
+        userId1: user_id_1,
+        userId2: user_id_2,
+        status,
+        senderUserId: sender_user_id
       `,
       )
-      .get(userId1, userId2) as Friendship;
+      .eq("user_id_1", userId1)
+      .eq("user_id_2", userId2)
+      .maybeSingle();
+
+    if (error) {
+      console.error(
+        `Error in findFriendshipByUsers [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+
+    return data;
   },
 
-  addFriend: (
+  addFriend: async (
     userId1: number,
     userId2: number,
     status: FriendshipRequestStatus,
     senderUserId: number,
-  ) => {
-    return db
-      .prepare(
-        `
-        INSERT INTO 'Friendship' (user_id_1, user_id_2, status, sender_user_id)
-        VALUES (?, ?, ?, ?)
-      `,
-      )
-      .run(userId1, userId2, status, senderUserId);
+  ): Promise<void> => {
+    const { error } = await supabase.from("friendship").insert([
+      {
+        user_id_1: userId1,
+        user_id_2: userId2,
+        status: status,
+        sender_user_id: senderUserId,
+      },
+    ]);
+
+    if (error) {
+      console.error(`Error in addFriend [${error.code}]: ${error.message}`);
+      throw error;
+    }
   },
 
-  updateFriend: (
+  updateFriend: async (
     userId1: number,
     userId2: number,
     status: FriendshipRequestStatus,
-  ) => {
-    db.prepare(
-      `
-        UPDATE 'Friendship'
-        SET status = ?
-        WHERE user_id_1 = ? AND user_id_2 = ? AND status = 'PENDING'
-      `,
-    ).run(status, userId1, userId2);
+  ): Promise<void> => {
+    const { error } = await supabase
+      .from("friendship")
+      .update({ status: status })
+      .eq("user_id_1", userId1)
+      .eq("user_id_2", userId2)
+      .eq("status", "PENDING");
+
+    if (error) {
+      console.error(`Error in updateFriend [${error.code}]: ${error.message}`);
+      throw error;
+    }
   },
 
-  deleteFriend: (
+  deleteFriend: async (
     userId1: number,
     userId2: number,
     status: FriendshipRequestStatus,
-  ) => {
-    db.prepare(
-      `
-        DELETE FROM 'Friendship'
-        WHERE user_id_1 = ? AND user_id_2 = ? AND status = ?
-      `,
-    ).run(userId1, userId2, status);
+  ): Promise<void> => {
+    const { error } = await supabase
+      .from("friendship")
+      .delete()
+      .eq("user_id_1", userId1)
+      .eq("user_id_2", userId2)
+      .eq("status", status);
+
+    if (error) {
+      console.error(`Error in deleteFriend [${error.code}]: ${error.message}`);
+      throw error;
+    }
   },
 };

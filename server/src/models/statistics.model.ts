@@ -1,4 +1,5 @@
 import db from "../config/database";
+import { dbPool, supabase } from "../config/supabaseClient";
 
 export type AnimeGenre =
   | "Action"
@@ -61,74 +62,150 @@ export interface UserDailyWatchtime {
 }
 
 export const Statistics = {
-  getUserTotalTime: (userId: number) => {
-    return db
-      .prepare(
+  getUserTotalTime: async (userId: number): Promise<UserTotalTime | null> => {
+    const { data, error } = await supabase
+      .from("statistics")
+      .select(
         `
-        SELECT user_id as userId, total_time as totalTime
-        FROM 'Statistics' 
-        WHERE user_id = ?
+        userId: user_id,
+        totalTime: total_time
       `,
       )
-      .get(userId) as UserTotalTime | undefined;
-  },
+      .eq("user_id", userId)
+      .maybeSingle();
 
-  getUserGenres: (userId: number) => {
-    return db
-      .prepare(
+    if (error) {
+      console.error(
+        `Error in getUserTotalTime [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+
+    return data;
+  },
+  getUserGenres: async (userId: number): Promise<UserGenre[]> => {
+    const { data, error } = await supabase
+      .from("genre")
+      .select(
         `
-        SELECT user_id as userId, genre, watched_animes as watchedAnimes
-        FROM 'Genre'
-        WHERE user_id = ? AND watched_animes > 0
+        userId: user_id,
+        genre,
+        watchedAnimes: watched_animes
       `,
       )
-      .all(userId) as UserGenre[];
+      .eq("user_id", userId)
+      .gt("watched_animes", 0);
+
+    if (error) {
+      console.error(`Error in getUserGenres [${error.code}]: ${error.message}`);
+      throw error;
+    }
+
+    return data || [];
   },
 
-  getDailyWatchtimeInRange: (userId: number, start: string, end: string) => {
-    return db
-      .prepare(
+  getDailyWatchtimeInRange: async (
+    userId: number,
+    start: string,
+    end: string,
+  ): Promise<UserDailyWatchtime[]> => {
+    const { data, error } = await supabase
+      .from("daily_watch_time")
+      .select(
         `
-        SELECT user_id as userId, date, watchtime
-        FROM 'Daily WatchTime'
-        WHERE user_id = ? AND date BETWEEN ? AND ?
-        ORDER BY date DESC
+        userId: user_id,
+        date,
+        watchtime: watch_time
       `,
       )
-      .all(userId, start, end) as UserDailyWatchtime[];
+      .eq("user_id", userId)
+      .gte("date", start)
+      .lte("date", end)
+      .order("date", { ascending: false });
+
+    if (error) {
+      console.error(
+        `Error in getDailyWatchtimeInRange [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+
+    return data || [];
   },
 
-  updateUserTotalTime: (userId: number, deltaMinutes: number) => {
-    db.prepare(
-      `
-        INSERT INTO 'Statistics' (user_id, total_time) 
-        VALUES (?, MAX(0,?))
-        ON CONFLICT(user_id) DO UPDATE SET total_time = MAX(0, total_time + ?)    
-      `,
-    ).run(userId, deltaMinutes, deltaMinutes);
+  updateUserTotalTime: async (
+    userId: number,
+    deltaMinutes: number,
+  ): Promise<void> => {
+    const client = await dbPool.connect();
+
+    try {
+      const query = `
+        INSERT INTO statistics (user_id, total_time) 
+        VALUES ($1, GREATEST(0, $2))
+        ON CONFLICT (user_id) 
+        DO UPDATE SET 
+          total_time = GREATEST(0, statistics.total_time + $2),
+          updated_at = NOW()
+      `;
+
+      await client.query(query, [userId, deltaMinutes]);
+    } catch (error) {
+      console.error(`Error in updateUserTotalTime:`, error);
+      throw error;
+    } finally {
+      client.release();
+    }
   },
 
-  updateDailyWatchtime: (userId: number, deltaMinutes: number) => {
-    db.prepare(
-      `
-        INSERT INTO 'Daily WatchTime' (user_id, date, watchtime) 
-        VALUES (?, DATE('now'), MAX(0, ?))
-        ON CONFLICT(user_id, date) DO UPDATE SET watchtime = MAX(0, watchtime + ?)
-      `,
-    ).run(userId, deltaMinutes, deltaMinutes);
+  updateDailyWatchtime: async (
+    userId: number,
+    deltaMinutes: number,
+  ): Promise<void> => {
+    const client = await dbPool.connect();
+
+    try {
+      const query = `
+        INSERT INTO daily_watch_time (user_id, date, watch_time) 
+        VALUES ($1, CURRENT_DATE, GREATEST(0, $2))
+        ON CONFLICT (user_id, date) 
+        DO UPDATE SET 
+          watch_time = GREATEST(0, daily_watch_time.watch_time + $2),
+          updated_at = NOW()
+      `;
+
+      await client.query(query, [userId, deltaMinutes]);
+    } catch (error) {
+      console.error(`Error in updateDailyWatchtime:`, error);
+      throw error;
+    } finally {
+      client.release();
+    }
   },
 
-  updateUserGenres: (
+  updateUserGenres: async (
     userId: number,
     genre: AnimeGenre,
     deltaAnimeCount: number,
-  ) => {
-    db.prepare(
-      `
-       INSERT INTO 'Genre' (user_id, genre, watched_animes) 
-        VALUES (?, ?, MAX(0, ?))
-        ON CONFLICT(user_id, genre) DO UPDATE SET watched_animes = MAX(0, watched_animes + ?)
-      `,
-    ).run(userId, genre, deltaAnimeCount, deltaAnimeCount);
+  ): Promise<void> => {
+    const client = await dbPool.connect();
+
+    try {
+      const query = `
+        INSERT INTO genre (user_id, genre, watched_animes) 
+        VALUES ($1, $2, GREATEST(0, $3))
+        ON CONFLICT (user_id, genre) 
+        DO UPDATE SET 
+          watched_animes = GREATEST(0, genre.watched_animes + $3),
+          updated_at = NOW()
+      `;
+
+      await client.query(query, [userId, genre, deltaAnimeCount]);
+    } catch (error) {
+      console.error(`Error in updateUserGenres:`, error);
+      throw error;
+    } finally {
+      client.release();
+    }
   },
 };

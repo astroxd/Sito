@@ -12,6 +12,8 @@
             @if (uProgress.lastEpisodeWatched !== uProgress.animeEpisodes) {
               @let progress =
                 uProgress.lastEpisodeWatched / uProgress.animeEpisodes;
+              @let isLastEpisode =
+                uProgress.lastEpisodeWatched + 1 === uProgress.animeEpisodes;
               <li class="anime-episode-card">
                 <div class="anime-episode-card-image">
                   <img
@@ -20,7 +22,7 @@
                   />
                   <button
                     class="primary-btn"
-                    (click)="addEpisode(uProgress.animeId)"
+                    (click)="addEpisode(uProgress.animeId, isLastEpisode)"
                   >
                     <fa-icon [icon]="faPlus"></fa-icon>
                   </button>

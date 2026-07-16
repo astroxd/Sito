@@ -129,11 +129,11 @@ export class FriendListComponent implements OnInit {
         const foundUsers = data;
 
         if (isNewQuery) {
-          this.searchedUsers.set(foundUsers);
+          this.searchedUsers.set(foundUsers.items);
         } else {
           this.searchedUsers.update((currentUsers) => [
             ...currentUsers,
-            ...foundUsers,
+            ...foundUsers.items,
           ]);
         }
 

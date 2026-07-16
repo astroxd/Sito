@@ -19,7 +19,7 @@ export class KeepWatchingComponent implements OnInit {
 
   ngOnInit() {}
 
-  addEpisode(animeId: number) {
-    this.listsService.addWatchedEpisode(animeId).subscribe();
+  addEpisode(animeId: number, isLastEpisode: boolean) {
+    this.listsService.addWatchedEpisode(animeId, isLastEpisode).subscribe();
   }
 }

@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import { Request, Response } from "express";
 import { User } from "../models/user.model";
-import { hashSync, compareSync, compare } from "bcrypt";
+import { hashSync, compare } from "bcrypt";
 import { existsSync, unlinkSync } from "node:fs";
 
 const JWTSECRET = process.env.JWT_SECRET || "RSAPRIVATEKEY";

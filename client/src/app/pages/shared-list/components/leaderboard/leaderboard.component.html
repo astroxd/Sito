@@ -10,7 +10,7 @@
         <ion-item [lines]="$index + 1 === members().length ? 'none' : 'full'">
           <span class="rank">{{ `#${$index + 1}` }}</span>
           <ion-avatar>
-            <img [src]="member.avatar" [alt]="member.username" />
+            <img [src]="member.avatarUrl" [alt]="member.username" />
           </ion-avatar>
 
           <ion-label>{{ member.username }}</ion-label>

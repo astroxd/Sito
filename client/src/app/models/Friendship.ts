@@ -22,14 +22,14 @@ export interface FoundUser {
 }
 
 export interface FoundUsersApiRes {
-  data: FoundUser[];
+  data: { items: FoundUser[]; countNumber: number };
   page: number;
   perPage: number;
   hasNextPage: boolean;
 }
 
 export interface FriendUsersApiRes {
-  data: FriendUser[];
+  data: { items: FriendUser[]; countNumber: number };
   page: number;
   perPage: number;
   hasNextPage: boolean;

@@ -3,10 +3,10 @@ export interface User {
   email: string;
   username: string;
   password?: string;
-  avatar: string;
-  banner?: string;
-  created_on?: string;
-  refresh_token?: string;
+  avatarUrl: string;
+  bannerUrl?: string;
+  createdAt?: string;
+  refreshToken?: string;
 }
 
 export interface TotalWatchTime {
