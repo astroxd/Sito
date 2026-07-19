@@ -1,14 +1,21 @@
 import { inject, Injectable, signal } from '@angular/core';
-import { User } from '../models/User';
+import {
+  AvatarUploadData,
+  LoginResponse,
+  RegisterResponse,
+  User,
+} from '../models/User';
 import { finalize, shareReplay, tap } from 'rxjs';
 import { Router } from '@angular/router';
 import { APIService } from './apiservice';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private apiService = inject(APIService);
+  private httpClient = inject(HttpClient);
   private router = inject(Router);
 
   user = signal<User | undefined | null>(undefined);
@@ -18,15 +25,15 @@ export class AuthService {
 
   login(email: string, password: string) {
     return this.apiService
-      .post('login', {
+      .post<LoginResponse>('login', {
         email,
         password,
       })
       .pipe(
         tap({
-          next: (value: any) => {
-            this.setUser(value.user);
-            this.setToken(value.accessToken);
+          next: ({ data }) => {
+            this.setUser(data.user);
+            this.setToken(data.accessToken);
           },
           error: () => {
             this.setUser(null);
@@ -51,9 +58,8 @@ export class AuthService {
   }
 
   refreshToken() {
-    return this.apiService.get('refresh-token').pipe(
-      tap((res: any) => {
-        // console.log('REFRESHED TOKEN: ', res.accessToken);
+    return this.apiService.get<{ accessToken: string }>('refresh-token').pipe(
+      tap((res) => {
         this.setToken(res.accessToken);
       }),
       shareReplay(1),
@@ -71,9 +77,9 @@ export class AuthService {
 
   loadUser() {
     this.apiService
-      .get<any>('session')
+      .get<{ user: User }>('session')
       // .pipe(tap((data) => console.log(data)))
-      .subscribe(({ user }: { user: User }) => {
+      .subscribe(({ user }) => {
         if (!user) {
           this.setUser(null);
         } else {
@@ -98,46 +104,59 @@ export class AuthService {
     password: string,
     avatar: File | null,
   ) {
-    const formData = new FormData();
-
-    formData.append('email', email);
-    formData.append('username', username);
-    formData.append('password', password);
-    if (avatar) {
-      formData.append('avatar', avatar, avatar.name);
-    }
-
-    return this.apiService.post('register', formData).pipe(
-      tap({
-        next: (value: any) => {
-          this.setUser(value.user);
-          this.setToken(value.accessToken);
-        },
-        error: () => {
-          this.setUser(null);
-          this.setToken(null);
-        },
-      }),
-      shareReplay(1),
-    );
-  }
-
-  updateAvatar(avatar: File) {
-    const formData = new FormData();
-    formData.append('avatar', avatar, avatar.name);
-
     return this.apiService
-      .post<{
-        data: { id: number; avatarUrl: string };
-      }>('update-avatar', formData)
+      .post<RegisterResponse>('register', { email, username, password })
       .pipe(
         tap({
           next: ({ data }) => {
-            const newAvatarUrl = data.avatarUrl;
+            this.setUser(data.user);
+            this.setToken(data.accessToken);
 
-            this.user.update((u) => {
-              if (!u) return u;
-              return { ...u, avatarUrl: newAvatarUrl };
+            if (avatar) {
+              this.uploadAvatarFile(data.avatarUploadData, avatar).subscribe({
+                next: () => {},
+                error: (err) => {
+                  console.log(err);
+                },
+              });
+            }
+          },
+          error: () => {
+            this.setUser(null);
+            this.setToken(null);
+          },
+        }),
+        shareReplay(1),
+      );
+  }
+
+  updateAvatar(avatar: File) {
+    // const formData = new FormData();
+    // formData.append('avatar', avatar, avatar.name);
+
+    return this.apiService
+      .get<{
+        data: AvatarUploadData;
+      }>('update-avatar')
+      .pipe(
+        tap({
+          next: ({ data }) => {
+            this.uploadAvatarFile(data, avatar).subscribe({
+              next: () => {
+                // this.toastService.showToast(
+                //   'Avatar uploaded succesfully',
+                //   true,
+                // );
+                // const newAvatarUrl = `${data.publicUrl}?t=${new Date().getTime()}`;
+                // const newAvatarUrl = data.publicUrl;
+                // this.user.update((u) => {
+                //   if (!u) return u;
+                //   return { ...u, avatarUrl: newAvatarUrl };
+                // });
+              },
+              error: (err) => {
+                console.log(err);
+              },
             });
           },
           error: (err) => {
@@ -149,5 +168,37 @@ export class AuthService {
 
   isAuthenticated() {
     return this.user() !== null && this.user() !== undefined;
+  }
+
+  uploadAvatarFile(avatarUploadData: AvatarUploadData, avatar: File) {
+    return this.httpClient
+      .put(avatarUploadData.uploadUrl, avatar, {
+        headers: { 'Content-Type': avatar.type },
+      })
+      .pipe(
+        tap({
+          next: () => {
+            this.apiService
+              .patch<{
+                data: { avatarUrl: string };
+              }>('update-avatar/confirm', {})
+              .subscribe({
+                next: ({ data: { avatarUrl } }) => {
+                  this.user.update((u) => {
+                    if (!u) return u;
+                    return { ...u, avatarUrl };
+                  });
+                },
+                error: (err) => {
+                  console.log(err);
+                  this.user.update((u) => {
+                    if (!u) return u;
+                    return { ...u, avatarUrl: u.defaultAvatarUrl };
+                  });
+                },
+              });
+          },
+        }),
+      );
   }
 }

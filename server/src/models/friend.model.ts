@@ -38,7 +38,7 @@ export const Friendship = {
           f.status, 
           u.user_id as "friendUserId", 
           u.username as "friendUsername", 
-          u.avatar_url as "friendAvatarUrl"
+          u.avatar_updated_at as "friendAvatarUrl"
         FROM friendship f
         JOIN "user" u ON (u.user_id = f.user_id_1 OR u.user_id = f.user_id_2) AND u.user_id != $1
         WHERE f.user_id_1 = $1 OR f.user_id_2 = $1
@@ -48,6 +48,7 @@ export const Friendship = {
 
       return result.rows.map((row: any) => {
         const avatarUrl = User.formatUserAvatar(
+          row.frinedUserId,
           row.friendUsername,
           row.friendAvatarUrl,
         );
@@ -82,7 +83,7 @@ export const Friendship = {
         SELECT 
           u.user_id as "friendUserId", 
           u.username as "friendUsername", 
-          u.avatar_url as "friendAvatarUrl"
+          u.avatar_updated_at as "friendAvatarUrl"
         FROM friendship f
         JOIN "user" u ON (u.user_id = f.user_id_1 OR u.user_id = f.user_id_2) AND u.user_id != $1
         WHERE (f.user_id_1 = $1 OR f.user_id_2 = $1) 
@@ -115,6 +116,7 @@ export const Friendship = {
 
       const items: FriendUser[] = dataResult.rows.map((row: any) => {
         const avatarUrl = User.formatUserAvatar(
+          row.friendUserId,
           row.friendUsername,
           row.friendAvatarUrl,
         );

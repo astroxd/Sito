@@ -1,13 +1,16 @@
 import { supabase } from "../config/supabaseClient";
+import * as crypto from "crypto";
 
 export interface User {
   id: number;
   email: string;
   username: string;
   avatarUrl?: string;
+  defaultAvatarUrl?: string;
   bannerUrl?: string;
   createdAt?: string;
   refreshToken?: string;
+  avatarUpdatedAt?: string;
 }
 
 export interface FoundUser {
@@ -28,7 +31,7 @@ export const User = {
       id: user_id,
       email,
       username,
-      avatarUrl: avatar_url,
+      avatarUpdatedAt: avatar_updated_at,
       bannerUrl: banner_url,
       createdAt: created_at,
       refreshToken: refresh_token
@@ -45,7 +48,11 @@ export const User = {
     if (data) {
       return {
         ...data,
-        avatarUrl: User.formatUserAvatar(data.username, data.avatarUrl),
+        avatarUrl: User.formatUserAvatar(
+          data.id,
+          data.username,
+          data.avatarUpdatedAt,
+        ),
       };
     }
 
@@ -60,7 +67,7 @@ export const User = {
         id: user_id,
         email,
         username,
-        avatarUrl: avatar_url,
+        avatarUpdatedAt: avatar_updated_at,
         bannerUrl: banner_url,
         createdAt: created_at,
         refreshToken: refresh_token
@@ -77,7 +84,11 @@ export const User = {
     if (data) {
       return {
         ...data,
-        avatarUrl: User.formatUserAvatar(data.username, data.avatarUrl),
+        avatarUrl: User.formatUserAvatar(
+          data.id,
+          data.username,
+          data.avatarUpdatedAt,
+        ),
       };
     }
 
@@ -92,7 +103,7 @@ export const User = {
       id: user_id,
       email,
       username,
-      avatarUrl: avatar_url,
+      avatarUpdatedAt: avatar_updated_at,
       bannerUrl: banner_url`,
       )
       .eq("username", username)
@@ -108,7 +119,11 @@ export const User = {
     if (data) {
       return {
         ...data,
-        avatarUrl: User.formatUserAvatar(data.username, data.avatarUrl),
+        avatarUrl: User.formatUserAvatar(
+          data.id,
+          data.username,
+          data.avatarUpdatedAt,
+        ),
       };
     }
 
@@ -123,7 +138,7 @@ export const User = {
         id: user_id,
         email,
         username,
-        avatarUrl: avatar_url,
+        avatarUpdatedAt: avatar_updated_at,
         bannerUrl: banner_url,
         createdAt: created_at,
         refreshToken: refresh_token
@@ -142,7 +157,11 @@ export const User = {
     if (data) {
       return {
         ...data,
-        avatarUrl: User.formatUserAvatar(data.username, data.avatarUrl),
+        avatarUrl: User.formatUserAvatar(
+          data.id,
+          data.username,
+          data.avatarUpdatedAt,
+        ),
       };
     }
 
@@ -161,7 +180,7 @@ export const User = {
         `
         userId: user_id,
         username,
-        avatarUrl: avatar_url
+        avatarUpdatedAt: avatar_updated_at
       `,
       )
       .neq("user_id", userId)
@@ -181,7 +200,11 @@ export const User = {
       return {
         userId: user.userId,
         username: user.username,
-        avatarUrl: User.formatUserAvatar(user.username, user.avatarUrl),
+        avatarUrl: User.formatUserAvatar(
+          user.userId,
+          user.username,
+          user.avatarUpdatedAt,
+        ),
       };
     });
   },
@@ -210,7 +233,6 @@ export const User = {
     email: string,
     passwordHash: string,
     username: string,
-    avatar?: string,
   ): Promise<number> => {
     const { data, error } = await supabase
       .from("user")
@@ -219,7 +241,6 @@ export const User = {
           email,
           password_hash: passwordHash,
           username,
-          avatar_url: avatar ?? null,
           banner_url: null,
         },
       ])
@@ -284,17 +305,41 @@ export const User = {
 
   updateAvatar: async (
     userId: number,
-    avatar: string | null,
-  ): Promise<void> => {
+  ): Promise<{
+    uploadUrl: string;
+    token: string;
+  }> => {
+    const { data, error } = await supabase.storage
+      .from("avatars")
+      .createSignedUploadUrl(User.getUserAvatarPath(userId), { upsert: true });
+
+    if (error || !data) {
+      console.error(`Error in updateAvatar [${error.name}]: ${error.message}`);
+      throw error;
+    }
+
+    return {
+      uploadUrl: data.signedUrl,
+      token: data.token,
+    };
+  },
+
+  updateAvatarUpdatedAt: async (userId: number) => {
+    const newUpdatedAt = new Date().toISOString();
+
     const { error } = await supabase
       .from("user")
-      .update({ avatar_url: avatar })
+      .update({ avatar_updated_at: newUpdatedAt })
       .eq("user_id", userId);
 
     if (error) {
-      console.error(`Error in updateAvatar [${error.code}]: ${error.message}`);
+      console.error(
+        `Error in updateAvatarUpdatedAt [${error.code}]: ${error.message}`,
+      );
       throw error;
     }
+
+    return newUpdatedAt;
   },
 
   findLastEpisodeWatchedByAnimeId: async (
@@ -376,9 +421,32 @@ export const User = {
     }
   },
 
-  formatUserAvatar: (username: string, avatar: string | null | undefined) => {
-    return avatar
-      ? `${serverUrl}/static/avatar/${avatar}`
-      : `https://api.dicebear.com/9.x/initials/svg?seed=${username}`;
+  formatUserAvatar: (
+    userId: number,
+    username: string,
+    avatarUpdatedAt: string | null | undefined,
+  ) => {
+    if (!avatarUpdatedAt)
+      return `https://api.dicebear.com/9.x/initials/svg?seed=${username}`;
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage
+      .from("avatars")
+      .getPublicUrl(User.getUserAvatarPath(userId));
+
+    return `${publicUrl}?t=${avatarUpdatedAt}`;
+  },
+
+  getUserAvatarPath: (userId: number) => {
+    const salt =
+      process.env.AVATAR_SALT_KEY || "superrandomsecretstringforhashing";
+
+    const folder = crypto
+      .createHmac("sha256", salt)
+      .update(userId.toString())
+      .digest("hex");
+
+    return `${folder}/avatar.jpg`;
   },
 };

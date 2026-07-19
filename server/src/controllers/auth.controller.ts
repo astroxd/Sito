@@ -32,7 +32,6 @@ export const register = async (req: Request, res: Response) => {
   if (!email || !username || !password) {
     return res.status(400).json({ message: "Missing params" });
   }
-  const avatar = req.file?.filename;
 
   try {
     if (await User.findByEmail(email)) {
@@ -48,18 +47,14 @@ export const register = async (req: Request, res: Response) => {
       });
     }
 
-    const userId = await User.createUser(
-      email,
-      hashValue(password),
-      username,
-      avatar,
-    );
+    const userId = await User.createUser(email, hashValue(password), username);
 
     const { accessToken, refreshToken } = generateJwt(userId);
 
-    User.updateRefreshToken(userId, refreshToken);
+    await User.updateRefreshToken(userId, refreshToken);
 
-    const user = User.findByEmail(email);
+    const user = await User.findByEmail(email);
+    const avatarUploadData = await User.updateAvatar(user?.id!);
 
     res.cookie("jwt", refreshToken, {
       httpOnly: true,
@@ -69,8 +64,18 @@ export const register = async (req: Request, res: Response) => {
     });
 
     return res.status(200).json({
-      user,
-      accessToken: accessToken,
+      data: {
+        user: {
+          ...user,
+          defaultAvatarUrl: User.formatUserAvatar(
+            user!.id,
+            user!.username,
+            null,
+          ),
+        },
+        avatarUploadData,
+        accessToken: accessToken,
+      },
       message: "User registered successfully",
     });
   } catch (error) {
@@ -126,8 +131,13 @@ export const login = async (req: Request, res: Response) => {
     });
 
     return res.status(200).json({
-      user,
-      accessToken: accessToken,
+      data: {
+        user: {
+          ...user,
+          defaultAvatarUrl: User.formatUserAvatar(user.id, user.username, null),
+        },
+        accessToken: accessToken,
+      },
       message: "Login succeded",
     });
   } catch (error) {
@@ -199,7 +209,10 @@ export const session = async (req: Request, res: Response) => {
     if (!user) return res.sendStatus(401);
 
     return res.json({
-      user,
+      user: {
+        ...user,
+        defaultAvatarUrl: User.formatUserAvatar(user.id, user.username, null),
+      },
     });
   } catch (error) {
     return res.status(401).json({ message: "Invalid Token" });
@@ -244,7 +257,6 @@ export const updateAvatar = async (req: Request, res: Response) => {
      #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
   */
   const userId = res.locals.userId;
-  const newAvatar = req.file?.filename!;
 
   try {
     const foundUser = await User.findById(userId);
@@ -253,26 +265,39 @@ export const updateAvatar = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "No user found with this ID" });
     }
 
-    if (
-      foundUser.avatarUrl &&
-      existsSync(`static/avatar/${foundUser.avatarUrl}`)
-    ) {
-      unlinkSync(`static/avatar/${foundUser.avatarUrl}`);
-    }
+    const uploadData = await User.updateAvatar(userId);
 
-    await User.updateAvatar(userId, newAvatar);
-
-    return res.status(200).json({
-      data: {
-        id: foundUser.id,
-        avatarUrl: User.formatUserAvatar(foundUser.username, newAvatar),
-      },
-      message: "Avatar updated successfully",
-    });
+    return res.status(200).json({ data: uploadData });
   } catch (error) {
     console.error(error);
   }
 
+  return res.status(500).json({ message: "Internal server error" });
+};
+
+export const updateAvatarConfirm = async (req: Request, res: Response) => {
+  const userId = res.locals.userId;
+
+  try {
+    const foundUser = await User.findById(userId);
+
+    if (!foundUser) {
+      return res.status(400).json({ message: "No user found with this ID" });
+    }
+    const updatedAt = await User.updateAvatarUpdatedAt(userId);
+
+    const avatarUrl = User.formatUserAvatar(
+      foundUser.id,
+      foundUser.username,
+      updatedAt,
+    );
+
+    return res
+      .status(200)
+      .json({ data: { avatarUrl }, message: "Avatar updated successfully" });
+  } catch (error) {
+    console.error(error);
+  }
   return res.status(500).json({ message: "Internal server error" });
 };
 

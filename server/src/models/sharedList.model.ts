@@ -148,7 +148,11 @@ export const SharedList = {
     return data.map((member: any) => ({
       id: Number(member.id),
       username: member.username,
-      avatarUrl: User.formatUserAvatar(member.username, member.avatar_url),
+      avatarUrl: User.formatUserAvatar(
+        member.id,
+        member.username,
+        member.avatar_updated_at,
+      ),
       role: member.role,
       totalEpisodes: Number(member.totalEpisodes),
     }));
@@ -369,8 +373,9 @@ export const SharedList = {
         animeId: anime_id,
         updatedAt: updated_at,
         user: user_id!inner (
+          user_id,
           username,
-          avatar_url
+          avatar_updated_at
         )
       `,
       )
@@ -392,7 +397,11 @@ export const SharedList = {
 
       return {
         username: user.username,
-        avatarUrl: User.formatUserAvatar(user.username, user.avatar_url),
+        avatarUrl: User.formatUserAvatar(
+          user.user_id,
+          user.username,
+          user.avatar_updated_at,
+        ),
         currentEpisode: Number(row.currentEpisode),
         animeId: Number(row.animeId),
         updatedAt: row.updatedAt,
@@ -556,12 +565,12 @@ export const SharedList = {
 
     try {
       const query = `
-        SELECT p.user_id as "userId", u.username as username, u.avatar_url as avatar
+        SELECT p.user_id as "userId", u.username as username, u.avatar_updated_at as avatar
         FROM shared_list_progress p
         JOIN shared_list_user su ON p.user_id = su.user_id AND p.shared_list_id = su.shared_list_id
         JOIN "user" u ON p.user_id = u.user_id
         WHERE p.shared_list_id = $1
-        GROUP BY p.user_id, u.username, u.avatar_url
+        GROUP BY p.user_id, u.username, u.avatar_updated_at
         ORDER BY 
           SUM(p.current_episode) DESC,  
           MIN(p.updated_at) ASC        
@@ -575,7 +584,11 @@ export const SharedList = {
       }
 
       const row = result.rows[0];
-      const avatarUrl = User.formatUserAvatar(row.username, row.avatar);
+      const avatarUrl = User.formatUserAvatar(
+        row.userId,
+        row.username,
+        row.avatar,
+      );
 
       return {
         userId: Number(row.userId),
@@ -840,7 +853,7 @@ export const SharedList = {
         user: invited_user_id!inner (
           user_id,
           username,
-          avatar_url
+          avatar_updated_at
         )
       `,
       )
@@ -863,7 +876,11 @@ export const SharedList = {
       return {
         userId: Number(user.user_id),
         username: user.username,
-        avatarUrl: User.formatUserAvatar(user.username, user.avatar_url),
+        avatarUrl: User.formatUserAvatar(
+          user.user_id,
+          user.username,
+          user.avatar_updated_at,
+        ),
       };
     });
   },
@@ -893,7 +910,7 @@ export const SharedList = {
         sender: sender_user_id!inner (
           user_id,
           username,
-          avatar_url
+          avatar_updated_at
         )
       `,
       )
@@ -915,8 +932,9 @@ export const SharedList = {
       const sender = row.sender;
 
       const avatarUrl = User.formatUserAvatar(
+        sender.user_id,
         sender.username,
-        sender.avatar_url,
+        sender.avatar_updated_at,
       );
 
       return {
