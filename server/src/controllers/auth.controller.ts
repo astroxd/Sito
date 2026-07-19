@@ -265,7 +265,7 @@ export const updateAvatar = async (req: Request, res: Response) => {
     return res.status(200).json({
       data: {
         id: foundUser.id,
-        avatar: User.formatUserAvatar(foundUser.username, newAvatar),
+        avatarUrl: User.formatUserAvatar(foundUser.username, newAvatar),
       },
       message: "Avatar updated successfully",
     });

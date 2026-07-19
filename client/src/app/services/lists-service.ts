@@ -185,21 +185,22 @@ export class ListsService {
     isLastEpisode = false,
     status = AnimeStatus.Watching,
   ) {
+    this.userProgress.update((oldProgress) =>
+      oldProgress.map((anime) =>
+        anime.animeId === animeId
+          ? {
+              ...anime,
+              lastEpisodeWatched: anime.lastEpisodeWatched + 1,
+            }
+          : anime,
+      ),
+    );
+    //TODO add switchMap, when pressing multiple times rapidly, reset progress to the old state received from backend
     return this.apiService
       .post(`list/${status}/progress/entry/${animeId}`, {})
       .pipe(
         tap({
           next: () => {
-            this.userProgress.update((oldProgress) =>
-              oldProgress.map((anime) =>
-                anime.animeId === animeId
-                  ? {
-                      ...anime,
-                      lastEpisodeWatched: anime.lastEpisodeWatched + 1,
-                    }
-                  : anime,
-              ),
-            );
             this.getUserProgress().subscribe();
             this.searchAnimes(AnimeStatus.Completed).subscribe({
               next: ({ data: listedAnimes }) => {

@@ -693,7 +693,7 @@ export const removeMember = async (req: Request, res: Response) => {
         await SharedList.updateNewOwner(Number(listId), Number(userId));
       } else {
         await SharedList.deleteList(Number(listId));
-        return;
+        // return;
       }
     }
 
@@ -709,11 +709,6 @@ export const removeMember = async (req: Request, res: Response) => {
     //   `DELETE FROM 'Shared List Progress' WHERE shared_list_id = ? AND user_id = ?`,
     // ).run(Number(listId), Number(userId));
 
-    await SharedList.deleteUserInvitation(
-      Number(listId),
-      Number(userId),
-      "ACCEPTED",
-    );
     // })();
 
     const successMessage = isSelfRemoval

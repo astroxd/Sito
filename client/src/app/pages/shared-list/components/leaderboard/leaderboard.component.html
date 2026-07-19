@@ -47,7 +47,7 @@
           [lines]="$index + 1 === pendingMembers().length ? 'none' : 'full'"
         >
           <ion-avatar>
-            <img [src]="pending.avatar" [alt]="pending.username" />
+            <img [src]="pending.avatarUrl" [alt]="pending.username" />
           </ion-avatar>
           <ion-label>{{ pending.username }}</ion-label>
           <ion-button slot="end" (click)="cancelInvite(pending.userId)">

@@ -127,15 +127,17 @@ export class AuthService {
     formData.append('avatar', avatar, avatar.name);
 
     return this.apiService
-      .post<{ data: { id: number; avatar: string } }>('update-avatar', formData)
+      .post<{
+        data: { id: number; avatarUrl: string };
+      }>('update-avatar', formData)
       .pipe(
         tap({
           next: ({ data }) => {
-            const newAvatarUrl = data.avatar;
+            const newAvatarUrl = data.avatarUrl;
 
             this.user.update((u) => {
               if (!u) return u;
-              return { ...u, avatar: newAvatarUrl };
+              return { ...u, avatarUrl: newAvatarUrl };
             });
           },
           error: (err) => {

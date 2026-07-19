@@ -1,3 +1,4 @@
+import { JsonPipe } from '@angular/common';
 import {
   Component,
   computed,
@@ -46,6 +47,7 @@ import { FriendshipService } from 'src/app/services/friendship-service';
     IonInfiniteScroll,
     IonInfiniteScrollContent,
     IonAvatar,
+    JsonPipe,
   ],
   templateUrl: './friend-list.component.html',
   styleUrls: ['./friend-list.component.scss'],

@@ -30,7 +30,10 @@
         @for (friend of searchedFriends(); track $index) {
           <ion-item>
             <ion-avatar slot="start" style="margin-right: 8px">
-              <img [src]="friend.friendAvatar" [alt]="friend.friendUsername" />
+              <img
+                [src]="friend.friendAvatarUrl"
+                [alt]="friend.friendUsername"
+              />
             </ion-avatar>
             <ion-label>{{ friend.friendUsername }}</ion-label>
             <div slot="end">

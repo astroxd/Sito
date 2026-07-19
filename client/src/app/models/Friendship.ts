@@ -1,7 +1,7 @@
 export interface FriendUser {
   friendUserId: number;
   friendUsername: string;
-  friendAvatar: string;
+  friendAvatarUrl: string;
   count?: number;
 }
 
@@ -18,7 +18,7 @@ export interface FriendsResponse {
 export interface FoundUser {
   userId: number;
   username: string;
-  avatar: string;
+  avatarUrl: string;
 }
 
 export interface FoundUsersApiRes {
