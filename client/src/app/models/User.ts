@@ -3,10 +3,27 @@ export interface User {
   email: string;
   username: string;
   password?: string;
-  avatar: string;
-  banner?: string;
-  created_on?: string;
-  refresh_token?: string;
+  avatarUrl: string;
+  defaultAvatarUrl: string;
+  bannerUrl?: string;
+  createdAt?: string;
+  refreshToken?: string;
+  avatarUpdatedAt?: string;
+}
+
+export interface AvatarUploadData {
+  uploadUrl: string;
+  token: string;
+}
+
+export interface RegisterResponse {
+  data: { user: User; avatarUploadData: AvatarUploadData; accessToken: string };
+  message: string;
+}
+
+export interface LoginResponse {
+  data: { user: User; accessToken: string };
+  message: string;
 }
 
 export interface TotalWatchTime {

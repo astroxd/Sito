@@ -21,7 +21,10 @@
       @for (pending of pendingRequests(); track $index) {
         <li>
           <div>
-            <img [src]="pending.friendAvatar" [alt]="pending.friendUsername" />
+            <img
+              [src]="pending.friendAvatarUrl"
+              [alt]="pending.friendUsername"
+            />
             <span>{{ pending.friendUsername }}</span>
           </div>
           <div>
@@ -56,7 +59,7 @@
       @for (friend of friends(); track $index) {
         <li>
           <div>
-            <img [src]="friend.friendAvatar" [alt]="friend.friendUsername" />
+            <img [src]="friend.friendAvatarUrl" [alt]="friend.friendUsername" />
             <span>{{ friend.friendUsername }}</span>
           </div>
           <ion-button
@@ -101,7 +104,7 @@
           @let relation = friendsAndPendingMap().get(user.userId);
           <ion-item>
             <ion-avatar slot="start" style="margin-right: 8px">
-              <img [src]="user.avatar" [alt]="user.username" />
+              <img [src]="user.avatarUrl" [alt]="user.username" />
             </ion-avatar>
             <ion-label>{{ user.username }}</ion-label>
 

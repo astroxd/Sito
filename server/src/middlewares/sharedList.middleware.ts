@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { SharedList } from "../models/sharedList.model";
 
-export const checkSharedListAccess = (
+export const checkSharedListAccess = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -17,7 +17,7 @@ export const checkSharedListAccess = (
   const userId = res.locals.userId;
 
   try {
-    const userRole = SharedList.getUserRole(Number(sharedListId), userId);
+    const userRole = await SharedList.getUserRole(Number(sharedListId), userId);
 
     if (!userRole) {
       return res.status(403).json({ message: "Access denied. Not a member" });

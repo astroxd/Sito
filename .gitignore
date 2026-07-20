@@ -18,6 +18,13 @@ client/bazel-out
 !.vscode/mcp.json
 .history/*
 
+# Environment Files (Sicurezza)
+server/.env
+.env
+.env.local
+.env.*
+**/.env
+
 # Miscellaneous
 client/.angular/cache
 client/connect.lock

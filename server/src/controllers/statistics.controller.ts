@@ -6,7 +6,7 @@ import {
   VALID_GENRES_SET,
 } from "../models/statistics.model";
 
-export const getUserStats = (req: Request, res: Response) => {
+export const getUserStats = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Statistics']
      #swagger.description = 'Retrieve comprehensive user viewing metrics including aggregated watch time formatted in days/hours/minutes, genre distribution counters, and day-by-day historic graphs comparing the current week with the previous week.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -56,7 +56,7 @@ export const getUserStats = (req: Request, res: Response) => {
     const startRangeStr = lastMonday.toISOString().split("T")[0];
     const endRangeStr = thisSunday.toISOString().split("T")[0];
 
-    const userDailyWatchtimes = Statistics.getDailyWatchtimeInRange(
+    const userDailyWatchtimes = await Statistics.getDailyWatchtimeInRange(
       userId,
       startRangeStr,
       endRangeStr,
@@ -83,7 +83,7 @@ export const getUserStats = (req: Request, res: Response) => {
     }
 
     //* get userTotalTime
-    const userTotalTime = Statistics.getUserTotalTime(userId);
+    const userTotalTime = await Statistics.getUserTotalTime(userId);
 
     const totalMinutes = userTotalTime ? userTotalTime.totalTime : 0;
 
@@ -92,7 +92,7 @@ export const getUserStats = (req: Request, res: Response) => {
     const minutes = totalMinutes % 60;
 
     //* get user genres
-    const userGenres = Statistics.getUserGenres(userId);
+    const userGenres = await Statistics.getUserGenres(userId);
 
     const formattedGenres = userGenres.map((row) => ({
       genre: row.genre,
@@ -120,7 +120,7 @@ export const getUserStats = (req: Request, res: Response) => {
   return res.status(500).json({ message: "Internal server error" });
 };
 
-export const trackWatchTime = (
+export const trackWatchTime = async (
   userId: number,
   episodeDiff: number,
   episodeDuration: number,
@@ -129,15 +129,15 @@ export const trackWatchTime = (
 
   const addedMinutes = episodeDiff * episodeDuration;
 
-  db.transaction(() => {
-    console.log(userId, addedMinutes);
-    Statistics.updateUserTotalTime(userId, addedMinutes);
+  // db.transaction(() => {
+  console.log(userId, addedMinutes);
+  await Statistics.updateUserTotalTime(userId, addedMinutes);
 
-    Statistics.updateDailyWatchtime(userId, addedMinutes);
-  })();
+  await Statistics.updateDailyWatchtime(userId, addedMinutes);
+  // })();
 };
 
-export const updateGenreStats = (
+export const updateGenreStats = async (
   userId: number,
   genres: string[],
   action: "INCREMENT" | "DECREMENT",
@@ -152,7 +152,7 @@ export const updateGenreStats = (
     const cleanGenre = genre.trim();
 
     if (VALID_GENRES_SET.has(cleanGenre)) {
-      Statistics.updateUserGenres(
+      await Statistics.updateUserGenres(
         userId,
         cleanGenre as AnimeGenre,
         valueChange,

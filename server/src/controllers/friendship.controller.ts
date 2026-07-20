@@ -8,7 +8,7 @@ import {
 
 import { User } from "../models/user.model";
 
-export const getFriendsAndRequests = (req: Request, res: Response) => {
+export const getFriendsAndRequests = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Friends']
      #swagger.description = 'Retrieve the current user\'s entire network context, categorizing established friendships and separating incoming versus outgoing pending requests.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -18,7 +18,7 @@ export const getFriendsAndRequests = (req: Request, res: Response) => {
   const userId = res.locals.userId;
 
   try {
-    const friends = Friendship.findAllFriendship(userId);
+    const friends = await Friendship.findAllFriendship(userId);
 
     const friendsData = friends.reduce<FriendsResponse>(
       (acc, record) => {
@@ -51,7 +51,7 @@ export const getFriendsAndRequests = (req: Request, res: Response) => {
 
 const perPage = 12;
 
-export const searchFriends = (req: Request, res: Response) => {
+export const searchFriends = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Friends']
      #swagger.description = 'Search exclusively within the current user\'s accepted friends list by matching their username against a search query.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -78,7 +78,7 @@ export const searchFriends = (req: Request, res: Response) => {
       return res.status(400).json({ message: "Search query is too long" });
     }
 
-    const friends = Friendship.findFriendishipByName(
+    const friends = await Friendship.findFriendshipByName(
       userId,
       "ACCEPTED",
       searchQuery,
@@ -95,7 +95,7 @@ export const searchFriends = (req: Request, res: Response) => {
   });
 };
 
-export const searchUsers = (req: Request, res: Response) => {
+export const searchUsers = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Friends']
      #swagger.description = 'Perform a global search to look up any system user by their username, filtering out the current user.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -125,20 +125,18 @@ export const searchUsers = (req: Request, res: Response) => {
       return res.status(400).json({ message: "Search query is too long" });
     }
 
-    const foundUsers = User.searchByUsername(
-      userId,
-      searchQuery,
-      perPage,
-      offset,
-    );
+    const [foundUsers, countSearchMatches] = await Promise.all([
+      User.searchByUsername(userId, searchQuery, perPage, offset),
+      User.countSearchMatches(userId, searchQuery),
+    ]);
 
     let hasNextPage = false;
-    if (foundUsers.length > 0) {
-      hasNextPage = foundUsers[0].count > p * perPage;
+    if (countSearchMatches > 0) {
+      hasNextPage = countSearchMatches > p * perPage;
     }
 
     return res.status(200).json({
-      data: foundUsers,
+      data: { items: foundUsers, countNumber: countSearchMatches },
       page: p,
       perPage,
       hasNextPage,
@@ -152,7 +150,7 @@ export const searchUsers = (req: Request, res: Response) => {
   });
 };
 
-export const addFriendRequest = (req: Request, res: Response) => {
+export const addFriendRequest = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Friends']
      #swagger.description = 'Dispatch a outbound pending friend request to a target system user.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -185,7 +183,7 @@ export const addFriendRequest = (req: Request, res: Response) => {
   const userId2 = Math.max(userId, Number(receiverUserId));
 
   try {
-    const existingFriendship = Friendship.findFriendshipByUsers(
+    const existingFriendship = await Friendship.findFriendshipByUsers(
       userId1,
       userId2,
     );
@@ -205,7 +203,7 @@ export const addFriendRequest = (req: Request, res: Response) => {
       }
     }
 
-    Friendship.addFriend(userId1, userId2, "PENDING", userId);
+    await Friendship.addFriend(userId1, userId2, "PENDING", userId);
 
     return res
       .status(200)
@@ -219,7 +217,7 @@ export const addFriendRequest = (req: Request, res: Response) => {
   });
 };
 
-export const acceptFriendRequest = (req: Request, res: Response) => {
+export const acceptFriendRequest = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Friends']
      #swagger.description = 'Accept an incoming pending friend request. Validates that the request exists, is currently PENDING, and was not originally sent by the accepting user.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -248,7 +246,7 @@ export const acceptFriendRequest = (req: Request, res: Response) => {
   const userId2 = Math.max(userId, Number(senderUserId));
 
   try {
-    const existingFriendship = Friendship.findFriendshipByUsers(
+    const existingFriendship = await Friendship.findFriendshipByUsers(
       userId1,
       userId2,
     );
@@ -269,7 +267,7 @@ export const acceptFriendRequest = (req: Request, res: Response) => {
       });
     }
 
-    Friendship.updateFriend(userId1, userId2, "ACCEPTED");
+    await Friendship.updateFriend(userId1, userId2, "ACCEPTED");
 
     return res
       .status(200)
@@ -283,7 +281,7 @@ export const acceptFriendRequest = (req: Request, res: Response) => {
   });
 };
 
-export const deleteFriendRequest = (req: Request, res: Response) => {
+export const deleteFriendRequest = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Friends']
      #swagger.description = 'Decline or cancel an existing incoming or outgoing pending friend request.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -305,7 +303,7 @@ export const deleteFriendRequest = (req: Request, res: Response) => {
   const userId2 = Math.max(userId, Number(senderUserId));
 
   try {
-    const existingFriendship = Friendship.findFriendshipByUsers(
+    const existingFriendship = await Friendship.findFriendshipByUsers(
       userId1,
       userId2,
     );
@@ -320,7 +318,7 @@ export const deleteFriendRequest = (req: Request, res: Response) => {
       });
     }
 
-    Friendship.deleteFriend(userId1, userId2, "PENDING");
+    await Friendship.deleteFriend(userId1, userId2, "PENDING");
 
     return res
       .status(200)
@@ -334,7 +332,7 @@ export const deleteFriendRequest = (req: Request, res: Response) => {
   });
 };
 
-export const removeFriend = (req: Request, res: Response) => {
+export const removeFriend = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Friends']
      #swagger.description = 'Break an established friendship bond, completely removing the specified user from the current friends list.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -356,7 +354,7 @@ export const removeFriend = (req: Request, res: Response) => {
   const userId2 = Math.max(userId, Number(friendId));
 
   try {
-    const existingFriendship = Friendship.findFriendshipByUsers(
+    const existingFriendship = await Friendship.findFriendshipByUsers(
       userId1,
       userId2,
     );
@@ -373,7 +371,7 @@ export const removeFriend = (req: Request, res: Response) => {
       });
     }
 
-    Friendship.deleteFriend(userId1, userId2, "ACCEPTED");
+    await Friendship.deleteFriend(userId1, userId2, "ACCEPTED");
     return res.status(200).json({ message: "Friend removed successfully" });
   } catch (error) {
     console.error(error);

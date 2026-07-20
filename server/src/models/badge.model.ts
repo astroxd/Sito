@@ -1,4 +1,4 @@
-import db from "../config/database";
+import { supabase } from "../config/supabaseClient";
 
 export type BadgeRank = "BRONZE" | "SILVER" | "GOLD" | "PLATINUM" | "SECRET";
 
@@ -182,33 +182,62 @@ export const BADGES_LIST: Badge[] = [
 ];
 
 export const Badge = {
-  getUserBadges: (userId: number) => {
-    const badges = db
-      .prepare(
+  getUserBadges: async (userId: number): Promise<BadgeBase[]> => {
+    const { data, error } = await supabase
+      .from("user_badge")
+      .select(
         `
-        SELECT user_id as userId, badge_id as badgeId, rank, unlocked_at as unlockedAt
-        FROM 'User Badge'
-        WHERE user_id = ?
-        ORDER BY unlocked_at ASC
+        userId: user_id,
+        badgeId: badge_id,
+        rank,
+        unlockedAt: unlocked_at
       `,
       )
-      .all(userId) as Omit<BadgeBase, "rankKey">[];
+      .eq("user_id", userId)
+      .order("unlocked_at", { ascending: true });
 
-    return badges.map(
-      (badge) =>
-        ({
-          ...badge,
-          rankKey: `${badge.badgeId}-${badge.rank}`,
-        }) as BadgeBase,
-    );
+    if (error) {
+      console.error(`Error in getUserBadges [${error.code}]: ${error.message}`);
+      throw error;
+    }
+
+    if (!data) return [];
+
+    return data.map((badge) => ({
+      userId: badge.userId,
+      badgeId: badge.badgeId,
+      rank: badge.rank as BadgeRank,
+      unlockedAt: badge.unlockedAt,
+      rankKey: `${badge.badgeId}-${badge.rank}`,
+    }));
   },
 
-  insertUserBadge: (userId: number, badgeId: string, rank: BadgeRank) => {
-    db.prepare(
-      `
-        INSERT INTO 'User Badge' (user_id, badge_id, rank)
-        VALUES (?, ?, ?)
-      `,
-    ).run(userId, badgeId, rank);
+  insertUserBadge: async (
+    userId: number,
+    badgeId: string,
+    rank: BadgeRank,
+  ): Promise<void> => {
+    const { error } = await supabase.from("user_badge").insert({
+      user_id: userId,
+      badge_id: badgeId,
+      rank: rank,
+    });
+
+    if (error) {
+      console.error(
+        `Error in insertUserBadge [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+  },
+
+  getBadgePublicUrl: () => {
+    const badgeBucket = process.env.SUPABASE_BADGES_BUCKET_ID || "badges";
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from(badgeBucket).getPublicUrl("");
+
+    return publicUrl;
   },
 };

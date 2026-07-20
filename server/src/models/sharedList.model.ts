@@ -1,4 +1,4 @@
-import db from "../config/database";
+import { dbPool, supabase } from "../config/supabaseClient";
 import { Anime } from "./anime.model";
 import { User } from "./user.model";
 
@@ -14,13 +14,13 @@ interface SharedListUser {
 export interface InvitedUser {
   userId: number;
   username: string;
-  avatar: string;
+  avatarUrl: string | null;
 }
 
 export interface SharedList {
   id: number;
   name: string;
-  message?: string;
+  message: string | null;
 
   sharedListUser?: SharedListUser;
   // sharedListMembers: SharedListMember[];
@@ -29,32 +29,32 @@ export interface SharedList {
 export interface SharedListMember {
   id: number;
   username: string;
-  avatar: string;
+  avatarUrl: string | null;
   role: SharedListRole;
   totalEpisodes: number;
-  length: number;
+  // length: number;
 }
 
 export interface SharedListProgress {
   sharedListId: number;
   userId: number;
   animeId: number;
-  currentEpisode?: number;
-  updatedAt?: string;
+  currentEpisode: number | null;
+  updatedAt: string | null;
 }
 
 export interface SharedListAnime {
   sharedListId: number;
   animeId: number;
-  addedOn?: string;
-  lastActivityAt?: string;
+  addedAt: string;
+  lastActivityAt: string;
 }
 
 export type SharedListUserProgress = SharedListProgress & Anime;
 
 export interface AnimeProgress {
   username: string;
-  avatar: string;
+  avatarUrl: string;
   currentEpisode: number;
   animeId: number;
   updatedAt: string;
@@ -68,479 +68,918 @@ export interface SharedListInvitation {
   senderInfo: {
     senderUserId: number;
     senderUsername: string;
-    senderAvatar: string;
+    senderAvatarUrl: string;
   };
 }
 
 export const SharedList = {
-  exists: (listId: number) => {
-    const result = db
-      .prepare(
-        `
-          SELECT COUNT(*) as total
-          FROM 'Shared List'
-          WHERE shared_list_id = ?
-        `,
-      )
-      .get(listId) as { total: number };
+  // Verifica se una lista condivisa esiste tramite il suo ID
+  exists: async (listId: number): Promise<boolean> => {
+    const { data, error } = await supabase
+      .from("shared_list")
+      .select("shared_list_id")
+      .eq("shared_list_id", listId)
+      .maybeSingle();
 
-    return result.total > 0;
+    if (error) {
+      console.error(`Error in exists [${error.code}]: ${error.message}`);
+      throw error;
+    }
+
+    return data !== null;
   },
 
-  findAllByUserId: (userId: number) => {
-    return db
-      .prepare(
+  findAllByUserId: async (userId: number): Promise<SharedList[]> => {
+    const { data, error } = await supabase
+      .from("shared_list")
+      .select(
         `
-            SELECT l.shared_list_id as id, l.shared_list_name as name, l.message, u.user_id as userId, u.role
-            FROM 'Shared List' l
-            JOIN 'Shared List User' u ON l.shared_list_id = u.shared_list_id
-            WHERE u.user_id = ?
-        `,
+        id: shared_list_id,
+        name,
+        message,
+        shared_list_user!inner (
+          role
+        )
+      `,
       )
-      .all(userId) as SharedList[];
-  },
+      .eq("shared_list_user.user_id", userId);
 
-  findAllMembersByListId: (listId: number) => {
-    const foundMembers = db
-      .prepare(
-        `
-            SELECT User.user_id as id, User.avatar, User.username, u.role, IFNULL(SUM(p.current_episode), 0) as totalEpisodes, COUNT(*) OVER() AS length 
-            FROM 'Shared List User' u
-            LEFT JOIN 'Shared List Progress' p ON p.user_id = u.user_id AND p.shared_list_id = u.shared_list_id 
-            INNER JOIN 'User' ON User.user_id = u.user_id
-            WHERE u.shared_list_id = ?
-            GROUP BY u.user_id
-            ORDER BY totalEpisodes DESC,
-                  CASE WHEN u.role = 'OWNER' THEN 0 ELSE 1 END ASC
-            LIMIT 5
-        `,
-      )
-      .all(listId) as SharedListMember[];
+    if (error) {
+      console.error(
+        `Error in findAllByUserId [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
 
-    return foundMembers.map((member) => {
+    if (!data) return [];
+
+    return data.map((list: any) => {
+      const user = list.shared_list_user[0];
+
       return {
-        ...member,
-        avatar: User.formatUserAvatar(member.username, member.avatar),
-      };
+        id: list.id,
+        name: list.name,
+        message: list.message ?? null,
+        sharedListUser: {
+          sharedListId: list.id,
+          userId: userId,
+          role: user.role,
+        },
+      } as SharedList;
     });
   },
 
-  createWithUserId: (
+  findAllMembersByListId: async (
+    listId: number,
+  ): Promise<SharedListMember[]> => {
+    const { data, error } = await supabase.rpc("get_shared_list_members", {
+      p_list_id: listId,
+    });
+
+    if (error) {
+      console.error(
+        `Error in findAllMembersByListId [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+
+    if (!data) return [];
+
+    return data.map((member: any) => ({
+      id: Number(member.id),
+      username: member.username,
+      avatarUrl: User.formatUserAvatar(
+        member.id,
+        member.username,
+        member.avatar_updated_at,
+      ),
+      role: member.role,
+      totalEpisodes: Number(member.totalEpisodes),
+    }));
+  },
+
+  countMembersByListId: async (listId: number): Promise<number> => {
+    const { count, error } = await supabase
+      .from("shared_list_user")
+      .select("*", { count: "exact", head: true })
+      .eq("shared_list_id", listId);
+
+    if (error) {
+      console.error(
+        `Error in countMembersByListId [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+
+    return count ?? 0;
+  },
+
+  createWithUserId: async (
     userId: number,
     sharedListName: string,
-    message?: string,
+    message: string | null = null,
     role: SharedListRole = "OWNER",
-  ) => {
-    const sharedListId = db
-      .prepare(
-        "INSERT INTO 'Shared List' (shared_list_name, message) VALUES (?, ?)",
-      )
-      .run(sharedListName, message).lastInsertRowid;
+  ): Promise<void> => {
+    const client = await dbPool.connect();
 
-    db.prepare(
-      "INSERT INTO 'Shared List User' (shared_list_id, user_id, role) VALUES (?, ?, ?)",
-    ).run(sharedListId, userId, role);
+    try {
+      await client.query("BEGIN");
+
+      const listResult = await client.query(
+        `INSERT INTO shared_list (name, message) 
+         VALUES ($1, $2) 
+         RETURNING shared_list_id`,
+        [sharedListName, message],
+      );
+
+      const sharedListId = listResult.rows[0].shared_list_id;
+
+      await client.query(
+        `INSERT INTO shared_list_user (shared_list_id, user_id, role) 
+         VALUES ($1, $2, $3)`,
+        [sharedListId, userId, role],
+      );
+
+      await client.query("COMMIT");
+    } catch (error) {
+      await client.query("ROLLBACK");
+      console.error(`Transaction failed in createWithUserId:`, error);
+      throw error;
+    } finally {
+      client.release();
+    }
   },
 
-  findByListId: (listId: number, userId: number) => {
-    return db
-      .prepare(
-        `
-          SELECT l.shared_list_id as id, l.shared_list_name as name, l.message, u.user_id as userId, u.role
-          FROM 'Shared List' l
-          JOIN 'Shared List User' u ON l.shared_list_id = u.shared_list_id AND u.user_id = ?
-          WHERE l.shared_list_id = ?
-      `,
-      )
-      .get(userId, listId) as SharedList | undefined;
-  },
-
-  findUserProgressByUserId: (listId: number, userId: number) => {
-    return db
-      .prepare(
-        `
-          SELECT sa.shared_list_id as sharedListId, p.user_id as userId, p.current_episode as currentEpisode, p.updated_at as updatedAt, a.anime_id as animeId, a.anime_mal_id as animeMalId, a.anime_title as animeTitle, a.anime_cover as animeCover, a.anime_episodes as animeEpisodes
-          FROM 'Shared List Anime' sa
-          LEFT JOIN 'Shared List Progress' p ON p.shared_list_id = sa.shared_list_id
-            AND p.anime_id = sa.anime_id AND p.user_id = @userId
-          JOIN 'Anime' a ON a.anime_id = sa.anime_id
-          WHERE sa.shared_list_id = @listId
-          ORDER BY p.updated_at DESC
-      `,
-      )
-      .all({ listId, userId }) as SharedListUserProgress[];
-  },
-
-  findAllAnimeByListId: (listId: number) => {
-    return db
-      .prepare(
-        `
-          SELECT sa.shared_list_id as sharedListId, sa.last_activity_at as lastActivityAt, a.anime_id as animeId, a.anime_mal_id as animeMalId, a.anime_title as animeTitle, a.anime_cover as animeCover, a.anime_episodes as animeEpisodes
-          FROM 'Shared List Anime' sa
-          JOIN 'Anime' a ON a.anime_id = sa.anime_id
-          WHERE sa.shared_list_id = ?
-          ORDER BY sa.last_activity_at DESC
-      `,
-      )
-      .all(listId) as (SharedListAnime & Anime)[];
-  },
-
-  findAnimeProgress: (listId: number, animeId: number) => {
-    const foundProgress = db
-      .prepare(
-        ` 
-          SELECT User.username, User.avatar, p.current_episode as currentEpisode, p.anime_id as animeId, p.updated_at as updatedAt 
-          FROM 'Shared List Progress' p
-          INNER JOIN 'Shared List User' u  ON u.shared_list_id = p.shared_list_id AND p.shared_list_id = @listId AND u.user_id = p.user_id 
-          INNER JOIN 'User' ON User.user_id = u.user_id
-          WHERE p.anime_id = @animeId
-          ORDER BY p.current_episode DESC
-          `,
-      )
-      .all({ listId, animeId }) as AnimeProgress[];
-    return foundProgress.map((member) => {
-      return {
-        ...member,
-        avatar: User.formatUserAvatar(member.username, member.avatar),
-      };
-    });
-  },
-
-  findUserAnimeProgressByAnimeId: (
+  findByListId: async (
     listId: number,
     userId: number,
-    animeId: number,
-  ) => {
-    return db
-      .prepare(
+  ): Promise<SharedList | null> => {
+    const { data, error } = await supabase
+      .from("shared_list")
+      .select(
         `
-            SELECT sa.shared_list_id as sharedListId, sa.anime_id as animeId, p.user_id as userId, p.current_episode as currentEpisode, p.updated_at as updatedAt
-            FROM 'Shared List Anime' sa
-            LEFT JOIN 'Shared List Progress' p ON p.shared_list_id = sa.shared_list_id
-              AND p.anime_id = sa.anime_id AND p.user_id = @userId
-            WHERE sa.shared_list_id = @listId AND sa.anime_id = @animeId 
-        `,
+        id: shared_list_id,
+        name,
+        message,
+        shared_list_user!inner (
+          user_id,
+          role
+        )
+      `,
       )
-      .get({ listId, userId, animeId }) as SharedListProgress | undefined;
-  },
+      .eq("shared_list_id", listId)
+      .eq("shared_list_user.user_id", userId)
+      .maybeSingle();
 
-  insertUserProgress: (
-    listId: number,
-    userId: number,
-    animeId: number,
-    currentEpisode: number,
-  ) => {
-    return db
-      .prepare(
-        `
-          INSERT INTO 'Shared List Progress' (shared_list_id, user_id, anime_id, current_episode)
-          VALUES (?, ?, ?, ?)
-        `,
-      )
-      .run(listId, userId, animeId, currentEpisode).lastInsertRowid;
-  },
+    if (error) {
+      console.error(`Error in findByListId [${error.code}]: ${error.message}`);
+      throw error;
+    }
 
-  updateUserProgress: (
-    listId: number,
-    userId: number,
-    animeId: number,
-    currentEpisode: number,
-  ) => {
-    return db
-      .prepare(
-        `
-          UPDATE 'Shared List Progress'
-          SET current_episode = ?, updated_at = CURRENT_TIMESTAMP
-          WHERE shared_list_id = ? AND user_id = ? AND anime_id = ?
-        `,
-      )
-      .run(currentEpisode, listId, userId, animeId);
-  },
+    if (!data) return null;
 
-  updateAnimeLastActivity: (listId: number, animeId: number) => {
-    return db
-      .prepare(
-        `
-          UPDATE 'Shared List Anime' SET last_activity_at = CURRENT_TIMESTAMP
-          WHERE shared_list_id = ? AND anime_id = ?
-        `,
-      )
-      .run(listId, animeId).lastInsertRowid;
-  },
-
-  getUserRole: (listId: number, userId: number) => {
-    return db
-      .prepare(
-        ` 
-          SELECT u.role FROM 'Shared List User' u
-          WHERE u.shared_list_id = ? AND u.user_id = ?
-        `,
-      )
-      .get(listId, userId) as { role: SharedListRole } | undefined;
-  },
-
-  getLeader: (listId: number) => {
-    const row = db
-      .prepare(
-        `
-          SELECT p.user_id as userId, u.username as username, u.avatar as avatar
-          FROM 'Shared List Progress' p
-          JOIN 'Shared List User' su ON p.user_id = su.user_id AND p.shared_list_id = su.shared_list_id
-          JOIN 'User' u ON p.user_id = u.user_id
-          WHERE p.shared_list_id = ?
-          GROUP BY p.user_id
-          ORDER BY 
-            SUM(p.current_episode) DESC,  
-            MIN(p.updated_at) ASC        
-          LIMIT 1;
-  `,
-      )
-      .get(listId) as any | undefined;
-
-    if (!row) return undefined;
-
-    const avatarUrl = User.formatUserAvatar(row.username, row.avatar);
+    const userRelation = data.shared_list_user[0];
 
     return {
-      userId: row.userId,
-      username: row.username,
-      avatar: avatarUrl,
+      id: data.id,
+      name: data.name,
+      message: data.message,
+      sharedListUser: {
+        sharedListId: data.id,
+        userId: userRelation.user_id,
+        role: userRelation.role,
+      },
     };
   },
 
-  addSharedAnime: (listId: number, animeId: number) => {
-    return db
-      .prepare(
-        `
-        INSERT INTO 'Shared List Anime'(shared_list_id,anime_id)
-        VALUES(?,?)
-      `,
-      )
-      .run(listId, animeId).lastInsertRowid;
-  },
-
-  deleteSharedAnime: (listId: number, animeId: number) => {
-    return db
-      .prepare(
-        `
-        DELETE FROM 'Shared List Anime'
-        WHERE shared_list_id = ? AND anime_id = ?
-      `,
-      )
-      .run(listId, animeId);
-  },
-
-  findAllWithAnimeId: (animeId: number, userId: number) => {
-    return db
-      .prepare<
-        unknown[],
-        { sharedListId: number; sharedListName: string; animeId?: number }
-      >(
-        `
-        SELECT l.shared_list_id as sharedListId, l.shared_list_name as sharedListName,a.anime_id as animeId FROM 'Shared List' l
-        LEFT JOIN 'Shared List Anime' a ON a.shared_list_id = l.shared_list_id AND a.anime_id = ?
-        LEFT JOIN 'Shared List User' u ON u.shared_list_id = l.shared_list_id
-        WHERE u.user_id = ?`,
-      )
-      .all(animeId, userId);
-  },
-
-  insertUser: (
+  findUserProgressByUserId: async (
     listId: number,
     userId: number,
-    role: SharedListRole = "MEMBER",
-  ) => {
-    db.prepare(
-      `
-        INSERT INTO 'Shared List User' (shared_list_id, user_id, role) 
-        VALUES (?, ?, ?)
-      `,
-    ).run(listId, userId, role);
-  },
-
-  checkIfInvitationPending: (listId: number, invitedUserId: number) => {
-    const row = db
-      .prepare(
+  ): Promise<SharedListUserProgress[]> => {
+    const { data, error } = await supabase
+      .from("shared_list_anime")
+      .select(
         `
-        SELECT 1
-        FROM 'SharedListInvitation'
-        WHERE shared_list_id = ? AND invited_user_id = ? AND status = 'PENDING';
+        shared_list_id,
+        anime: anime_id (
+          animeId: anime_id,
+          malId: mal_id,
+          animeTitle: title,
+          animeCover: cover_url,
+          animeEpisodes: episodes,
+          animeGenres: genres
+        ),
+        progress: shared_list_progress (
+          current_episode,
+          updated_at,
+          user_id
+        )
       `,
       )
-      .get(listId, invitedUserId) as { "1": number } | undefined;
+      .eq("shared_list_id", listId)
+      .eq("shared_list_progress.user_id", userId);
 
-    return !!row;
-  },
+    if (error) {
+      console.error(
+        `Error in findUserProgressByUserId [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
 
-  insertUserInvitation: (
-    listId: number,
-    senderUserId: number,
-    invitedUserId: number,
-  ) => {
-    db.prepare(
-      `
-        INSERT INTO 'SharedListInvitation' (shared_list_id, sender_user_id, invited_user_id)
-        VALUES (?, ?, ?)
-      `,
-    ).run(Number(listId), senderUserId, invitedUserId);
-  },
+    if (!data) return [];
 
-  updateUserInvitation: (
-    listId: number,
-    status: SharedListInvitationStatus,
-    invitedUserId: number,
-  ) => {
-    db.prepare(
-      `
-        UPDATE 'SharedListInvitation'
-        SET status = ?
-        WHERE shared_list_id = ? AND invited_user_id = ?
-      `,
-    ).run(status, Number(listId), invitedUserId);
-  },
+    const formattedProgress = data.map((row: any) => {
+      const anime = row.anime;
+      const progress =
+        row.progress && row.progress.length > 0 ? row.progress[0] : null;
 
-  deleteUserInvitation: (
-    listId: number,
-    invitedUserId: number,
-    status: SharedListInvitationStatus,
-  ) => {
-    db.prepare(
-      `
-        DELETE FROM 'SharedListInvitation'
-        WHERE shared_list_id = ? AND invited_user_id = ? AND status = ?
-      `,
-    ).run(Number(listId), invitedUserId, status);
-  },
-
-  findMembersCount: (listId: number) => {
-    return db
-      .prepare(
-        `
-          SELECT COUNT(*) as count FROM 'Shared List User' 
-          WHERE shared_list_id = ?
-        `,
-      )
-      .get(listId) as { count: number };
-  },
-
-  updateNewOwner: (listId: number, userId: number) => {
-    db.prepare(
-      `
-        UPDATE 'Shared List User'
-        SET role = 'OWNER'
-        WHERE shared_list_id = ?
-          AND user_id = (
-            SELECT user_id FROM 'Shared List User'
-            WHERE shared_list_id = ? AND user_id != ?
-            ORDER BY joined_at ASC
-            LIMIT 1
-          )
-      `,
-    ).run(listId, listId, userId);
-  },
-
-  deleteList: (listId: number) => {
-    db.prepare(
-      `
-        DELETE FROM 'Shared List' 
-        WHERE shared_list_id = ?
-      `,
-    ).run(listId);
-  },
-
-  deleteUser: (listId: number, userId: number) => {
-    db.prepare(
-      `
-        DELETE FROM 'Shared List User'
-         WHERE shared_list_id = ? AND user_id = ?
-      `,
-    ).run(listId, userId);
-  },
-
-  findAllInvitedUsers: (listId: number, status: SharedListInvitationStatus) => {
-    const foundUsers = db
-      .prepare(
-        `
-          SELECT 
-            u.user_id as userId, 
-            u.username as username, 
-            u.avatar as avatar
-          FROM 'SharedListInvitation' i
-          JOIN 'User' u ON i.invited_user_id = u.user_id
-          WHERE i.shared_list_id = ? AND i.status = ?
-          ORDER BY i.created_at DESC
-      `,
-      )
-      .all(listId, status) as InvitedUser[];
-
-    return foundUsers.map((user) => {
       return {
-        ...user,
-        avatar: User.formatUserAvatar(user.username, user.avatar),
+        sharedListId: row.shared_list_id,
+        userId: progress ? progress.user_id : userId,
+        currentEpisode: progress ? progress.current_episode : null,
+        updatedAt: progress ? progress.updated_at : null,
+        animeId: anime.animeId,
+        animeMalId: anime.animeMalId,
+        animeTitle: anime.animeTitle,
+        animeCover: anime.animeCover,
+        animeEpisodes: anime.animeEpisodes,
+        animeGenres: anime.animeGenres,
+      } as SharedListUserProgress;
+    });
+
+    return formattedProgress.sort((a, b) => {
+      if (!a.updatedAt) return 1;
+      if (!b.updatedAt) return -1;
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    });
+  },
+
+  findAllAnimeByListId: async (
+    listId: number,
+  ): Promise<(SharedListAnime & Anime)[]> => {
+    const { data, error } = await supabase
+      .from("shared_list_anime")
+      .select(
+        `
+        shared_list_id,
+        last_activity_at,
+        anime: anime_id (
+          animeId: anime_id,
+          animeMalId: mal_id,
+          animeTitle: title,
+          animeCover: cover_url,
+          animeEpisodes: episodes,
+          animeGenres: genres
+        )
+      `,
+      )
+      .eq("shared_list_id", listId)
+      .order("last_activity_at", { ascending: false });
+
+    if (error) {
+      console.error(
+        `Error in findAllAnimeByListId [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+
+    if (!data) return [];
+
+    return data.map((row: any) => {
+      const anime = row.anime;
+
+      return {
+        sharedListId: row.shared_list_id,
+        lastActivityAt: row.last_activity_at,
+        animeId: anime.animeId,
+        animeMalId: anime.animeMalId,
+        animeTitle: anime.animeTitle,
+        animeCover: anime.animeCover,
+        animeEpisodes: anime.animeEpisodes,
+        animeGenres: anime.animeGenres,
+      } as SharedListAnime & Anime;
+    });
+  },
+
+  findAnimeProgress: async (
+    listId: number,
+    animeId: number,
+  ): Promise<AnimeProgress[]> => {
+    const { data, error } = await supabase
+      .from("shared_list_progress")
+      .select(
+        `
+        currentEpisode: current_episode,
+        animeId: anime_id,
+        updatedAt: updated_at,
+        user: user_id!inner (
+          user_id,
+          username,
+          avatar_updated_at
+        )
+      `,
+      )
+      .eq("shared_list_id", listId)
+      .eq("anime_id", animeId)
+      .order("current_episode", { ascending: false });
+
+    if (error) {
+      console.error(
+        `Error in findAnimeProgress [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+
+    if (!data) return [];
+
+    return data.map((row: any) => {
+      const user = row.user;
+
+      return {
+        username: user.username,
+        avatarUrl: User.formatUserAvatar(
+          user.user_id,
+          user.username,
+          user.avatar_updated_at,
+        ),
+        currentEpisode: Number(row.currentEpisode),
+        animeId: Number(row.animeId),
+        updatedAt: row.updatedAt,
+      } as AnimeProgress;
+    });
+  },
+
+  findUserAnimeProgressByAnimeId: async (
+    listId: number,
+    userId: number,
+    animeId: number,
+  ): Promise<SharedListProgress | null> => {
+    const { data, error } = await supabase
+      .from("shared_list_anime")
+      .select(
+        `
+        shared_list_id,
+        anime_id,
+        progress: shared_list_progress (
+          user_id,
+          current_episode,
+          updated_at
+        )
+      `,
+      )
+      .eq("shared_list_id", listId)
+      .eq("anime_id", animeId)
+      .eq("shared_list_progress.user_id", userId)
+      .maybeSingle();
+
+    if (error) {
+      console.error(
+        `Error in findUserAnimeProgressByAnimeId [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+
+    if (!data) return null;
+
+    const progress =
+      data.progress && data.progress.length > 0 ? data.progress[0] : null;
+
+    return {
+      sharedListId: data.shared_list_id,
+      animeId: data.anime_id,
+      userId: progress ? progress.user_id : userId,
+      currentEpisode: progress ? progress.current_episode : null,
+      updatedAt: progress ? progress.updated_at : null,
+    };
+  },
+
+  insertUserProgress: async (
+    listId: number,
+    userId: number,
+    animeId: number,
+    currentEpisode: number,
+  ): Promise<SharedListProgress> => {
+    const { data, error } = await supabase
+      .from("shared_list_progress")
+      .insert([
+        {
+          shared_list_id: listId,
+          user_id: userId,
+          anime_id: animeId,
+          current_episode: currentEpisode,
+        },
+      ])
+      .select(
+        `
+        sharedListId: shared_list_id,
+        animeId: anime_id,
+        userId: user_id,
+        currentEpisode: current_episode,
+        updatedAt: updated_at
+      `,
+      )
+      .single();
+
+    if (error) {
+      console.error(
+        `Error in insertUserProgress [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+
+    return data;
+  },
+
+  updateUserProgress: async (
+    listId: number,
+    userId: number,
+    animeId: number,
+    currentEpisode: number,
+  ): Promise<void> => {
+    const { error } = await supabase
+      .from("shared_list_progress")
+      .update({
+        current_episode: currentEpisode,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("shared_list_id", listId)
+      .eq("user_id", userId)
+      .eq("anime_id", animeId);
+
+    if (error) {
+      console.error(
+        `Error in updateUserProgress [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+  },
+
+  // Aggiorna il timestamp dell'ultima attività per un anime all'interno di una lista
+  updateAnimeLastActivity: async (
+    listId: number,
+    animeId: number,
+  ): Promise<void> => {
+    const { error } = await supabase
+      .from("shared_list_anime")
+      .update({
+        last_activity_at: new Date().toISOString(),
+      })
+      .eq("shared_list_id", listId)
+      .eq("anime_id", animeId);
+
+    if (error) {
+      console.error(
+        `Error in updateAnimeLastActivity [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+  },
+
+  getUserRole: async (
+    listId: number,
+    userId: number,
+  ): Promise<{ role: SharedListRole } | null> => {
+    const { data, error } = await supabase
+      .from("shared_list_user")
+      .select("role")
+      .eq("shared_list_id", listId)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (error) {
+      console.error(`Error in getUserRole [${error.code}]: ${error.message}`);
+      throw error;
+    }
+
+    if (!data) return null;
+
+    return {
+      role: data.role as SharedListRole,
+    };
+  },
+
+  getLeader: async (
+    listId: number,
+  ): Promise<{ userId: number; username: string; avatar: string } | null> => {
+    const client = await dbPool.connect();
+
+    try {
+      const query = `
+        SELECT p.user_id as "userId", u.username as username, u.avatar_updated_at as avatar
+        FROM shared_list_progress p
+        JOIN shared_list_user su ON p.user_id = su.user_id AND p.shared_list_id = su.shared_list_id
+        JOIN "user" u ON p.user_id = u.user_id
+        WHERE p.shared_list_id = $1
+        GROUP BY p.user_id, u.username, u.avatar_updated_at
+        ORDER BY 
+          SUM(p.current_episode) DESC,  
+          MIN(p.updated_at) ASC        
+        LIMIT 1;
+      `;
+
+      const result = await client.query(query, [listId]);
+
+      if (result.rows.length === 0) {
+        return null;
+      }
+
+      const row = result.rows[0];
+      const avatarUrl = User.formatUserAvatar(
+        row.userId,
+        row.username,
+        row.avatar,
+      );
+
+      return {
+        userId: Number(row.userId),
+        username: row.username,
+        avatar: avatarUrl,
+      };
+    } catch (error) {
+      console.error(`Error in getLeader:`, error);
+      throw error;
+    } finally {
+      client.release();
+    }
+  },
+
+  addSharedAnime: async (listId: number, animeId: number): Promise<void> => {
+    const { error } = await supabase.from("shared_list_anime").insert([
+      {
+        shared_list_id: listId,
+        anime_id: animeId,
+      },
+    ]);
+
+    if (error) {
+      console.error(
+        `Error in addSharedAnime [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+  },
+
+  deleteSharedAnime: async (listId: number, animeId: number): Promise<void> => {
+    const { error } = await supabase
+      .from("shared_list_anime")
+      .delete()
+      .eq("shared_list_id", listId)
+      .eq("anime_id", animeId);
+
+    if (error) {
+      console.error(
+        `Error in deleteSharedAnime [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+  },
+
+  findAllWithAnimeId: async (
+    animeId: number,
+    userId: number,
+  ): Promise<
+    { sharedListId: number; sharedListName: string; animeId?: number }[]
+  > => {
+    const { data, error } = await supabase
+      .from("shared_list_user")
+      .select(
+        `
+        shared_list: shared_list_id (
+          shared_list_id,
+          name,
+          shared_list_anime!left (
+            anime_id
+          )
+        )
+      `,
+      )
+      .eq("user_id", userId)
+      .eq("shared_list.shared_list_anime.anime_id", animeId);
+
+    if (error) {
+      console.error(
+        `Error in findAllWithAnimeId [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+
+    if (!data) return [];
+
+    return data.map((row: any) => {
+      const list = row.shared_list;
+
+      const animeRelation =
+        list.shared_list_anime && list.shared_list_anime.length > 0
+          ? list.shared_list_anime[0]
+          : null;
+
+      return {
+        sharedListId: list.shared_list_id,
+        sharedListName: list.name,
+        animeId: animeRelation ? animeRelation.anime_id : null,
       };
     });
   },
 
-  findAllUserInvitations: (
+  insertUser: async (
+    listId: number,
     userId: number,
+    role: SharedListRole = "MEMBER",
+  ): Promise<void> => {
+    const { error } = await supabase.from("shared_list_user").insert([
+      {
+        shared_list_id: listId,
+        user_id: userId,
+        role: role,
+      },
+    ]);
+
+    if (error) {
+      console.error(`Error in insertUser [${error.code}]: ${error.message}`);
+      throw error;
+    }
+  },
+
+  checkIfInvitationPending: async (
+    listId: number,
+    invitedUserId: number,
+  ): Promise<boolean> => {
+    const { data, error } = await supabase
+      .from("shared_list_invitation")
+      .select("shared_list_id")
+      .eq("shared_list_id", listId)
+      .eq("invited_user_id", invitedUserId)
+      .eq("status", "PENDING")
+      .maybeSingle();
+
+    if (error) {
+      console.error(
+        `Error in checkIfInvitationPending [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+
+    return data !== null;
+  },
+
+  insertUserInvitation: async (
+    listId: number,
+    senderUserId: number,
+    invitedUserId: number,
+  ): Promise<void> => {
+    const { error } = await supabase.from("shared_list_invitation").insert([
+      {
+        shared_list_id: Number(listId),
+        sender_user_id: senderUserId,
+        invited_user_id: invitedUserId,
+      },
+    ]);
+
+    if (error) {
+      console.error(
+        `Error in insertUserInvitation [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+  },
+
+  updateUserInvitation: async (
+    listId: number,
     status: SharedListInvitationStatus,
-  ) => {
-    const foundInvitation = db
-      .prepare(
+    invitedUserId: number,
+  ): Promise<void> => {
+    const { error } = await supabase
+      .from("shared_list_invitation")
+      .update({
+        status: status,
+      })
+      .eq("shared_list_id", Number(listId))
+      .eq("invited_user_id", invitedUserId);
+
+    if (error) {
+      console.error(
+        `Error in updateUserInvitation [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+  },
+
+  deleteUserInvitation: async (
+    listId: number,
+    invitedUserId: number,
+    status: SharedListInvitationStatus,
+  ): Promise<void> => {
+    const { error } = await supabase
+      .from("shared_list_invitation")
+      .delete()
+      .eq("shared_list_id", Number(listId))
+      .eq("invited_user_id", invitedUserId)
+      .eq("status", status);
+
+    if (error) {
+      console.error(
+        `Error in deleteUserInvitation [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+  },
+
+  updateNewOwner: async (listId: number, userId: number): Promise<void> => {
+    const { data: oldestMember, error: fetchError } = await supabase
+      .from("shared_list_user")
+      .select("user_id")
+      .eq("shared_list_id", listId)
+      .neq("user_id", userId)
+      .order("joined_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error(
+        `Error fetching oldest member [${fetchError.code}]: ${fetchError.message}`,
+      );
+      throw fetchError;
+    }
+
+    if (!oldestMember) return;
+
+    const { error: updateError } = await supabase
+      .from("shared_list_user")
+      .update({ role: "OWNER" })
+      .eq("shared_list_id", listId)
+      .eq("user_id", oldestMember.user_id);
+
+    if (updateError) {
+      console.error(
+        `Error updating new owner [${updateError.code}]: ${updateError.message}`,
+      );
+      throw updateError;
+    }
+  },
+
+  deleteList: async (listId: number): Promise<void> => {
+    const { error } = await supabase
+      .from("shared_list")
+      .delete()
+      .eq("shared_list_id", listId);
+
+    if (error) {
+      console.error(`Error in deleteList [${error.code}]: ${error.message}`);
+      throw error;
+    }
+  },
+
+  deleteUser: async (listId: number, userId: number): Promise<void> => {
+    const { error } = await supabase
+      .from("shared_list_user")
+      .delete()
+      .eq("shared_list_id", listId)
+      .eq("user_id", userId);
+
+    if (error) {
+      console.error(`Error in deleteUser [${error.code}]: ${error.message}`);
+      throw error;
+    }
+  },
+
+  findAllInvitedUsers: async (
+    listId: number,
+    status: SharedListInvitationStatus,
+  ): Promise<InvitedUser[]> => {
+    const { data, error } = await supabase
+      .from("shared_list_invitation")
+      .select(
         `
-          SELECT 
-            i.shared_list_id as sharedListId,
-            l.shared_list_name as sharedListName,
-            u.user_id as senderUserId,
-            u.username as senderUsername,
-            u.avatar as senderAvatar
-          FROM 'SharedListInvitation' i
-          JOIN 'Shared List' l ON i.shared_list_id = l.shared_list_id
-          JOIN 'User' u ON i.sender_user_id = u.user_id
-          WHERE i.invited_user_id = ?
-            AND i.status = ?
-          ORDER BY i.created_at DESC
+        user: invited_user_id!inner (
+          user_id,
+          username,
+          avatar_updated_at
+        )
       `,
       )
-      .all(userId, status) as any[];
+      .eq("shared_list_id", listId)
+      .eq("status", status)
+      .order("created_at", { ascending: false });
 
-    return foundInvitation.map((invitation) => {
+    if (error) {
+      console.error(
+        `Error in findAllInvitedUsers [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+
+    if (!data) return [];
+
+    return data.map((row: any) => {
+      const user = row.user;
+
+      return {
+        userId: Number(user.user_id),
+        username: user.username,
+        avatarUrl: User.formatUserAvatar(
+          user.user_id,
+          user.username,
+          user.avatar_updated_at,
+        ),
+      };
+    });
+  },
+
+  findAllUserInvitations: async (
+    userId: number,
+    status: SharedListInvitationStatus,
+  ): Promise<
+    {
+      sharedList: { sharedListId: number; sharedListName: string };
+      senderInfo: {
+        senderUserId: number;
+        senderUsername: string;
+        senderAvatar: string;
+      };
+    }[]
+  > => {
+    const { data, error } = await supabase
+      .from("shared_list_invitation")
+      .select(
+        `
+        shared_list_id,
+        shared_list: shared_list_id!inner (
+          shared_list_id,
+          name
+        ),
+        sender: sender_user_id!inner (
+          user_id,
+          username,
+          avatar_updated_at
+        )
+      `,
+      )
+      .eq("invited_user_id", userId)
+      .eq("status", status)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error(
+        `Error in findAllUserInvitations [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+
+    if (!data) return [];
+
+    return data.map((row: any) => {
+      const list = row.shared_list;
+      const sender = row.sender;
+
       const avatarUrl = User.formatUserAvatar(
-        invitation.username,
-        invitation.senderAvatar,
+        sender.user_id,
+        sender.username,
+        sender.avatar_updated_at,
       );
 
       return {
         sharedList: {
-          sharedListId: invitation.sharedListId,
-          sharedListName: invitation.sharedListName,
+          sharedListId: list.shared_list_id,
+          sharedListName: list.name,
         },
         senderInfo: {
-          senderUserId: invitation.senderUserId,
-          senderUsername: invitation.senderUsername,
+          senderUserId: Number(sender.user_id),
+          senderUsername: sender.username,
           senderAvatar: avatarUrl,
         },
       };
     });
   },
 
-  updateUserRole: (listId: number, userId: number, role: SharedListRole) => {
-    db.prepare(
-      `
-        UPDATE 'Shared List User'
-        SET role = ?
-        WHERE shared_list_id = ? AND user_id = ? AND role != 'OWNER'
-    `,
-    ).run(role, listId, userId);
+  updateUserRole: async (
+    listId: number,
+    userId: number,
+    role: SharedListRole,
+  ): Promise<void> => {
+    const { error } = await supabase
+      .from("shared_list_user")
+      .update({ role: role })
+      .eq("shared_list_id", listId)
+      .eq("user_id", userId)
+      .neq("role", "OWNER");
+
+    if (error) {
+      console.error(
+        `Error in updateUserRole [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
   },
 
-  updateMessage: (listId: number, message: string) => {
-    db.prepare(
-      `
-        UPDATE 'Shared List'
-        SET message = ?
-        WHERE shared_list_id = ?
-    `,
-    ).run(message, listId);
+  updateMessage: async (listId: number, message: string): Promise<void> => {
+    const { error } = await supabase
+      .from("shared_list")
+      .update({ message: message })
+      .eq("shared_list_id", listId);
+
+    if (error) {
+      console.error(`Error in updateMessage [${error.code}]: ${error.message}`);
+      throw error;
+    }
   },
 };

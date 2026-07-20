@@ -21,7 +21,7 @@ export interface PrivateAnime {
   userId: number;
   animeId: number;
   status: AnimeStatus;
-  addedOn?: string;
+  createdAt?: string;
   updatedAt?: string;
 }
 
@@ -45,6 +45,7 @@ export interface ListedAnime {
 export interface ListedAnimeApiRes {
   message: string;
   data: ListedAnime[];
+  count: number;
   page: number;
   perPage: number;
   hasNextPage: boolean;

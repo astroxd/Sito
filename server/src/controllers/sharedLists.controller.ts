@@ -5,14 +5,14 @@ import {
   SharedListAnime,
 } from "../models/sharedList.model";
 
-import db from "../config/database";
 import { User } from "../models/user.model";
 import { List, AnimeStatus } from "../models/list.model";
 import { Anime } from "../models/anime.model";
 import { trackWatchTime, updateGenreStats } from "./statistics.controller";
 import { checkAndUnlockBadges } from "./badge.controller";
+import { dbPool } from "../config/supabaseClient";
 
-export const getSharedLists = (req: Request, res: Response) => {
+export const getSharedLists = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Shared Lists']
      #swagger.description = 'Retrieve all shared lists associated with the authenticated user, including member details.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -24,17 +24,23 @@ export const getSharedLists = (req: Request, res: Response) => {
   const userId = res.locals.userId;
 
   try {
-    const sharedLists = SharedList.findAllByUserId(Number(userId));
+    const sharedLists = await SharedList.findAllByUserId(Number(userId));
 
-    const sharedListsInfo = sharedLists.map((list) => {
-      const members = SharedList.findAllMembersByListId(list.id);
+    console.log(sharedLists);
 
-      return {
-        sharedList: list,
-        members: members,
-        sharedListMembersNumber: members.length,
-      };
-    });
+    const sharedListsInfo = await Promise.all(
+      sharedLists.map(async (list) => {
+        const members = await SharedList.findAllMembersByListId(list.id);
+
+        return {
+          sharedList: list,
+          members: members,
+          sharedListMembersNumber: members.length,
+        };
+      }),
+    );
+
+    console.log(sharedListsInfo);
 
     return res.status(200).json({ data: sharedListsInfo });
   } catch (error) {
@@ -45,7 +51,7 @@ export const getSharedLists = (req: Request, res: Response) => {
   });
 };
 
-export const createSharedList = (req: Request, res: Response) => {
+export const createSharedList = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Shared Lists']
      #swagger.description = 'Create a new shared list for the authenticated user.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -74,7 +80,7 @@ export const createSharedList = (req: Request, res: Response) => {
         message: "The list name cannot exceed 100 characters",
       });
     }
-    SharedList.createWithUserId(userId, name);
+    await SharedList.createWithUserId(userId, name);
 
     return res.status(200).json({ message: "Shared List created" });
   } catch (error) {
@@ -85,7 +91,7 @@ export const createSharedList = (req: Request, res: Response) => {
   });
 };
 
-export const getSharedList = (req: Request, res: Response) => {
+export const getSharedList = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Shared Lists']
      #swagger.description = 'Retrieve full details of a specific shared list by ID, including its members.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -100,7 +106,10 @@ export const getSharedList = (req: Request, res: Response) => {
   const { listId } = req.params;
 
   try {
-    const sharedListInfo = SharedList.findByListId(Number(listId), userId);
+    const sharedListInfo = await SharedList.findByListId(
+      Number(listId),
+      userId,
+    );
 
     if (!sharedListInfo) {
       return res
@@ -108,7 +117,9 @@ export const getSharedList = (req: Request, res: Response) => {
         .json({ message: `Missing shared list with ID ${listId}` });
     }
 
-    const sharedListMembers = SharedList.findAllMembersByListId(Number(listId));
+    const sharedListMembers = await SharedList.findAllMembersByListId(
+      Number(listId),
+    );
 
     return res.status(200).json({
       data: {
@@ -126,7 +137,7 @@ export const getSharedList = (req: Request, res: Response) => {
   });
 };
 
-export const getSharedUserProgress = (req: Request, res: Response) => {
+export const getSharedUserProgress = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Shared Lists']
      #swagger.description = 'Retrieve the anime progress of the authenticated user within a specific shared list.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -140,7 +151,7 @@ export const getSharedUserProgress = (req: Request, res: Response) => {
   const { listId } = req.params;
 
   try {
-    const userProgress = SharedList.findUserProgressByUserId(
+    const userProgress = await SharedList.findUserProgressByUserId(
       Number(listId),
       userId,
     );
@@ -155,7 +166,7 @@ export const getSharedUserProgress = (req: Request, res: Response) => {
   });
 };
 
-export const getSharedAnimesProgress = (req: Request, res: Response) => {
+export const getSharedAnimesProgress = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Shared Lists']
      #swagger.description = 'Retrieve the combined progress of all users for every anime in a specific shared list.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -168,24 +179,23 @@ export const getSharedAnimesProgress = (req: Request, res: Response) => {
   const { listId } = req.params;
 
   try {
-    const sharedListAnimes = SharedList.findAllAnimeByListId(Number(listId));
+    const sharedListAnimes = await SharedList.findAllAnimeByListId(
+      Number(listId),
+    );
 
-    let sharedListProgress: {
-      anime: SharedListAnime & Anime;
-      progress: AnimeProgress[];
-    }[] = [];
+    const sharedListProgress = await Promise.all(
+      sharedListAnimes.map(async (anime) => {
+        const animeProgress = await SharedList.findAnimeProgress(
+          Number(listId),
+          anime.animeId,
+        );
 
-    sharedListAnimes.forEach((anime) => {
-      const animeProgress = SharedList.findAnimeProgress(
-        Number(listId),
-        anime.animeId,
-      );
-
-      sharedListProgress.push({
-        anime: anime,
-        progress: animeProgress,
-      });
-    });
+        return {
+          anime: anime,
+          progress: animeProgress,
+        };
+      }),
+    );
 
     return res.status(200).json({ data: sharedListProgress });
   } catch (error) {
@@ -197,7 +207,7 @@ export const getSharedAnimesProgress = (req: Request, res: Response) => {
   });
 };
 
-export const updateSharedUserProgress = (req: Request, res: Response) => {
+export const updateSharedUserProgress = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Shared Lists']
      #swagger.description = 'Increment the authenticated user\'s watched episode count for a specific anime inside a shared list and sync stats.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -215,128 +225,136 @@ export const updateSharedUserProgress = (req: Request, res: Response) => {
     return res.status(400).json({ message: "Missing parameters" });
   }
 
+  const client = await dbPool.connect();
+
   try {
-    db.transaction(() => {
-      const watchedEpisode = User.findLastEpisodeWatchedByAnimeId(
-        userId,
-        Number(animeId),
-      );
+    await client.query("BEGIN");
+    const [watchedEpisode, privateAnime, userProgress, anime] =
+      await Promise.all([
+        User.findLastEpisodeWatchedByAnimeId(userId, Number(animeId)),
+        List.findPrivateAnimeByAnimeId(userId, Number(animeId)),
+        SharedList.findUserAnimeProgressByAnimeId(
+          Number(listId),
+          userId,
+          Number(animeId),
+        ),
+        Anime.findAnimeById(Number(animeId)),
+      ]);
 
-      const privateAnime = List.findPrivateAnimeByAnimeId(
-        userId,
-        Number(animeId),
-      );
+    if (!anime) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ message: "Missing anime in catalog" });
+    }
 
-      const userProgress = SharedList.findUserAnimeProgressByAnimeId(
+    const maxEpisodes = anime.animeEpisodes;
+    const genresArray = anime.animeGenres || [];
+
+    let newCurrentEpisode = 1;
+
+    if (userProgress?.currentEpisode) {
+      newCurrentEpisode = userProgress.currentEpisode + 1;
+    }
+
+    if (newCurrentEpisode > maxEpisodes) {
+      await client.query("ROLLBACK");
+      return res.status(200).json({ message: "Already caught up" });
+    }
+
+    if (!userProgress?.currentEpisode) {
+      //* Prima volta che vede l'anime nella lista condivisa
+      await SharedList.insertUserProgress(
         Number(listId),
         userId,
         Number(animeId),
+        newCurrentEpisode,
       );
+    } else {
+      //* Non è la prima volta che lo vede, update progress
+      await SharedList.updateUserProgress(
+        Number(listId),
+        userId,
+        Number(animeId),
+        newCurrentEpisode,
+      );
+    }
+    await SharedList.updateAnimeLastActivity(Number(listId), Number(animeId));
 
-      const anime = Anime.findAnimeById(Number(animeId));
-
-      if (!anime) {
-        return res.status(404).json({ message: "Missing anime in catalog" });
-      }
-
-      const maxEpisodes = anime.animeEpisodes;
-      const genresArray = anime.animeGenres
-        ? anime.animeGenres.split(",").map((g: string) => g.trim())
-        : [];
-
-      let newCurrentEpisode = 1;
-
-      if (userProgress?.currentEpisode) {
-        newCurrentEpisode = userProgress.currentEpisode + 1;
-      }
-
-      if (newCurrentEpisode > maxEpisodes!) {
-        return res.status(200).json({ message: "Already caught up" });
-      }
-
-      if (!userProgress?.currentEpisode) {
-        //* Prima volta che vede l'anime nella lista condivisa
-        SharedList.insertUserProgress(
-          Number(listId),
+    //* SE non è nella lista privata, aggiungo come ultimo episodio visto quello appena segnato
+    //* e aggiorno le statistiche
+    //* ALTRIMENTI update l'ultimo episodio visto e aggiorno la statistica di una sola puntata
+    if (!watchedEpisode) {
+      await User.insertAnimeIntoWatchedEpisodes(
+        userId,
+        Number(animeId),
+        newCurrentEpisode,
+      );
+      trackWatchTime(
+        userId,
+        newCurrentEpisode,
+        anime?.animeAvgEpisodeDuration!,
+      );
+    } else {
+      const lastWatchedPrivate = watchedEpisode || 0;
+      if (lastWatchedPrivate < newCurrentEpisode) {
+        //* Se la lista condivisa è più avanti di quella privata, aumento il counter privato
+        await User.updateLastWatchedEpisode(
           userId,
           Number(animeId),
           newCurrentEpisode,
         );
+      }
+      //* Aggiornamento statistiche
+      trackWatchTime(userId, 1, anime?.animeAvgEpisodeDuration ?? 0);
+    }
+
+    //* Calcolo del nuovo stato dell'anime
+    if (privateAnime?.status !== AnimeStatus.Completed) {
+      const calculatedStatus =
+        newCurrentEpisode === maxEpisodes
+          ? AnimeStatus.Completed
+          : AnimeStatus.Watching;
+
+      //* Se non l'ho mai visto da solo, oppure l'ho tolto forzatamente lo inserisco in watching o completed
+      if (!privateAnime) {
+        await List.insertPrivateAnime(
+          userId,
+          Number(animeId),
+          calculatedStatus,
+        );
+        if (calculatedStatus === AnimeStatus.Completed) {
+          updateGenreStats(userId, genresArray, "INCREMENT");
+        }
       } else {
-        //* Non è la prima volta che lo vede, update progress
-        SharedList.updateUserProgress(
-          Number(listId),
-          userId,
-          Number(animeId),
-          newCurrentEpisode,
-        );
-      }
-      SharedList.updateAnimeLastActivity(Number(listId), Number(animeId));
-
-      //* SE non è nella lista privata, aggiungo come ultimo episodio visto quello appena segnato
-      //* e aggiorno le statistiche
-      //* ALTRIMENTI update l'ultimo episodio visto e aggiorno la statistica di una sola puntata
-      if (!watchedEpisode) {
-        User.insertAnimeIntoWatchedEpisodes(
-          userId,
-          Number(animeId),
-          newCurrentEpisode,
-        );
-        trackWatchTime(
-          userId,
-          newCurrentEpisode,
-          anime?.animeAvgEpisodeDuration!,
-        );
-      } else {
-        const lastWatchedPrivate = watchedEpisode?.lastEpisodeWatched || 0;
-        if (lastWatchedPrivate < newCurrentEpisode) {
-          //* Se la lista condivisa è più avanti di quella privata, aumento il counter privato
-          User.updateLastWatchedEpisode(
+        //* Se esisteva (ed era DROPPED o WATCHING), lo aggiorno solo se il nuovo stato è diverso
+        if (privateAnime.status !== calculatedStatus) {
+          await List.updateAnimeStatus(
             userId,
             Number(animeId),
-            newCurrentEpisode,
+            calculatedStatus,
           );
-        }
-        //* Aggiornamento statistiche
-        trackWatchTime(userId, 1, anime?.animeAvgEpisodeDuration ?? 0);
-      }
-
-      //* Calcolo del nuovo stato dell'anime
-      if (privateAnime?.status !== AnimeStatus.Completed) {
-        const calculatedStatus =
-          newCurrentEpisode === maxEpisodes
-            ? AnimeStatus.Completed
-            : AnimeStatus.Watching;
-
-        //* Se non l'ho mai visto da solo, oppure l'ho tolto forzatamente lo inserisco in watching o completed
-        if (!privateAnime) {
-          List.insertPrivateAnime(userId, Number(animeId), calculatedStatus);
           if (calculatedStatus === AnimeStatus.Completed) {
             updateGenreStats(userId, genresArray, "INCREMENT");
           }
-        } else {
-          //* Se esisteva (ed era DROPPED o WATCHING), lo aggiorno solo se il nuovo stato è diverso
-          if (privateAnime.status !== calculatedStatus) {
-            List.updateAnimeStatus(userId, Number(animeId), calculatedStatus);
-            if (calculatedStatus === AnimeStatus.Completed) {
-              updateGenreStats(userId, genresArray, "INCREMENT");
-            }
-          }
         }
       }
+    }
 
-      checkAndUnlockBadges(userId);
-    })();
+    checkAndUnlockBadges(userId);
+
+    await client.query("COMMIT");
     return res.status(200).json({ message: "Progress updated successfully" });
   } catch (error) {
+    await client.query("ROLLBACK");
     console.error(error);
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  } finally {
+    client.release();
   }
-  return res.status(500).json({
-    message: "Internal server error",
-  });
 };
 
-export const addSharedAnime = (req: Request, res: Response) => {
+export const addSharedAnime = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Shared Lists']
      #swagger.description = 'Add an anime to the shared list. Requires OWNER or EDITOR role.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -356,20 +374,17 @@ export const addSharedAnime = (req: Request, res: Response) => {
   const { listId } = req.params;
   const { animeDetails } = req.body;
 
-  console.log(animeDetails);
+  // console.log(animeDetails);
+  if (!["OWNER", "EDITOR"].includes(userRole)) {
+    return res.status(403).json({
+      message: "The user does not have permission to add anime to this list",
+    });
+  }
   try {
-    db.transaction(() => {
-      if (!["OWNER", "EDITOR"].includes(userRole)) {
-        return res.status(403).json({
-          message:
-            "The user does not have permission to add anime to this list",
-        });
-      }
-      //* Aggiorna (upsert) la tabella Anime con i dettagli dell'anime
-      Anime.animeUpsert(Anime.sanitizeAnime(animeDetails));
+    //* Aggiorna (upsert) la tabella Anime con i dettagli dell'anime
+    await Anime.animeUpsert(Anime.sanitizeAnime(animeDetails));
 
-      SharedList.addSharedAnime(Number(listId), animeDetails.id);
-    })();
+    await SharedList.addSharedAnime(Number(listId), animeDetails.id);
     return res.status(200).json({ message: "Added" });
   } catch (error) {
     console.error(error);
@@ -379,7 +394,7 @@ export const addSharedAnime = (req: Request, res: Response) => {
   });
 };
 
-export const removeSharedAnime = (req: Request, res: Response) => {
+export const removeSharedAnime = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Shared Lists']
      #swagger.description = 'Remove an anime from the shared list. Requires OWNER or EDITOR role.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -398,15 +413,14 @@ export const removeSharedAnime = (req: Request, res: Response) => {
     return res.status(400).json({ message: "MISSING PARAMS" });
   }
 
+  if (!["OWNER", "EDITOR"].includes(userRole)) {
+    return res.status(403).json({
+      message:
+        "The user does not have permission to remove anime from this list",
+    });
+  }
   try {
-    if (!["OWNER", "EDITOR"].includes(userRole)) {
-      return res.status(403).json({
-        message:
-          "The user does not have permission to remove anime from this list",
-      });
-    }
-
-    SharedList.deleteSharedAnime(Number(listId), Number(animeId));
+    await SharedList.deleteSharedAnime(Number(listId), Number(animeId));
 
     return res.status(200).json({ message: "Anime removed successfully" });
   } catch (error) {
@@ -417,7 +431,10 @@ export const removeSharedAnime = (req: Request, res: Response) => {
   });
 };
 
-export const getAllSharedListsWithAnimeId = (req: Request, res: Response) => {
+export const getAllSharedListsWithAnimeId = async (
+  req: Request,
+  res: Response,
+) => {
   /* #swagger.tags = ['Shared Lists']
      #swagger.description = 'Retrieve all shared lists associated with the user, indicating if the specific anime is present or not.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -435,7 +452,10 @@ export const getAllSharedListsWithAnimeId = (req: Request, res: Response) => {
     return res.status(400).json({ error: "Missing parameters" });
   }
   try {
-    const sharedLists = SharedList.findAllWithAnimeId(Number(animeId), userId);
+    const sharedLists = await SharedList.findAllWithAnimeId(
+      Number(animeId),
+      userId,
+    );
 
     return res.status(200).json({ data: sharedLists });
   } catch (error) {
@@ -447,7 +467,7 @@ export const getAllSharedListsWithAnimeId = (req: Request, res: Response) => {
   });
 };
 
-export const addMemberRequest = (req: Request, res: Response) => {
+export const addMemberRequest = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Shared Lists']
      #swagger.description = 'Invite a new user to the shared list. Requires OWNER role.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -468,15 +488,13 @@ export const addMemberRequest = (req: Request, res: Response) => {
   const userRole = res.locals.userRole;
   const { listId } = req.params;
   const { memberId } = req.body;
-
+  if (userRole !== "OWNER") {
+    return res.status(403).json({
+      message: "The user does not have permission to invite members",
+    });
+  }
   try {
-    if (userRole !== "OWNER") {
-      return res.status(403).json({
-        message: "The user does not have permission to invite members",
-      });
-    }
-
-    const existingRole = SharedList.getUserRole(Number(listId), memberId);
+    const existingRole = await SharedList.getUserRole(Number(listId), memberId);
 
     if (existingRole) {
       return res.status(400).json({
@@ -484,7 +502,7 @@ export const addMemberRequest = (req: Request, res: Response) => {
       });
     }
 
-    const isAlreadyInvited = SharedList.checkIfInvitationPending(
+    const isAlreadyInvited = await SharedList.checkIfInvitationPending(
       Number(listId),
       memberId,
     );
@@ -494,7 +512,7 @@ export const addMemberRequest = (req: Request, res: Response) => {
         .json({ message: "An invitation has already been sent to this user" });
     }
 
-    SharedList.insertUserInvitation(Number(listId), userId, memberId);
+    await SharedList.insertUserInvitation(Number(listId), userId, memberId);
 
     return res.status(200).json({ message: "Member invited successfully" });
   } catch (error) {
@@ -506,7 +524,7 @@ export const addMemberRequest = (req: Request, res: Response) => {
   });
 };
 
-export const acceptSharedListRequest = (req: Request, res: Response) => {
+export const acceptSharedListRequest = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Shared Lists']
      #swagger.description = 'Accept a pending invitation to join a shared list.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -524,35 +542,34 @@ export const acceptSharedListRequest = (req: Request, res: Response) => {
   }
 
   try {
-    const listExists = SharedList.exists(Number(listId));
+    const listExists = await SharedList.exists(Number(listId));
     if (!listExists) {
       return res.status(404).json({
         message: "This shared list no longer exists or has been deleted",
       });
     }
 
-    const existingRole = SharedList.getUserRole(Number(listId), userId);
+    const existingRole = await SharedList.getUserRole(Number(listId), userId);
     if (existingRole) {
       return res
         .status(400)
         .json({ message: "You are already a member of this list" });
     }
-    db.transaction(() => {
-      SharedList.updateUserInvitation(Number(listId), "ACCEPTED", userId);
-      SharedList.insertUser(Number(listId), userId, "MEMBER");
-    })();
+
+    await SharedList.updateUserInvitation(Number(listId), "ACCEPTED", userId);
+    await SharedList.insertUser(Number(listId), userId, "MEMBER");
 
     return res.status(200).json({ message: "Member joined successfully" });
   } catch (error) {
     console.error(error);
-  }
 
-  return res.status(500).json({
-    message: "Internal server error",
-  });
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
 };
 
-export const declineSharedListRequest = (req: Request, res: Response) => {
+export const declineSharedListRequest = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Shared Lists']
      #swagger.description = 'Decline a pending invitation to a shared list.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -570,14 +587,14 @@ export const declineSharedListRequest = (req: Request, res: Response) => {
   }
 
   try {
-    const listExists = SharedList.exists(Number(listId));
+    const listExists = await SharedList.exists(Number(listId));
     if (!listExists) {
       return res.status(404).json({
         message: "This shared list no longer exists or has been deleted",
       });
     }
 
-    SharedList.deleteUserInvitation(Number(listId), userId, "PENDING");
+    await SharedList.deleteUserInvitation(Number(listId), userId, "PENDING");
 
     return res
       .status(200)
@@ -591,7 +608,7 @@ export const declineSharedListRequest = (req: Request, res: Response) => {
   });
 };
 
-export const cancelSharedListRequest = (req: Request, res: Response) => {
+export const cancelSharedListRequest = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Shared Lists']
      #swagger.description = 'Cancel a pending invitation sent to a user. Requires OWNER role.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -604,14 +621,17 @@ export const cancelSharedListRequest = (req: Request, res: Response) => {
   const { listId, userId } = req.params;
   const userRole = res.locals.userRole;
 
+  if (userRole !== "OWNER") {
+    return res.status(403).json({
+      message: "You do not have permission to cancel this invitation",
+    });
+  }
   try {
-    if (userRole !== "OWNER") {
-      return res.status(403).json({
-        message: "You do not have permission to cancel this invitation",
-      });
-    }
-
-    SharedList.deleteUserInvitation(Number(listId), Number(userId), "PENDING");
+    await SharedList.deleteUserInvitation(
+      Number(listId),
+      Number(userId),
+      "PENDING",
+    );
 
     return res
       .status(200)
@@ -625,7 +645,7 @@ export const cancelSharedListRequest = (req: Request, res: Response) => {
   });
 };
 
-export const removeMember = (req: Request, res: Response) => {
+export const removeMember = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Shared Lists']
      #swagger.description = 'Remove a member from the shared list or leave the list. Requires OWNER role unless removing oneself.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -654,45 +674,42 @@ export const removeMember = (req: Request, res: Response) => {
       });
     }
 
-    const memberRole = SharedList.getUserRole(
+    const memberRole = await SharedList.getUserRole(
       Number(listId),
       Number(userId),
-    )?.role;
+    ).then((r) => r?.role);
 
     if (!memberRole) {
       return res.status(404).json({ message: "Member not found in this list" });
     }
 
-    db.transaction(() => {
-      if (memberRole === "OWNER") {
-        const totalMembers = SharedList.findMembersCount(Number(listId));
+    // db.transaction(() => {
+    if (memberRole === "OWNER") {
+      const totalMembers = await SharedList.countMembersByListId(
+        Number(listId),
+      );
 
-        if (totalMembers.count > 1) {
-          SharedList.updateNewOwner(Number(listId), Number(userId));
-        } else {
-          SharedList.deleteList(Number(listId));
-          return;
-        }
+      if (totalMembers > 1) {
+        await SharedList.updateNewOwner(Number(listId), Number(userId));
+      } else {
+        await SharedList.deleteList(Number(listId));
+        // return;
       }
+    }
 
-      SharedList.deleteUser(Number(listId), Number(userId));
-      SharedList.deleteUserInvitation(
-        Number(listId),
-        Number(userId),
-        "ACCEPTED",
-      );
+    await SharedList.deleteUser(Number(listId), Number(userId));
+    await SharedList.deleteUserInvitation(
+      Number(listId),
+      Number(userId),
+      "ACCEPTED",
+    );
 
-      //* Forse i progressi potrei lasciarli
-      // db.prepare(
-      //   `DELETE FROM 'Shared List Progress' WHERE shared_list_id = ? AND user_id = ?`,
-      // ).run(Number(listId), Number(userId));
+    //* Forse i progressi potrei lasciarli
+    // db.prepare(
+    //   `DELETE FROM 'Shared List Progress' WHERE shared_list_id = ? AND user_id = ?`,
+    // ).run(Number(listId), Number(userId));
 
-      SharedList.deleteUserInvitation(
-        Number(listId),
-        Number(userId),
-        "ACCEPTED",
-      );
-    })();
+    // })();
 
     const successMessage = isSelfRemoval
       ? "You have left the list successfully"
@@ -706,7 +723,7 @@ export const removeMember = (req: Request, res: Response) => {
   }
 };
 
-export const getPendingMembers = (req: Request, res: Response) => {
+export const getPendingMembers = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Shared Lists']
      #swagger.description = 'Retrieve a list of users who have pending invitations for this shared list.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -719,7 +736,7 @@ export const getPendingMembers = (req: Request, res: Response) => {
   const { listId } = req.params;
 
   try {
-    const sharedListPendingMembers = SharedList.findAllInvitedUsers(
+    const sharedListPendingMembers = await SharedList.findAllInvitedUsers(
       Number(listId),
       "PENDING",
     );
@@ -736,7 +753,7 @@ export const getPendingMembers = (req: Request, res: Response) => {
   });
 };
 
-export const getInvites = (req: Request, res: Response) => {
+export const getInvites = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Shared Lists']
      #swagger.description = 'Retrieve all pending shared list invitations received by the authenticated user, including list info, sender data, and current members.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -748,13 +765,13 @@ export const getInvites = (req: Request, res: Response) => {
   const userId = res.locals.userId;
 
   try {
-    const sharedListsInvitations = SharedList.findAllUserInvitations(
+    const sharedListsInvitations = await SharedList.findAllUserInvitations(
       userId,
       "PENDING",
     );
 
-    const sharedListsInfo = sharedListsInvitations.map((invitation) => {
-      const members = SharedList.findAllMembersByListId(
+    const sharedListsInfo = sharedListsInvitations.map(async (invitation) => {
+      const members = await SharedList.findAllMembersByListId(
         invitation.sharedList.sharedListId,
       );
 
@@ -775,7 +792,7 @@ export const getInvites = (req: Request, res: Response) => {
   });
 };
 
-export const updateMemberRole = (req: Request, res: Response) => {
+export const updateMemberRole = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Shared Lists']
      #swagger.description = 'Update a member\'s role within the shared list. Requires OWNER role.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -822,17 +839,17 @@ export const updateMemberRole = (req: Request, res: Response) => {
         .json({ message: "Only the OWNER can change member roles" });
     }
 
-    const targetUserRole = SharedList.getUserRole(
+    const targetUserRole = await SharedList.getUserRole(
       Number(listId),
       Number(userId),
-    )?.role;
+    ).then((r) => r?.role);
     if (!targetUserRole) {
       return res
         .status(404)
         .json({ message: "The specified user is not a member of this list" });
     }
 
-    SharedList.updateUserRole(Number(listId), Number(userId), newRole);
+    await SharedList.updateUserRole(Number(listId), Number(userId), newRole);
 
     return res
       .status(200)
@@ -843,7 +860,7 @@ export const updateMemberRole = (req: Request, res: Response) => {
   }
 };
 
-export const updateSharedListMessage = (req: Request, res: Response) => {
+export const updateSharedListMessage = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Shared Lists']
      #swagger.description = 'Update the custom broadcast message of the shared list. Allowed only for the active Leader or the OWNER if no leader exists.'
      #swagger.security = [{ "bearerAuth": [] }]
@@ -882,7 +899,7 @@ export const updateSharedListMessage = (req: Request, res: Response) => {
   }
 
   try {
-    const leader = SharedList.getLeader(Number(listId));
+    const leader = await SharedList.getLeader(Number(listId));
 
     if (!leader) {
       if (userRole !== "OWNER") {
@@ -899,7 +916,7 @@ export const updateSharedListMessage = (req: Request, res: Response) => {
       }
     }
 
-    SharedList.updateMessage(Number(listId), message);
+    await SharedList.updateMessage(Number(listId), message);
 
     return res.status(200).json({ message: "Message updated successfully" });
   } catch (error) {

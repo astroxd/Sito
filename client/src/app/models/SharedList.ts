@@ -11,7 +11,7 @@ export type SharedListRole = 'OWNER' | 'EDITOR' | 'MEMBER';
 export interface SharedListMember {
   id: number;
   username: string;
-  avatar: string;
+  avatarUrl: string;
   role: SharedListRole;
   totalEpisodes: number;
   length: number;
@@ -63,7 +63,7 @@ export interface SharedListAnimeProgress {
   };
   progress: {
     username: string;
-    avatar: string;
+    avatarUrl: string;
     currentEpisode: number;
     animeId: number;
     updatedAt: string;
@@ -82,7 +82,7 @@ export interface SharedListInvitation {
   senderInfo: {
     senderUserId: number;
     senderUsername: string;
-    senderAvatar: string;
+    senderAvatarUrl: string;
   };
 
   members: SharedListMember[];

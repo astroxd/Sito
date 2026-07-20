@@ -1,217 +1,452 @@
-import db from "../config/database";
+import { supabase } from "../config/supabaseClient";
+import * as crypto from "crypto";
 
 export interface User {
   id: number;
   email: string;
   username: string;
-  password?: string;
-  avatar?: string;
-  banner?: string;
-  created_on?: string;
-  refresh_token?: string;
+  avatarUrl?: string;
+  defaultAvatarUrl?: string;
+  bannerUrl?: string;
+  createdAt?: string;
+  refreshToken?: string;
+  avatarUpdatedAt?: string;
 }
 
 export interface FoundUser {
   userId: number;
   username: string;
-  avatar: string;
-  count: number;
+  avatarUrl: string;
+  // count: number;
 }
 
-const serverUrl = "http://localhost:3001";
+const avatarsBucket = process.env.SUPABASE_AVATARS_BUCKET_ID || "avatars";
 
 export const User = {
-  findById: (userId: number) => {
-    return db
-      .prepare(
+  findById: async (userId: number): Promise<User | null> => {
+    const { data, error } = await supabase
+      .from("user")
+      .select(
         `
-        SELECT user_id AS id, email, username, avatar, banner
-        FROM User WHERE user_id = ?
+      id: user_id,
+      email,
+      username,
+      avatarUpdatedAt: avatar_updated_at,
+      bannerUrl: banner_url,
+      createdAt: created_at,
+      refreshToken: refresh_token
       `,
       )
-      .get(userId) as User | undefined;
-  },
+      .eq("user_id", userId)
+      .maybeSingle();
 
-  findByEmail: (email: string) => {
-    const foundUser = db
-      .prepare(
-        `
-          SELECT user_id AS id, email, username, avatar, banner
-          FROM User WHERE email = ?
-        `,
-      )
-      .get(email) as User | undefined;
+    if (error) {
+      console.error(`Error in findById [${error.code}]: ${error.message}`);
+      throw error;
+    }
 
-    if (foundUser !== undefined) {
+    if (data) {
       return {
-        ...foundUser,
-        avatar: User.formatUserAvatar(foundUser.username, foundUser.avatar),
+        ...data,
+        avatarUrl: User.formatUserAvatar(
+          data.id,
+          data.username,
+          data.avatarUpdatedAt,
+        ),
       };
     }
+
+    return null;
   },
 
-  findByUsername: (username: string) => {
-    const foundUser = db
-      .prepare(
+  findByEmail: async (email: string): Promise<User | null> => {
+    const { data, error } = await supabase
+      .from("user")
+      .select(
         `
-          SELECT user_id AS id, email, username, avatar, banner 
-          FROM User WHERE username = ?
-        `,
+        id: user_id,
+        email,
+        username,
+        avatarUpdatedAt: avatar_updated_at,
+        bannerUrl: banner_url,
+        createdAt: created_at,
+        refreshToken: refresh_token
+      `,
       )
-      .get(username) as User | undefined;
+      .eq("email", email)
+      .maybeSingle();
 
-    if (foundUser !== undefined) {
+    if (error) {
+      console.error(`Error in findByEmail [${error.code}]: ${error.message}`);
+      throw error;
+    }
+
+    if (data) {
       return {
-        ...foundUser,
-        avatar: User.formatUserAvatar(foundUser.username, foundUser.avatar),
+        ...data,
+        avatarUrl: User.formatUserAvatar(
+          data.id,
+          data.username,
+          data.avatarUpdatedAt,
+        ),
       };
     }
-    return foundUser;
+
+    return null;
   },
 
-  findByRefreshToken: (refreshToken: string) => {
-    const foundUser = db
-      .prepare(
+  findByUsername: async (username: string): Promise<User | null> => {
+    const { data, error } = await supabase
+      .from("user")
+      .select(
         `
-          SELECT user_id AS id, email, username, avatar, banner
-          FROM User WHERE refresh_token = ?
-        `,
+      id: user_id,
+      email,
+      username,
+      avatarUpdatedAt: avatar_updated_at,
+      bannerUrl: banner_url`,
       )
-      .get(refreshToken) as User | undefined;
+      .eq("username", username)
+      .maybeSingle();
 
-    if (foundUser !== undefined) {
+    if (error) {
+      console.error(
+        `Error in findByUsername [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+
+    if (data) {
       return {
-        ...foundUser,
-        avatar: User.formatUserAvatar(foundUser.username, foundUser.avatar),
+        ...data,
+        avatarUrl: User.formatUserAvatar(
+          data.id,
+          data.username,
+          data.avatarUpdatedAt,
+        ),
       };
     }
-    return foundUser;
+
+    return null;
   },
 
-  searchByUsername: (userId: number, username: string, perPage, offset = 0) => {
-    const foundUsers = db
-      .prepare(
+  findByRefreshToken: async (refreshToken: string): Promise<User | null> => {
+    const { data, error } = await supabase
+      .from("user")
+      .select(
         `
-            SELECT u.user_id as userId, u.username, u.avatar, COUNT(*) OVER() as count
-            FROM 'User' u
-            WHERE u.user_id != ? AND u.username COLLATE UTF8_GENERAL_CI LIKE @query
-            LIMIT ?
-            OFFSET ?
-        `,
+        id: user_id,
+        email,
+        username,
+        avatarUpdatedAt: avatar_updated_at,
+        bannerUrl: banner_url,
+        createdAt: created_at,
+        refreshToken: refresh_token
+      `,
       )
-      .all(userId, perPage, offset, { query: username + "%" }) as FoundUser[];
+      .eq("refresh_token", refreshToken)
+      .maybeSingle();
 
-    return foundUsers.map((user) => {
+    if (error) {
+      console.error(
+        `Error in findByRefreshToken [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+
+    if (data) {
       return {
-        ...user,
-        avatar: User.formatUserAvatar(user.username, user.avatar),
+        ...data,
+        avatarUrl: User.formatUserAvatar(
+          data.id,
+          data.username,
+          data.avatarUpdatedAt,
+        ),
+      };
+    }
+
+    return null;
+  },
+
+  searchByUsername: async (
+    userId: number,
+    username: string,
+    perPage: number,
+    offset: number = 0,
+  ): Promise<FoundUser[]> => {
+    const { data, error } = await supabase
+      .from("user")
+      .select(
+        `
+        userId: user_id,
+        username,
+        avatarUpdatedAt: avatar_updated_at
+      `,
+      )
+      .neq("user_id", userId)
+      .ilike("username", `${username}%`)
+      .range(offset, offset + perPage - 1);
+
+    if (error) {
+      console.error(
+        `Error in searchByUsername [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+
+    if (!data) return [];
+
+    return data.map((user) => {
+      return {
+        userId: user.userId,
+        username: user.username,
+        avatarUrl: User.formatUserAvatar(
+          user.userId,
+          user.username,
+          user.avatarUpdatedAt,
+        ),
       };
     });
   },
 
-  createUser: (
-    email: string,
-    password: string,
+  countSearchMatches: async (
+    userId: number,
     username: string,
-    avatar?: string,
-  ) => {
-    const result = db
-      .prepare(
-        `INSERT INTO User(email, password, username, avatar, banner)
-                        VALUES(?,?,?,?,?)`,
-      )
-      .run(email, password, username, avatar ?? null, "");
+  ): Promise<number> => {
+    const { error, count } = await supabase
+      .from("user")
+      .select("*", { count: "exact", head: true })
+      .neq("user_id", userId)
+      .ilike("username", `${username}%`);
 
-    return result.lastInsertRowid;
+    if (error) {
+      console.error(
+        `Error in countSearchMatches [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+
+    return count || 0;
   },
 
-  updateRefreshToken: (userId: number | bigint, refreshToken: string) => {
-    const result = db
-      .prepare("UPDATE User SET refresh_token = ? WHERE user_id = ?")
-      .run(refreshToken, userId);
+  createUser: async (
+    email: string,
+    passwordHash: string,
+    username: string,
+  ): Promise<number> => {
+    const { data, error } = await supabase
+      .from("user")
+      .insert([
+        {
+          email,
+          password_hash: passwordHash,
+          username,
+          banner_url: null,
+        },
+      ])
+      .select("user_id")
+      .single();
 
-    return result.lastInsertRowid;
+    if (error) {
+      console.error(`Error in createUser [${error.code}]: ${error.message}`);
+      throw error;
+    }
+
+    return data.user_id;
   },
 
-  getPasswordFromEmail: (email: string) => {
-    const result = db
-      .prepare("SELECT password FROM User WHERE email = ?")
-      .get(email) as { password: string } | undefined;
-    return result?.password;
+  updateRefreshToken: async (
+    userId: number,
+    refreshToken: string,
+  ): Promise<void> => {
+    const { error } = await supabase
+      .from("user")
+      .update({ refresh_token: refreshToken })
+      .eq("user_id", userId);
+
+    if (error) {
+      console.error(
+        `Error in updateRefreshToken [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
   },
 
-  revokeRefreshToken: (userId: number) => {
-    const result = db
-      .prepare("UPDATE User SET refresh_token = NULL WHERE user_id = ?")
-      .run(userId);
+  getPasswordFromEmail: async (email: string): Promise<string | null> => {
+    const { data, error } = await supabase
+      .from("user")
+      .select("passwordHash: password_hash")
+      .eq("email", email)
+      .maybeSingle();
 
-    return result.lastInsertRowid;
+    if (error) {
+      console.error(
+        `Error in getPasswordFromEmail [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+
+    return data?.passwordHash ?? null;
   },
 
-  findLastEpisodeWatchedByAnimeId: (userId: number, animeId: number) => {
-    return db
-      .prepare(
-        `
-        SELECT last_episode_watched as lastEpisodeWatched
-        FROM 'Watched Episodes' 
-        WHERE user_id = ? AND anime_id = ?
-      `,
-      )
-      .get(userId, animeId) as { lastEpisodeWatched: number } | undefined;
+  revokeRefreshToken: async (userId: number): Promise<void> => {
+    const { error } = await supabase
+      .from("user")
+      .update({ refresh_token: null })
+      .eq("user_id", userId);
+
+    if (error) {
+      console.error(
+        `Error in revokeRefreshToken [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
   },
-  insertAnimeIntoWatchedEpisodes: (
+
+  updateAvatar: async (
+    userId: number,
+  ): Promise<{
+    uploadUrl: string;
+    token: string;
+  }> => {
+    const { data, error } = await supabase.storage
+      .from(avatarsBucket)
+      .createSignedUploadUrl(User.getUserAvatarPath(userId), { upsert: true });
+
+    if (error || !data) {
+      console.error(`Error in updateAvatar [${error.name}]: ${error.message}`);
+      throw error;
+    }
+
+    return {
+      uploadUrl: data.signedUrl,
+      token: data.token,
+    };
+  },
+
+  updateAvatarUpdatedAt: async (userId: number) => {
+    const newUpdatedAt = new Date().toISOString();
+
+    const { error } = await supabase
+      .from("user")
+      .update({ avatar_updated_at: newUpdatedAt })
+      .eq("user_id", userId);
+
+    if (error) {
+      console.error(
+        `Error in updateAvatarUpdatedAt [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+
+    return newUpdatedAt;
+  },
+
+  findLastEpisodeWatchedByAnimeId: async (
     userId: number,
     animeId: number,
-    watchedEpisodes = 1,
-  ) => {
-    return db
-      .prepare(
-        `
-          INSERT INTO 'Watched Episodes' (user_id, anime_id, last_episode_watched)
-          VALUES (?,?,?)
-        `,
-      )
-      .run(userId, animeId, watchedEpisodes);
+  ): Promise<number | null> => {
+    const { data, error } = await supabase
+      .from("watched_episodes")
+      .select("lastEpisode: last_episode")
+      .eq("user_id", userId)
+      .eq("anime_id", animeId)
+      .maybeSingle();
+
+    if (error) {
+      console.error(
+        `Error in findLastEpisodeWatchedByAnimeId [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+
+    return data?.lastEpisode ?? null;
   },
 
-  updateLastWatchedEpisode: (
+  insertAnimeIntoWatchedEpisodes: async (
+    userId: number,
+    animeId: number,
+    watchedEpisodes: number = 1,
+  ): Promise<void> => {
+    const { error } = await supabase.from("watched_episodes").insert([
+      {
+        user_id: userId,
+        anime_id: animeId,
+        last_episode: watchedEpisodes,
+      },
+    ]);
+
+    if (error) {
+      console.error(
+        `Error in insertAnimeIntoWatchedEpisodes [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+  },
+
+  updateLastWatchedEpisode: async (
     userId: number,
     animeId: number,
     lastWatchedEpisode: number,
+  ): Promise<void> => {
+    const { error } = await supabase
+      .from("watched_episodes")
+      .update({ last_episode: lastWatchedEpisode })
+      .eq("user_id", userId)
+      .eq("anime_id", animeId);
+
+    if (error) {
+      console.error(
+        `Error in updateLastWatchedEpisode [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+  },
+
+  deleteFromWatchingByAnimeId: async (
+    userId: number,
+    animeId: number,
+  ): Promise<void> => {
+    const { data, error } = await supabase
+      .from("watched_episodes")
+      .delete()
+      .eq("user_id", userId)
+      .eq("anime_id", animeId);
+
+    if (error) {
+      console.error(
+        `Error in deleteFromWatchingByAnimeId [${error.code}]: ${error.message}`,
+      );
+      throw error;
+    }
+  },
+
+  formatUserAvatar: (
+    userId: number,
+    username: string,
+    avatarUpdatedAt: string | null | undefined,
   ) => {
-    return db
-      .prepare(
-        `
-          UPDATE 'Watched Episodes' SET last_episode_watched = ? 
-          WHERE anime_id = ? AND user_id = ?
-        `,
-      )
-      .run(lastWatchedEpisode, animeId, userId).lastInsertRowid;
+    if (!avatarUpdatedAt)
+      return `https://api.dicebear.com/9.x/initials/svg?seed=${username}`;
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage
+      .from(avatarsBucket)
+      .getPublicUrl(User.getUserAvatarPath(userId));
+
+    return `${publicUrl}?t=${avatarUpdatedAt}`;
   },
 
-  deleteFromWatchingByAnimeId: (userId: number, animeId: number) => {
-    return db
-      .prepare(
-        `
-          DELETE FROM 'Watched Episodes' 
-          WHERE user_id = ? AND anime_id = ?
-        `,
-      )
-      .run(userId, animeId).changes;
-  },
+  getUserAvatarPath: (userId: number) => {
+    const salt =
+      process.env.AVATAR_SALT_KEY || "superrandomsecretstringforhashing";
 
-  updateAvatar: (userId: number, avatar: string) => {
-    db.prepare(
-      `
-        UPDATE 'User' SET avatar = ?
-        WHERE user_id = ?
-      `,
-    ).run(avatar, userId);
-  },
+    const folder = crypto
+      .createHmac("sha256", salt)
+      .update(userId.toString())
+      .digest("hex");
 
-  formatUserAvatar: (username: string, avatar: string | null | undefined) => {
-    return avatar
-      ? `${serverUrl}/static/avatar/${avatar}`
-      : `https://api.dicebear.com/9.x/initials/svg?seed=${username}`;
+    return `${folder}/avatar.jpg`;
   },
 };

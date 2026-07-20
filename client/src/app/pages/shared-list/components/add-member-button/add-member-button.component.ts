@@ -117,11 +117,11 @@ export class AddMemberButtonComponent implements OnInit {
     this.friendshipService.searchAmongFriends(query.trim(), page).subscribe({
       next: ({ data: foundFriends, hasNextPage }) => {
         if (isNewQuery) {
-          this.searchedFriends.set(foundFriends);
+          this.searchedFriends.set(foundFriends.items);
         } else {
           this.searchedFriends.update((currentFriends) => [
             ...currentFriends,
-            ...foundFriends,
+            ...foundFriends.items,
           ]);
         }
 
