@@ -20,7 +20,7 @@ export interface FoundUser {
   // count: number;
 }
 
-const serverUrl = process.env.SERVER_URL || "http://localhost:3001";
+const avatarsBucket = process.env.SUPABASE_AVATARS_BUCKET_ID || "avatars";
 
 export const User = {
   findById: async (userId: number): Promise<User | null> => {
@@ -310,7 +310,7 @@ export const User = {
     token: string;
   }> => {
     const { data, error } = await supabase.storage
-      .from("avatars")
+      .from(avatarsBucket)
       .createSignedUploadUrl(User.getUserAvatarPath(userId), { upsert: true });
 
     if (error || !data) {
@@ -432,7 +432,7 @@ export const User = {
     const {
       data: { publicUrl },
     } = supabase.storage
-      .from("avatars")
+      .from(avatarsBucket)
       .getPublicUrl(User.getUserAvatarPath(userId));
 
     return `${publicUrl}?t=${avatarUpdatedAt}`;

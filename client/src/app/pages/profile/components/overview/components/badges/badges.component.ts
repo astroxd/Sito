@@ -81,4 +81,11 @@ export class BadgesComponent implements OnInit {
   }
 
   ngOnInit() {}
+
+  handleBadgeImageError(event: ErrorEvent) {
+    const element = event.target as HTMLImageElement;
+    element.onerror = null;
+
+    element.src = 'assets/default/badge_default.png';
+  }
 }

@@ -8,6 +8,7 @@
     "devProd": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
     "dev": "nodemon --watch 'src/**/*.ts' --exec 'npm run swagger && ts-node' src/index.ts",
     "swagger": "ts-node src/swagger.ts",
+    "sync:badges": "ts-node src/utils/sync-badges.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

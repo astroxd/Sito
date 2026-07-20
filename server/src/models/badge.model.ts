@@ -230,4 +230,14 @@ export const Badge = {
       throw error;
     }
   },
+
+  getBadgePublicUrl: () => {
+    const badgeBucket = process.env.SUPABASE_BADGES_BUCKET_ID || "badges";
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from(badgeBucket).getPublicUrl("");
+
+    return publicUrl;
+  },
 };

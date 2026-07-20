@@ -160,16 +160,19 @@ export const getUserBadges = async (req: Request, res: Response) => {
   try {
     const catalog = await getUserBadgesCatalog(userId);
 
-    const serverUrl = `${req.protocol}://${req.get("host")}`;
+    // const serverUrl = `${req.protocol}://${req.get("host")}`;
+
+    const badgeBucketUrl = Badge.getBadgePublicUrl();
 
     const catalogWithImages = catalog.map((badge) => {
-      let imageUrl = "default.png";
-      if (existsSync(`static/badges/${badge.id}.png`)) {
-        imageUrl = `${badge.id}.png`;
-      }
+      // let imageUrl = "default.png";
+      // if (existsSync(`static/badges/${badge.id}.png`)) {
+      //   imageUrl = `${badge.id}.png`;
+      // }
+
       return {
         ...badge,
-        imageUrl: `${serverUrl}/static/badges/${imageUrl}`,
+        imageUrl: `${badgeBucketUrl}${badge.image}`,
       };
     });
 

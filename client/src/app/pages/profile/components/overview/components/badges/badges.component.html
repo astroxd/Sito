@@ -16,7 +16,11 @@
         [class]="badge.unlocked ? '' : 'locked'"
         (click)="openModal()"
       >
-        <img [src]="badge.imageUrl" [alt]="badge.title" />
+        <img
+          [src]="badge.imageUrl"
+          [alt]="badge.title"
+          (error)="handleBadgeImageError($event)"
+        />
         <span class="badge-title">{{ badge.title }}</span>
         <span
           class="badge-rank"
@@ -77,6 +81,7 @@
                       class="badge-img"
                       [src]="badge.imageUrl"
                       [alt]="badge.title"
+                      (error)="handleBadgeImageError($event)"
                     />
                     <p class="badge-description ellipsis">
                       {{ badge.description }}
