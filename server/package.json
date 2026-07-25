@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "private": true,
+  "workspaces": [
+    "src/packages/*",
+    "src/services/*"
+  ],
   "scripts": {
     "start": "node dist/index.js",
     "devProd": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",

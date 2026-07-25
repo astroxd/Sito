@@ -1,8 +1,14 @@
+import path from "path";
+import dotenv from "dotenv";
+dotenv.config({
+  path: path.resolve(__dirname, "../config/.env"),
+});
+
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { PUBLIC_ROUTES } from "../routes";
 
-const JTWSECRET = process.env.JWT_SECRET || "RSAPRIVATE";
+const JTW_SECRET = process.env.JWT_SECRET || "RSAPRIVATE";
 
 const isPublicRoute = (req: Request) => {
   const fullPath = req.originalUrl.split("?")[0];
@@ -21,17 +27,17 @@ export const requireAuth = (
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Access deniend. Missing token" });
+    return res.status(401).json({ message: "Access denied. Missing token" });
   }
 
   const token = authHeader.split(" ")[1];
 
   if (!token) {
-    return res.status(401).json({ message: "Access deniend. Malformed token" });
+    return res.status(401).json({ message: "Access denied. Malformed token" });
   }
 
   try {
-    const decodedToken = jwt.verify(token, JTWSECRET) as {
+    const decodedToken = jwt.verify(token, JTW_SECRET) as {
       userId: number;
     };
 

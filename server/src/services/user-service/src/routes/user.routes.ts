@@ -2,7 +2,7 @@ import { Router } from "express";
 import {
   updateAvatar,
   updateAvatarConfirm,
-} from "../controllers/auth.controller";
+} from "../controllers/user.controller";
 const router = Router();
 
 // router.use(requireAuth);

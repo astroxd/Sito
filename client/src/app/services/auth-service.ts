@@ -25,7 +25,7 @@ export class AuthService {
 
   login(email: string, password: string) {
     return this.apiService
-      .post<LoginResponse>('login', {
+      .post<LoginResponse>('auth/login', {
         email,
         password,
       })
@@ -58,12 +58,14 @@ export class AuthService {
   }
 
   refreshToken() {
-    return this.apiService.get<{ accessToken: string }>('refresh-token').pipe(
-      tap((res) => {
-        this.setToken(res.accessToken);
-      }),
-      shareReplay(1),
-    );
+    return this.apiService
+      .get<{ accessToken: string }>('auth/refresh-token')
+      .pipe(
+        tap((res) => {
+          this.setToken(res.accessToken);
+        }),
+        shareReplay(1),
+      );
   }
 
   initSession() {
@@ -77,7 +79,7 @@ export class AuthService {
 
   loadUser() {
     this.apiService
-      .get<{ user: User }>('session')
+      .get<{ user: User }>('auth/session')
       // .pipe(tap((data) => console.log(data)))
       .subscribe(({ user }) => {
         if (!user) {
@@ -89,7 +91,7 @@ export class AuthService {
   }
 
   logout() {
-    return this.apiService.post('logout', {}).pipe(
+    return this.apiService.post('auth/logout', {}).pipe(
       finalize(() => {
         this.setToken(null);
         this.setUser(null);
@@ -105,7 +107,7 @@ export class AuthService {
     avatar: File | null,
   ) {
     return this.apiService
-      .post<RegisterResponse>('register', { email, username, password })
+      .post<RegisterResponse>('auth/register', { email, username, password })
       .pipe(
         tap({
           next: ({ data }) => {
@@ -137,7 +139,7 @@ export class AuthService {
     return this.apiService
       .get<{
         data: AvatarUploadData;
-      }>('update-avatar')
+      }>('user/update-avatar')
       .pipe(
         tap({
           next: ({ data }) => {
@@ -181,7 +183,7 @@ export class AuthService {
             this.apiService
               .patch<{
                 data: { avatarUrl: string };
-              }>('update-avatar/confirm', {})
+              }>('user/update-avatar/confirm', {})
               .subscribe({
                 next: ({ data: { avatarUrl } }) => {
                   this.user.update((u) => {
