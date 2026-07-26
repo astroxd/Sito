@@ -7,7 +7,7 @@ dotenv.config({
 import express from "express";
 import serviceRoutes from "./routes/index";
 import cookieParser from "cookie-parser";
-import { attachUserHeader } from "@anime-hub/common";
+import { attachUserHeader, logger } from "@anime-hub/common";
 
 const PORT = process.env.PORT || 3002;
 
@@ -18,12 +18,11 @@ app.use(cookieParser());
 app.use(attachUserHeader);
 
 app.get("/", (req, res) => {
-  console.log(req.headers);
   return res.send("Hello World");
 });
 
 app.use("/", serviceRoutes);
 
 app.listen(PORT, () => {
-  console.log(`User Service is running on port ${PORT}`);
+  logger.info(`User Service is running on port ${PORT}`);
 });

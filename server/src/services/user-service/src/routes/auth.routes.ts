@@ -6,11 +6,15 @@ import {
   register,
   session,
 } from "../controllers/auth.controller";
+import {
+  createRateLimit,
+  loginLimiter,
+} from "../middlewares/rate-limiters.middleware";
 
 const router = Router();
 
-router.post("/register", register);
-router.post("/login", login);
+router.post("/register", createRateLimit({}, "auth-register"), register);
+router.post("/login", loginLimiter, login);
 router.get("/refresh-token", refreshToken);
 
 // router.use(requireAuth);

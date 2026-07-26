@@ -1,16 +1,23 @@
 import { createProxyMiddleware, Options } from "http-proxy-middleware";
 import express from "express";
 import { requireAuth } from "./middlewares/auth.middleware";
+import {
+  rateLimit,
+  Options as RateLimitOptions,
+  MINUTE,
+  AugmentedRequest,
+} from "express-rate-limit";
+import { createRateLimitHandler, logger } from "@anime-hub/common";
 
 export interface ProxyRoute {
   url: string;
   auth: boolean;
   proxy: Options;
+  rateLimit?: Partial<RateLimitOptions>;
 }
 
 const SERVICE_REGISTRY = {
   userService: "http://localhost:3002",
-  // userService: "https://www.google.com",
 };
 
 export const ROUTES: ProxyRoute[] = [
@@ -22,19 +29,6 @@ export const ROUTES: ProxyRoute[] = [
       changeOrigin: true,
       pathRewrite: {
         "^/": "/auth/",
-      },
-      on: {
-        proxyReq: (proxyReq, req, res) => {
-          console.log(
-            `[PROXY] Inoltro da ${req.url} -> ${SERVICE_REGISTRY.userService}${proxyReq.path}`,
-          );
-        },
-        proxyRes: (proxyRes, req, res) => {
-          console.log(`[PROXY] Risposta dal servizio: ${proxyRes.statusCode}`);
-        },
-        error: (err, req, res) => {
-          console.error(`[PROXY ERROR]`, err);
-        },
       },
     },
   },
@@ -58,11 +52,26 @@ export const PUBLIC_ROUTES = [
   { url: "/api/v1/auth/test" },
 ];
 
+const defaultGlobalLimiter = rateLimit({
+  windowMs: 15 * MINUTE,
+  limit: 300,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  handler: createRateLimitHandler(),
+});
+
 export const setupProxies = (app: express.Express, routes: ProxyRoute[]) => {
   routes.forEach((r) => {
     if (r.auth) {
       app.use(r.url, requireAuth);
     }
+
+    if (r.rateLimit) {
+      app.use(r.url, rateLimit(r.rateLimit));
+    } else {
+      app.use(r.url, defaultGlobalLimiter);
+    }
+
     app.use(r.url, createProxyMiddleware(r.proxy));
   });
 };

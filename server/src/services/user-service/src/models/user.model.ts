@@ -1,3 +1,4 @@
+import { logger } from "@anime-hub/common";
 import { supabase } from "../config/supabaseClient";
 import * as crypto from "crypto";
 
@@ -41,7 +42,7 @@ export const User = {
       .maybeSingle();
 
     if (error) {
-      console.error(`Error in findById [${error.code}]: ${error.message}`);
+      logger.error(`Error in findById [${error.code}]: ${error.message}`);
       throw error;
     }
 
@@ -77,7 +78,7 @@ export const User = {
       .maybeSingle();
 
     if (error) {
-      console.error(`Error in findByEmail [${error.code}]: ${error.message}`);
+      logger.error(`Error in findByEmail [${error.code}]: ${error.message}`);
       throw error;
     }
 
@@ -110,9 +111,7 @@ export const User = {
       .maybeSingle();
 
     if (error) {
-      console.error(
-        `Error in findByUsername [${error.code}]: ${error.message}`,
-      );
+      logger.error(`Error in findByUsername [${error.code}]: ${error.message}`);
       throw error;
     }
 
@@ -148,7 +147,7 @@ export const User = {
       .maybeSingle();
 
     if (error) {
-      console.error(
+      logger.error(
         `Error in findByRefreshToken [${error.code}]: ${error.message}`,
       );
       throw error;
@@ -188,7 +187,7 @@ export const User = {
       .range(offset, offset + perPage - 1);
 
     if (error) {
-      console.error(
+      logger.error(
         `Error in searchByUsername [${error.code}]: ${error.message}`,
       );
       throw error;
@@ -220,7 +219,7 @@ export const User = {
       .ilike("username", `${username}%`);
 
     if (error) {
-      console.error(
+      logger.error(
         `Error in countSearchMatches [${error.code}]: ${error.message}`,
       );
       throw error;
@@ -248,7 +247,7 @@ export const User = {
       .single();
 
     if (error) {
-      console.error(`Error in createUser [${error.code}]: ${error.message}`);
+      logger.error(`Error in createUser [${error.code}]: ${error.message}`);
       throw error;
     }
 
@@ -265,7 +264,7 @@ export const User = {
       .eq("user_id", userId);
 
     if (error) {
-      console.error(
+      logger.error(
         `Error in updateRefreshToken [${error.code}]: ${error.message}`,
       );
       throw error;
@@ -280,7 +279,7 @@ export const User = {
       .maybeSingle();
 
     if (error) {
-      console.error(
+      logger.error(
         `Error in getPasswordFromEmail [${error.code}]: ${error.message}`,
       );
       throw error;
@@ -296,7 +295,7 @@ export const User = {
       .eq("user_id", userId);
 
     if (error) {
-      console.error(
+      logger.error(
         `Error in revokeRefreshToken [${error.code}]: ${error.message}`,
       );
       throw error;
@@ -314,7 +313,7 @@ export const User = {
       .createSignedUploadUrl(User.getUserAvatarPath(userId), { upsert: true });
 
     if (error || !data) {
-      console.error(`Error in updateAvatar [${error.name}]: ${error.message}`);
+      logger.error(`Error in updateAvatar [${error.name}]: ${error.message}`);
       throw error;
     }
 
@@ -333,7 +332,7 @@ export const User = {
       .eq("user_id", userId);
 
     if (error) {
-      console.error(
+      logger.error(
         `Error in updateAvatarUpdatedAt [${error.code}]: ${error.message}`,
       );
       throw error;
@@ -354,7 +353,7 @@ export const User = {
       .maybeSingle();
 
     if (error) {
-      console.error(
+      logger.error(
         `Error in findLastEpisodeWatchedByAnimeId [${error.code}]: ${error.message}`,
       );
       throw error;
@@ -377,7 +376,7 @@ export const User = {
     ]);
 
     if (error) {
-      console.error(
+      logger.error(
         `Error in insertAnimeIntoWatchedEpisodes [${error.code}]: ${error.message}`,
       );
       throw error;
@@ -396,7 +395,7 @@ export const User = {
       .eq("anime_id", animeId);
 
     if (error) {
-      console.error(
+      logger.error(
         `Error in updateLastWatchedEpisode [${error.code}]: ${error.message}`,
       );
       throw error;
@@ -414,7 +413,7 @@ export const User = {
       .eq("anime_id", animeId);
 
     if (error) {
-      console.error(
+      logger.error(
         `Error in deleteFromWatchingByAnimeId [${error.code}]: ${error.message}`,
       );
       throw error;

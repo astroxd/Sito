@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { User } from "../models/user.model";
+import { logger } from "@anime-hub/common";
 
 export const updateAvatar = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Authentication']
@@ -31,7 +32,7 @@ export const updateAvatar = async (req: Request, res: Response) => {
 
     return res.status(200).json({ data: uploadData });
   } catch (error) {
-    console.error(error);
+    logger.error(error);
   }
 
   return res.status(500).json({ message: "Internal server error" });
@@ -58,7 +59,7 @@ export const updateAvatarConfirm = async (req: Request, res: Response) => {
       .status(200)
       .json({ data: { avatarUrl }, message: "Avatar updated successfully" });
   } catch (error) {
-    console.error(error);
+    logger.error(error);
   }
   return res.status(500).json({ message: "Internal server error" });
 };

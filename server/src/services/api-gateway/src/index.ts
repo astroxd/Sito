@@ -8,16 +8,25 @@ import express from "express";
 import cors from "cors";
 import { ROUTES } from "./routes";
 import { setupProxies } from "./routes";
+import { httpLogger, logger } from "@anime-hub/common";
 
 const PORT = process.env.PORT || 3001;
 
 const app = express();
+app.use(httpLogger);
 
 app.use(
   cors({
     origin: ["http://localhost:8100"],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    exposedHeaders: [
+      "Retry-After",
+      "RateLimit-Limit",
+      "RateLimit-Remaining",
+      "RateLimit-Reset",
+      "RateLimit-Policy",
+    ],
   }),
 );
 
@@ -28,5 +37,5 @@ app.get("/hello", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Api Gateway is running on port ${PORT}`);
+  logger.info(`Api Gateway is running on port ${PORT}`);
 });

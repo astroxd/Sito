@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import { Request, Response } from "express";
 import { User } from "../models/user.model";
 import { hashSync, compare } from "bcrypt";
+import { logger } from "@anime-hub/common";
 
 const JWTSECRET = process.env.JWT_SECRET || "RSAPRIVATEKEY";
 
@@ -78,7 +79,7 @@ export const register = async (req: Request, res: Response) => {
       message: "User registered successfully",
     });
   } catch (error) {
-    console.log(error);
+    logger.error(error);
   }
   return res.status(401).json({ message: "Generic error" });
 };
@@ -140,7 +141,7 @@ export const login = async (req: Request, res: Response) => {
       message: "Login succeded",
     });
   } catch (error) {
-    console.log(error);
+    logger.error(error);
   }
   return res.status(401).json({ message: "Invalid credentials" });
 };
@@ -175,7 +176,7 @@ export const refreshToken = async (req: Request, res: Response) => {
     const { accessToken } = generateJwt(decodedToken.userId);
     return res.json({ accessToken });
   } catch (error) {
-    console.log(error);
+    logger.error(error);
   }
   return res.sendStatus(403);
 };
@@ -214,6 +215,7 @@ export const session = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
+    logger.error(error);
     return res.status(401).json({ message: "Invalid Token" });
   }
 };
@@ -225,7 +227,7 @@ export const logout = async (req: Request, res: Response) => {
      #swagger.responses[200] = { schema: { $ref: '#/definitions/ErrorResponse' } }
      #swagger.responses[500] = { schema: { $ref: '#/definitions/ErrorResponse' } }
   */
-  const userId = res.locals.userId;
+  const userId = req.userId!;
 
   try {
     await User.revokeRefreshToken(userId);
