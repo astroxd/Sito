@@ -1,0 +1,74 @@
+x-watch-common: &watch-common
+  action: sync
+  path: ./server/packages/common
+  target: /app/server/packages/common
+  ignore:
+    - node_modules/
+
+services:
+  api-gateway:
+    profiles: ["server", "all"]
+    build:
+      context: .
+      dockerfile: ./server/services/api-gateway/Dockerfile
+      target: dev
+    env_file:
+      - ./server/.env
+      - ./server/services/api-gateway/src/config/.env
+    ports:
+      - "3001:3001"
+    develop:
+      watch:
+        - *watch-common
+        - action: sync
+          path: ./server/services/api-gateway/src
+          target: /app/server/services/api-gateway/src
+        - action: rebuild
+          path: ./server/services/api-gateway/package.json
+    networks:
+      - anime-hub-network
+  user-service:
+    profiles: ["server", "all"]
+    build:
+      context: .
+      dockerfile: ./server/services/user-service/Dockerfile
+      target: dev
+    env_file:
+      - ./server/.env
+      - ./server/services/user-service/src/config/.env
+    ports:
+      - "3002:3002"
+    develop:
+      watch:
+        - *watch-common
+        - action: sync
+          path: ./server/services/user-service/src
+          target: /app/server/services/user-service/src
+        - action: rebuild
+          path: ./server/services/user-service/package.json
+    networks:
+      - anime-hub-network
+  client:
+    profiles: ["client", "all"]
+    build:
+      context: .
+      dockerfile: ./client/Dockerfile
+      target: dev
+    ports:
+      - "8100:8100"
+    develop:
+      watch:
+        - action: sync
+          path: ./client
+          target: /app/client
+          ignore:
+            - client/node_modules/
+            - client/www
+            - client/.angular
+        - action: rebuild
+          path: client/package.json
+    networks:
+      - anime-hub-network
+networks:
+  anime-hub-network:
+    driver: bridge

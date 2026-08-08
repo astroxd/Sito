@@ -1,0 +1,13 @@
+services:
+  api-gateway:
+    build:
+      target: runner
+  user-service:
+    build:
+      target: runner
+  client:
+    build:
+      target: runner
+    ports:
+      - "8080:8080"
+    develop: !reset []

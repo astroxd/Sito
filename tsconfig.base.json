@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    /* Ambiente e Linguaggio (Node.js backend) */
+    "target": "ES2022",
+    "lib": ["ES2022"],
+
+    /* Configurazione Moduli Node.js */
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+
+    /* Controllo dei Tipi */
+    "strict": false,
+    "strictNullChecks": true,
+    "noImplicitAny": false,
+
+    /* Compatibilità e Performance */
+    "allowJs": true,
+    "checkJs": false,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+
+    "paths": {
+      // "@anime-hub/common": ["./server/src/packages/common/dist/index.d.ts"]
+      "@anime-hub/common": ["./server/packages/common/src/index.ts"]
+    }
+  },
+
+  "exclude": ["node_modules", "dist", "coverage"]
+}

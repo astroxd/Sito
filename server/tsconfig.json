@@ -25,7 +25,8 @@
     "skipLibCheck": true /* Velocizza la compilazione ignorando il controllo dei tipi dentro node_modules */
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "services"
   ] /* Compila tutto quello che si trova dentro la cartella src */,
   "exclude": [
     "node_modules",

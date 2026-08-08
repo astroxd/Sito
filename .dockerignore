@@ -1,0 +1,70 @@
+# =========================================
+# 1. Dependencies and Local Builds
+# =========================================
+# Ignore local node_modules (Docker will install clean ones)
+**/node_modules
+# Ignore build directories generated on the host machine
+**/dist
+**/build
+**/.out
+
+# Angular & Ionic specific build outputs
+**/www
+**/.angular
+
+# =========================================
+# 2. Native Mobile Platforms (Capacitor / Cordova)
+# =========================================
+# Ignore iOS and Android native platforms and build artifacts
+**/android
+**/ios
+**/capacitor.config.json.transpiled.json
+
+# =========================================
+# 3. Environment Files and Secrets
+# =========================================
+# NEVER include keys or secrets in Docker images
+**/*.env
+**/*.env.*
+!**/*.env.example
+
+# =========================================
+# 4. Git and IDE
+# =========================================
+.git
+.gitignore
+.github
+.vscode
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# =========================================
+# 5. Logs and Cache
+# =========================================
+# npm, yarn, and pnpm logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# TypeScript, Angular, and bundler caches
+**/.tsbuildinfo
+**/.eslintcache
+**/.cache
+
+# =========================================
+# 6. Documentation and Unnecessary Tests
+# =========================================
+**/README.md
+**/LICENSE
+**/*.md
+**/coverage
+**/cypress
+**/__tests__
+**/*.test.ts
+**/*.spec.ts
