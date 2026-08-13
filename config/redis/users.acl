@@ -1,0 +1,6 @@
+# Disabilita l'utente di default non protetto
+user default off
+
+# Crea l'utente personalizzato con permessi completi (+@all su tutte le chiavi ~*)
+# Sostituisci 'AnimeHub' con la tua password scelta
+user AnimeHub on >AnimeHub ~* +@all

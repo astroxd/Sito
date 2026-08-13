@@ -7,7 +7,11 @@ import {
   MINUTE,
   AugmentedRequest,
 } from "express-rate-limit";
-import { createRateLimitHandler, logger } from "@anime-hub/common";
+import {
+  createRateLimitHandler,
+  createRateLimitStore,
+  logger,
+} from "@anime-hub/common";
 import path from "path";
 import dotenv from "dotenv";
 dotenv.config({
@@ -62,6 +66,7 @@ const defaultGlobalLimiter = rateLimit({
   standardHeaders: "draft-8",
   legacyHeaders: false,
   handler: createRateLimitHandler(),
+  store: createRateLimitStore("rl:gateway:global"),
 });
 
 export const setupProxies = (app: express.Express, routes: ProxyRoute[]) => {

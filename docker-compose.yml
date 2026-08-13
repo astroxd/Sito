@@ -27,6 +27,8 @@ services:
           path: ./server/services/api-gateway/package.json
     networks:
       - anime-hub-network
+    depends_on:
+      - redis
   user-service:
     profiles: ["server", "all"]
     build:
@@ -46,6 +48,22 @@ services:
           target: /app/server/services/user-service/src
         - action: rebuild
           path: ./server/services/user-service/package.json
+    networks:
+      - anime-hub-network
+  redis:
+    image: redis:trixie
+    profiles: ["server", "all"]
+    restart: always
+    ports:
+      - "6379:6379"
+    # command: redis-server --save 20 1 --loglevel warning --requirepass AnimeHub
+    environment:
+      - SKIP_FIX_PERMS=1
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - redis_data:/data
+      - ./config/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ./config/redis/users.acl:/usr/local/etc/redis/users.acl:ro
     networks:
       - anime-hub-network
   client:
@@ -72,3 +90,5 @@ services:
 networks:
   anime-hub-network:
     driver: bridge
+volumes:
+  redis_data:

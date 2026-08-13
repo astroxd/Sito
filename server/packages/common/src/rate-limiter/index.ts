@@ -4,6 +4,8 @@ import {
   Options,
   RateLimitExceededEventHandler,
 } from "express-rate-limit";
+import { RedisStore, type RedisReply } from "rate-limit-redis";
+import { redisClient } from "../redis/client";
 import { logger } from "../logger";
 
 /**
@@ -46,4 +48,12 @@ export const createRateLimitHandler = (
       retryAfterSeconds: secondsRemaining,
     });
   };
+};
+
+export const createRateLimitStore = (prefix?: string) => {
+  return new RedisStore({
+    sendCommand: (command: string, ...args: string[]) =>
+      redisClient.call(command, ...args) as Promise<RedisReply>,
+    prefix: prefix ? (prefix.length > 0 ? prefix : "rl") : "rl",
+  });
 };
