@@ -1,16 +1,10 @@
 import { createProxyMiddleware, Options } from "http-proxy-middleware";
 import express from "express";
 import { requireAuth } from "./middlewares/auth.middleware";
-import {
-  rateLimit,
-  Options as RateLimitOptions,
-  MINUTE,
-  AugmentedRequest,
-} from "express-rate-limit";
+import { rateLimit, Options as RateLimitOptions } from "express-rate-limit";
 import {
   createRateLimitHandler,
   createRateLimitStore,
-  logger,
 } from "@anime-hub/common";
 import path from "path";
 import dotenv from "dotenv";
@@ -57,11 +51,10 @@ export const PUBLIC_ROUTES = [
   { url: "/api/v1/auth/register" },
   { url: "/api/v1/auth/login" },
   { url: "/api/v1/auth/refresh-token" },
-  { url: "/api/v1/auth/test" },
 ];
 
 const defaultGlobalLimiter = rateLimit({
-  windowMs: 15 * MINUTE,
+  windowMs: 15 * 60 * 1000,
   limit: 300,
   standardHeaders: "draft-8",
   legacyHeaders: false,

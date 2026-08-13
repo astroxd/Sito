@@ -2,9 +2,11 @@ services:
   api-gateway:
     build:
       target: runner
+    develop: !reset []
   user-service:
     build:
       target: runner
+    develop: !reset []
   client:
     build:
       target: runner

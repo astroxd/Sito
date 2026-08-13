@@ -2,14 +2,14 @@ import {
   createRateLimitHandler,
   createRateLimitStore,
 } from "@anime-hub/common";
-import { Options, MINUTE, rateLimit, HOUR } from "express-rate-limit";
+import { Options, rateLimit } from "express-rate-limit";
 
 export const createRateLimit = (
   options: Partial<Options>,
   routeName?: string,
 ) => {
   return rateLimit({
-    windowMs: options.windowMs ?? 1 * HOUR,
+    windowMs: options.windowMs ?? 1 * 60 * 60 * 1000,
     limit: options.limit ?? 5,
     standardHeaders: options.standardHeaders ?? "draft-8",
     legacyHeaders: options.legacyHeaders ?? false,
@@ -23,7 +23,7 @@ export const createRateLimit = (
 
 export const loginLimiter = createRateLimit(
   {
-    windowMs: 15 * MINUTE,
+    windowMs: 15 * 60 * 1000,
     limit: 5,
     skipSuccessfulRequests: true,
     handler: createRateLimitHandler("auth-login"),
