@@ -27,11 +27,6 @@
         "description": "Synchronize or upsert sanitized anime data into the local catalog/database mapping.",
         "parameters": [
           {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          },
-          {
             "name": "SyncAnimeBody",
             "in": "body",
             "description": "Raw anime details from external provider to sanitize and sync",
@@ -53,9 +48,6 @@
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "500": {
             "description": "Internal Server Error",
@@ -228,11 +220,6 @@
         "description": "Retrieve current session and user details. Requires both a valid Bearer Token and the jwt refresh token cookie.",
         "parameters": [
           {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          },
-          {
             "name": "jwt",
             "in": "cookie",
             "type": "string",
@@ -275,22 +262,12 @@
           "Authentication"
         ],
         "description": "Log out the user, revoke the refresh token and clear cookies.",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          }
-        ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "500": {
             "description": "Internal Server Error",
@@ -317,11 +294,6 @@
         ],
         "parameters": [
           {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          },
-          {
             "name": "avatar",
             "in": "formData",
             "type": "file",
@@ -342,9 +314,6 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           },
-          "401": {
-            "description": "Unauthorized"
-          },
           "500": {
             "description": "Internal Server Error",
             "schema": {
@@ -362,22 +331,12 @@
     "/update-avatar/confirm": {
       "patch": {
         "description": "",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          }
-        ],
         "responses": {
           "200": {
             "description": "OK"
           },
           "400": {
             "description": "Bad Request"
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "500": {
             "description": "Internal Server Error"
@@ -391,22 +350,12 @@
           "Shared Lists"
         ],
         "description": "Retrieve all shared lists associated with the authenticated user, including member details.",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          }
-        ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
               "$ref": "#/definitions/SharedListsResponse"
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "500": {
             "description": "Internal Server Error",
@@ -430,11 +379,6 @@
         "description": "Create a new shared list for the authenticated user.",
         "parameters": [
           {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          },
-          {
             "name": "CreateSharedListBody",
             "in": "body",
             "description": "Details for the new shared list",
@@ -456,9 +400,6 @@
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "500": {
             "description": "Internal Server Error",
@@ -487,11 +428,6 @@
             "required": true,
             "type": "integer",
             "description": "ID of the anime to check"
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
           }
         ],
         "responses": {
@@ -506,9 +442,6 @@
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "500": {
             "description": "Internal Server Error",
@@ -537,11 +470,6 @@
             "required": true,
             "type": "integer",
             "description": "ID of the shared list invitation to accept"
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
           }
         ],
         "responses": {
@@ -556,9 +484,6 @@
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "404": {
             "description": "Not Found",
@@ -593,11 +518,6 @@
             "required": true,
             "type": "integer",
             "description": "ID of the shared list invitation to decline"
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
           }
         ],
         "responses": {
@@ -612,9 +532,6 @@
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "404": {
             "description": "Not Found",
@@ -642,22 +559,12 @@
           "Shared Lists"
         ],
         "description": "Retrieve all pending shared list invitations received by the authenticated user, including list info, sender data, and current members.",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          }
-        ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
               "$ref": "#/definitions/InvitesListResponse"
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "500": {
             "description": "Internal Server Error",
@@ -686,11 +593,6 @@
             "required": true,
             "type": "integer",
             "description": "ID of the shared list"
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
           }
         ],
         "responses": {
@@ -699,9 +601,6 @@
             "schema": {
               "$ref": "#/definitions/SingleSharedListResponse"
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "404": {
             "description": "Not Found",
@@ -736,11 +635,6 @@
             "required": true,
             "type": "integer",
             "description": "ID of the shared list"
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
           }
         ],
         "responses": {
@@ -749,9 +643,6 @@
             "schema": {
               "$ref": "#/definitions/UserProgressResponse"
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "500": {
             "description": "Internal Server Error",
@@ -780,11 +671,6 @@
             "required": true,
             "type": "integer",
             "description": "ID of the shared list"
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
           }
         ],
         "responses": {
@@ -793,9 +679,6 @@
             "schema": {
               "$ref": "#/definitions/SharedAnimesProgressResponse"
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "500": {
             "description": "Internal Server Error",
@@ -831,11 +714,6 @@
             "required": true,
             "type": "integer",
             "description": "ID of the anime to update"
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
           }
         ],
         "responses": {
@@ -850,9 +728,6 @@
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "404": {
             "description": "Not Found",
@@ -889,11 +764,6 @@
             "description": "ID of the shared list"
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          },
-          {
             "name": "AddSharedAnimeBody",
             "in": "body",
             "description": "Details of the anime to add",
@@ -909,9 +779,6 @@
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "403": {
             "description": "Forbidden",
@@ -953,11 +820,6 @@
             "required": true,
             "type": "integer",
             "description": "ID of the anime to remove"
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
           }
         ],
         "responses": {
@@ -972,9 +834,6 @@
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "403": {
             "description": "Forbidden",
@@ -1011,11 +870,6 @@
             "description": "ID of the shared list"
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          },
-          {
             "name": "InviteMemberBody",
             "in": "body",
             "description": "ID of the user to invite",
@@ -1037,9 +891,6 @@
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "403": {
             "description": "Forbidden",
@@ -1081,11 +932,6 @@
             "required": true,
             "type": "integer",
             "description": "ID of the invited user"
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
           }
         ],
         "responses": {
@@ -1094,9 +940,6 @@
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "403": {
             "description": "Forbidden",
@@ -1138,11 +981,6 @@
             "required": true,
             "type": "integer",
             "description": "ID of the member to remove"
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
           }
         ],
         "responses": {
@@ -1157,9 +995,6 @@
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "403": {
             "description": "Forbidden",
@@ -1200,11 +1035,6 @@
             "required": true,
             "type": "integer",
             "description": "ID of the shared list"
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
           }
         ],
         "responses": {
@@ -1213,9 +1043,6 @@
             "schema": {
               "$ref": "#/definitions/PendingMembersResponse"
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "500": {
             "description": "Internal Server Error",
@@ -1253,11 +1080,6 @@
             "description": "ID of the target member"
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          },
-          {
             "name": "UpdateRoleBody",
             "in": "body",
             "description": "The new role for the member",
@@ -1279,9 +1101,6 @@
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "403": {
             "description": "Forbidden",
@@ -1324,11 +1143,6 @@
             "description": "ID of the shared list"
           },
           {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          },
-          {
             "name": "UpdateMessageBody",
             "in": "body",
             "description": "New message or null to clear it",
@@ -1350,9 +1164,6 @@
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "403": {
             "description": "Forbidden",
@@ -1394,11 +1205,6 @@
             "required": true,
             "type": "integer",
             "description": "Page number"
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
           }
         ],
         "responses": {
@@ -1413,9 +1219,6 @@
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "500": {
             "description": "Internal Server Error",
@@ -1444,11 +1247,6 @@
             "required": true,
             "type": "string",
             "description": "Anime status"
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
           },
           {
             "name": "q",
@@ -1483,9 +1281,6 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           },
-          "401": {
-            "description": "Unauthorized"
-          },
           "500": {
             "description": "Internal Server Error",
             "schema": {
@@ -1513,11 +1308,6 @@
             "required": true,
             "type": "integer",
             "description": "ID of the anime"
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
           }
         ],
         "responses": {
@@ -1532,9 +1322,6 @@
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "500": {
             "description": "Internal Server Error",
@@ -1561,11 +1348,6 @@
             "required": true,
             "type": "integer",
             "description": "ID of the anime to delete"
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
           }
         ],
         "responses": {
@@ -1583,9 +1365,6 @@
                 "name": "main"
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "500": {
             "schema": {
@@ -1609,11 +1388,6 @@
         "description": "Add an anime to the user\\'s private tracking list. Handles statistics, genre tracking, and badge verification if marked as COMPLETED.",
         "parameters": [
           {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          },
-          {
             "name": "AddAnimePrivateBody",
             "in": "body",
             "description": "Status and complete anime details to save",
@@ -1635,9 +1409,6 @@
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "404": {
             "description": "Not Found",
@@ -1665,11 +1436,6 @@
         "description": "Update the tracking status of an anime entry within the user\\'s private list. Recalculates statistics, watch time, and genre counters based on status transition.",
         "parameters": [
           {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          },
-          {
             "name": "UpdateAnimeListBody",
             "in": "body",
             "description": "Anime ID and the new status to apply",
@@ -1691,9 +1457,6 @@
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "404": {
             "description": "Not Found",
@@ -1733,11 +1496,6 @@
               "COMPLETED",
               "DROPPED"
             ]
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
           }
         ],
         "responses": {
@@ -1752,9 +1510,6 @@
               "$ref": "#/definitions/ErrorResponse"
             },
             "description": "Bad Request"
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "500": {
             "schema": {
@@ -1788,11 +1543,6 @@
             "in": "path",
             "required": true,
             "type": "integer"
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
           }
         ],
         "responses": {
@@ -1801,9 +1551,6 @@
               "$ref": "#/definitions/UpdateProgressSuccessResponse"
             },
             "description": "OK"
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "500": {
             "schema": {
@@ -1826,11 +1573,6 @@
         ],
         "description": "Bulk update the last watched episode checkpoint for a specific anime.",
         "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          },
           {
             "name": "body",
             "in": "body",
@@ -1860,9 +1602,6 @@
             },
             "description": "OK"
           },
-          "401": {
-            "description": "Unauthorized"
-          },
           "500": {
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
@@ -1889,11 +1628,6 @@
             "in": "path",
             "required": true,
             "type": "integer"
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
           }
         ],
         "responses": {
@@ -1902,9 +1636,6 @@
               "$ref": "#/definitions/LastWatchedEpisodeResponse"
             },
             "description": "OK"
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "500": {
             "schema": {
@@ -1926,13 +1657,6 @@
           "Friends"
         ],
         "description": "Retrieve the current user\\'s entire network context, categorizing established friendships and separating incoming versus outgoing pending requests.",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          }
-        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -1947,9 +1671,6 @@
                 "name": "main"
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "500": {
             "description": "Internal Server Error",
@@ -1972,11 +1693,6 @@
         ],
         "description": "Search exclusively within the current user\\'s accepted friends list by matching their username against a search query.",
         "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          },
           {
             "name": "q",
             "in": "query",
@@ -2010,9 +1726,6 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           },
-          "401": {
-            "description": "Unauthorized"
-          },
           "500": {
             "description": "Internal Server Error",
             "schema": {
@@ -2034,11 +1747,6 @@
         ],
         "description": "Perform a global search to look up any system user by their username, filtering out the current user.",
         "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          },
           {
             "name": "q",
             "in": "query",
@@ -2072,9 +1780,6 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           },
-          "401": {
-            "description": "Unauthorized"
-          },
           "500": {
             "description": "Internal Server Error",
             "schema": {
@@ -2096,11 +1801,6 @@
         ],
         "description": "Dispatch a outbound pending friend request to a target system user.",
         "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          },
           {
             "name": "FriendRequestBody",
             "in": "body",
@@ -2139,9 +1839,6 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           },
-          "401": {
-            "description": "Unauthorized"
-          },
           "500": {
             "description": "Internal Server Error",
             "schema": {
@@ -2163,11 +1860,6 @@
         ],
         "description": "Accept an incoming pending friend request. Validates that the request exists, is currently PENDING, and was not originally sent by the accepting user.",
         "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          },
           {
             "name": "AcceptFriendBody",
             "in": "body",
@@ -2205,9 +1897,6 @@
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "403": {
             "description": "Forbidden",
@@ -2248,11 +1937,6 @@
             "required": true,
             "type": "integer",
             "description": "ID of the user related to the pending request"
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
           }
         ],
         "responses": {
@@ -2276,9 +1960,6 @@
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "404": {
             "description": "Not Found",
@@ -2313,11 +1994,6 @@
             "required": true,
             "type": "integer",
             "description": "ID of the friend to be removed"
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
           }
         ],
         "responses": {
@@ -2341,9 +2017,6 @@
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "404": {
             "description": "Not Found",
@@ -2371,13 +2044,6 @@
           "Statistics"
         ],
         "description": "Retrieve comprehensive user viewing metrics including aggregated watch time formatted in days/hours/minutes, genre distribution counters, and day-by-day historic graphs comparing the current week with the previous week.",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          }
-        ],
         "responses": {
           "200": {
             "description": "Statistics retrieved successfully",
@@ -2466,9 +2132,6 @@
               }
             }
           },
-          "401": {
-            "description": "Unauthorized"
-          },
           "500": {
             "description": "Internal Server Error",
             "schema": {
@@ -2489,13 +2152,6 @@
           "Statistics"
         ],
         "description": "Retrieve the complete badges catalog tailored to the current user. Includes calculation of progression metrics towards next tiers, unlocked states, and resolves localized asset paths for badge icons.",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          }
-        ],
         "responses": {
           "200": {
             "description": "User badges catalog compiled successfully",
@@ -2571,9 +2227,6 @@
                 "name": "main"
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           },
           "500": {
             "description": "Internal Server Error",

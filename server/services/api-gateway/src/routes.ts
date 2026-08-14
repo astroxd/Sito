@@ -20,6 +20,7 @@ export interface ProxyRoute {
 
 const SERVICE_REGISTRY = {
   userService: process.env.USER_SERVICE_URL || "http://localhost:3002",
+  monolith: process.env.MONOLITH_URL || "http://localhost:9999",
 };
 
 export const ROUTES: ProxyRoute[] = [
@@ -42,6 +43,17 @@ export const ROUTES: ProxyRoute[] = [
       changeOrigin: true,
       pathRewrite: {
         "^/": "/user/",
+      },
+    },
+  },
+  {
+    url: "/api/v1/",
+    auth: true,
+    proxy: {
+      target: SERVICE_REGISTRY.monolith,
+      changeOrigin: true,
+      pathRewrite: {
+        "^/": "/api/v1/",
       },
     },
   },

@@ -87,6 +87,26 @@ services:
           path: client/package.json
     networks:
       - anime-hub-network
+  monolith:
+    profiles: ["server", "all"]
+    build:
+      context: .
+      dockerfile: ./server/Dockerfile
+      target: dev
+    ports:
+      - "9999:9999"
+    env_file:
+      - ./server/.env
+    develop:
+      watch:
+        - *watch-common
+        - action: sync
+          path: ./server/src
+          target: /app/src
+        - action: rebuild
+          path: ./server/package.json
+    networks:
+      - anime-hub-network
 networks:
   anime-hub-network:
     driver: bridge

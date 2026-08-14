@@ -8,27 +8,31 @@ export const requireAuth = (
   res: Response,
   next: NextFunction,
 ) => {
-  const authHeader = req.headers.authorization;
+  res.locals.userId = req.userId!;
+  console.log(req.userId);
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Access deniend. Missing token" });
-  }
+  return next();
+  // const authHeader = req.headers.authorization;
 
-  const token = authHeader.split(" ")[1];
+  // if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  //   return res.status(401).json({ message: "Access deniend. Missing token" });
+  // }
 
-  if (!token) {
-    return res.status(401).json({ message: "Access deniend. Malformed token" });
-  }
+  // const token = authHeader.split(" ")[1];
 
-  try {
-    const decodedToken = jwt.verify(token, JTWSECRET) as {
-      userId: number;
-    };
+  // if (!token) {
+  //   return res.status(401).json({ message: "Access deniend. Malformed token" });
+  // }
 
-    res.locals.userId = decodedToken.userId;
+  // try {
+  //   const decodedToken = jwt.verify(token, JTWSECRET) as {
+  //     userId: number;
+  //   };
 
-    next();
-  } catch (error) {
-    return res.status(401).json({ message: "Invalid token" });
-  }
+  //   res.locals.userId = decodedToken.userId;
+
+  //   next();
+  // } catch (error) {
+  //   return res.status(401).json({ message: "Invalid token" });
+  // }
 };
