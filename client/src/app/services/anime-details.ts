@@ -84,12 +84,18 @@ export class AnimeDetails {
           episodes: media.nextAiringEpisode?.episode
             ? media.nextAiringEpisode.episode - 1
             : (media.episodes ?? 0),
+          genres: media.genres,
         };
 
         if (this.authService.user()) {
           this.apiService
             .post('anime/sync', { anime: animePayload })
             .subscribe();
+          this.apiService.get(`anime/details/${animeId}`).subscribe({
+            next: (data: any) => {
+              console.log(data);
+            },
+          });
         }
       }),
     ) as Observable<AnimeDetail>;

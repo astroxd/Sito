@@ -1,5 +1,9 @@
-import { createProxyMiddleware, Options } from "http-proxy-middleware";
-import express from "express";
+import {
+  createProxyMiddleware,
+  Options,
+  responseInterceptor,
+} from "http-proxy-middleware";
+import express, { Request, Response, RequestHandler } from "express";
 import { requireAuth } from "./middlewares/auth.middleware";
 import { rateLimit, Options as RateLimitOptions } from "express-rate-limit";
 import {
@@ -8,12 +12,51 @@ import {
 } from "@anime-hub/common";
 import path from "path";
 import dotenv from "dotenv";
+import { useCacheWrite, useCacheRead } from "./middlewares/cache.middleware";
+import { IncomingMessage, ServerResponse } from "http";
+
 dotenv.config({
   path: path.resolve(process.cwd(), ".env"),
 });
+
+/**
+ * Redis cache configuration for a proxy route.
+ */
+export interface CacheOptions {
+  /**
+   * Toggle caching. If `false`, caching is bypassed even if handlers are defined.
+   */
+  enabled: boolean;
+
+  /**
+   * Time To Live (TTL) in seconds for the cached Redis key.
+   */
+  ttl: number;
+
+  /**
+   * Express middleware executed **BEFORE** the request hits the underlying service.
+   * Checks Redis for cached data to serve on CACHE HIT.
+   * @default {@link useCacheRead}
+   */
+  onReq?: RequestHandler;
+
+  /**
+   * Interceptor executed **AFTER** the underlying service completes the response.
+   * Saves the response buffer into Redis on CACHE MISS.
+   * @default {@link useCacheWrite | useCacheWrite()}
+   */
+  onRes?: (
+    responseBuffer: Buffer,
+    proxyRes: IncomingMessage,
+    req: IncomingMessage,
+    res: ServerResponse,
+  ) => Promise<string | Buffer>;
+}
+
 export interface ProxyRoute {
   url: string;
   auth: boolean;
+  cache?: CacheOptions;
   proxy: Options;
   rateLimit?: Partial<RateLimitOptions>;
 }
@@ -43,6 +86,35 @@ export const ROUTES: ProxyRoute[] = [
       changeOrigin: true,
       pathRewrite: {
         "^/": "/user/",
+      },
+    },
+  },
+  {
+    url: "/api/v1/anime/details",
+    auth: true,
+    cache: {
+      enabled: true,
+      ttl: 60 * 60 * 24,
+      // onRes: useCache(),
+      // onReq: useCacheRead,
+    },
+
+    proxy: {
+      target: SERVICE_REGISTRY.monolith,
+      changeOrigin: true,
+      pathRewrite: {
+        "^/": "/api/v1/anime/details/",
+      },
+    },
+  },
+  {
+    url: "/api/v1/anime",
+    auth: true,
+    proxy: {
+      target: SERVICE_REGISTRY.monolith,
+      changeOrigin: true,
+      pathRewrite: {
+        "^/": "/api/v1/anime/",
       },
     },
   },
@@ -86,6 +158,27 @@ export const setupProxies = (app: express.Express, routes: ProxyRoute[]) => {
       app.use(r.url, defaultGlobalLimiter);
     }
 
-    app.use(r.url, createProxyMiddleware(r.proxy));
+    let proxyOptions = { ...r.proxy };
+
+    if (r.cache?.enabled) {
+      const handleReq = r.cache.onReq ?? useCacheRead;
+
+      app.use(r.url, handleReq);
+
+      const handleRes = r.cache.onRes ?? useCacheWrite({ ttl: r.cache.ttl });
+
+      proxyOptions = {
+        ...proxyOptions,
+        selfHandleResponse: true,
+        on: {
+          ...proxyOptions.on,
+          proxyRes: responseInterceptor(handleRes),
+        },
+      };
+    }
+
+    app.use(r.url, createProxyMiddleware<Request, Response>(proxyOptions));
   });
 };
+
+//TODO add caching

@@ -549,6 +549,14 @@ export const syncAnime = async (req: Request, res: Response) => {
   }
 };
 
+export const getAnimeDetails = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  console.log(id);
+
+  return res.status(200).json({ title: "Cacca" });
+};
+
 export const updateLastWatchedEpisode = async (req: Request, res: Response) => {
   /* #swagger.tags = ['Private Lists']
      #swagger.description = 'Bulk update or manually set the exact target episode reached by the user. Automatically shifts status to COMPLETED if the target matches or exceeds max episodes, recalculating stats accordingly.'

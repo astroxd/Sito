@@ -17,6 +17,8 @@ services:
       - ./server/services/api-gateway/src/config/.env
     ports:
       - "3001:3001"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
     develop:
       watch:
         - *watch-common
@@ -40,6 +42,8 @@ services:
       - ./server/services/user-service/src/config/.env
     ports:
       - "3002:3002"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
     develop:
       watch:
         - *watch-common
@@ -53,7 +57,7 @@ services:
   redis:
     image: redis:trixie
     profiles: ["server", "all"]
-    restart: always
+    restart: unless-stopped
     ports:
       - "6379:6379"
     # command: redis-server --save 20 1 --loglevel warning --requirepass AnimeHub
@@ -95,6 +99,9 @@ services:
       target: dev
     ports:
       - "9999:9999"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - CHOKIDAR_INTERVAL=1000
     env_file:
       - ./server/.env
     develop:
@@ -102,7 +109,7 @@ services:
         - *watch-common
         - action: sync
           path: ./server/src
-          target: /app/src
+          target: /app/server/src
         - action: rebuild
           path: ./server/package.json
     networks:

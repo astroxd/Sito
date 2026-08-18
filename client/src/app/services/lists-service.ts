@@ -231,17 +231,18 @@ export class ListsService {
   }
 
   getLastEpisodeWatched(animeId: number) {
-    return this.apiService
-      .get<{
-        data: { lastEpisodeWatched: number; animeInfo: PrivateAnime | null };
-      }>(`anime/episodes/${animeId}`)
-      .pipe(
-        tap({
-          next: ({ data }) => {
-            this.lastEpisodeWatched.set(data);
-          },
-        }),
-      );
+    return of(1);
+    // return this.apiService
+    //   .get<{
+    //     data: { lastEpisodeWatched: number; animeInfo: PrivateAnime | null };
+    //   }>(`anime/episodes/${animeId}`)
+    //   .pipe(
+    //     tap({
+    //       next: ({ data }) => {
+    //         this.lastEpisodeWatched.set(data);
+    //       },
+    //     }),
+    //   );
   }
 
   updateWatchedEpisode(animeId: number, episodeTarget: number) {

@@ -9,8 +9,6 @@ export const requireAuth = (
   next: NextFunction,
 ) => {
   res.locals.userId = req.userId!;
-  console.log(req.userId);
-
   return next();
   // const authHeader = req.headers.authorization;
 
