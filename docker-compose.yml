@@ -114,6 +114,29 @@ services:
           path: ./server/package.json
     networks:
       - anime-hub-network
+  anime-service:
+    profiles: ["server", "all"]
+    build:
+      context: .
+      dockerfile: ./server/services/anime-service/Dockerfile
+      target: dev
+    env_file:
+      - ./server/.env
+      - ./server/services/anime-service/src/config/.env
+    ports:
+      - "3003:3003"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    develop:
+      watch:
+        - *watch-common
+        - action: sync
+          path: ./server/services/anime-service/src
+          target: /app/server/services/anime-service/src
+        - action: rebuild
+          path: ./server/services/anime-service/package.json
+    networks:
+      - anime-hub-network
 networks:
   anime-hub-network:
     driver: bridge

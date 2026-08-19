@@ -8,6 +8,7 @@ import {
 } from '../models/AnimeDetails';
 import { APIService } from './apiservice';
 import { AuthService } from './auth-service';
+import { Anime } from '../models/Anime';
 
 @Injectable({
   providedIn: 'root',
@@ -19,6 +20,8 @@ export class AnimeDetails {
   private readonly url = 'https://graphql.anilist.co';
 
   GetAnimeDetails(animeId: number) {
+    return this.apiService.get<AnimeDetail>(`anime/details/${animeId}`);
+
     const query = {
       query: `
         query($id: Int){

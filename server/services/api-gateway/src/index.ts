@@ -13,7 +13,7 @@ import { httpLogger, logger } from "@anime-hub/common";
 const PORT = process.env.PORT || 3001;
 
 const app = express();
-// app.use(httpLogger);
+app.use(httpLogger);
 
 app.use(
   cors({

@@ -63,6 +63,7 @@ export interface ProxyRoute {
 
 const SERVICE_REGISTRY = {
   userService: process.env.USER_SERVICE_URL || "http://localhost:3002",
+  animeService: process.env.ANIME_SERVICE_URL || "http://localhost:3003",
   monolith: process.env.MONOLITH_URL || "http://localhost:9999",
 };
 
@@ -100,24 +101,24 @@ export const ROUTES: ProxyRoute[] = [
     },
 
     proxy: {
-      target: SERVICE_REGISTRY.monolith,
+      target: SERVICE_REGISTRY.animeService,
       changeOrigin: true,
       pathRewrite: {
-        "^/": "/api/v1/anime/details/",
+        "^/": "/anime/details/",
       },
     },
   },
-  {
-    url: "/api/v1/anime",
-    auth: true,
-    proxy: {
-      target: SERVICE_REGISTRY.monolith,
-      changeOrigin: true,
-      pathRewrite: {
-        "^/": "/api/v1/anime/",
-      },
-    },
-  },
+  // {
+  //   url: "/api/v1/anime",
+  //   auth: true,
+  //   proxy: {
+  //     target: SERVICE_REGISTRY.monolith,
+  //     changeOrigin: true,
+  //     pathRewrite: {
+  //       "^/": "/api/v1/anime/",
+  //     },
+  //   },
+  // },
   {
     url: "/api/v1/",
     auth: true,
