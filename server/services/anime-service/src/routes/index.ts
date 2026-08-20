@@ -3,10 +3,6 @@ import detailsRoutes from "./details.routes";
 
 const router = Router();
 
-// router.get("/anime/:id", (req, res) => {
-//   console.log("Req");
-// });
-
-router.use("/anime", detailsRoutes);
+router.use("/anime/details", detailsRoutes);
 
 export default router;

@@ -8,14 +8,15 @@ export interface Anime {
   episodes?: number;
   nextAiringEpisode?: {
     episode?: number;
-  };
+    airingAt?: number;
+  } | null;
   popularity: number;
   coverImage: {
     large: string;
     extraLarge: string;
   };
   bannerImage?: string;
-  genres: [];
+  genres: string[];
   status: string;
   duration?: number;
 }

@@ -1,40 +1,43 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
+import { Observable, of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { AnimeDetails } from 'src/app/services/anime-details';
 import { SideAnimeCard } from 'src/app/components/side-anime-card/side-anime-card';
+import { AnimeRecommendation } from 'src/app/models/AnimeDetails';
 
 @Component({
   selector: 'app-recommendations',
-  template: `<div class="anime-details-sidebar">
-    <div class="section-header">
-      <div class="section-title">
-        <h5>You Might Like...</h5>
+  template: `
+    <div class="anime-details-sidebar">
+      <div class="section-header">
+        <div class="section-title">
+          <h5>You Might Like...</h5>
+        </div>
       </div>
+
+      @for (anime of recommendations$ | async; track anime.id) {
+        <app-side-anime-card [anime]="anime" />
+      }
     </div>
-    <!-- prettier-ignore -->
-    @for (anime of (recommendations$ | async); track $index) {
-        <app-side-anime-card key="{idx}" [anime]="anime.node.mediaRecommendation" />
-    }
-  </div>`,
+  `,
   imports: [AsyncPipe, SideAnimeCard],
 })
-export class Recommendations implements OnInit {
+export class Recommendations {
   private route = inject(ActivatedRoute);
-  private AnimeDetailsService = inject(AnimeDetails);
+  private animeDetailsService = inject(AnimeDetails);
 
-  recommendations$: any;
+  recommendations$: Observable<AnimeRecommendation[]> =
+    this.route.paramMap.pipe(
+      switchMap((params) => {
+        const animeId = Number(params.get('id'));
 
-  constructor() {
-    this.route.paramMap.subscribe((params) => {
-      const animeId = Number(params.get('id'));
+        if (animeId && !isNaN(animeId)) {
+          return this.animeDetailsService.GetAnimeRecommendations(animeId);
+        }
 
-      if (animeId && !isNaN(animeId)) {
-        this.recommendations$ =
-          this.AnimeDetailsService.GetAnimeRecommendations(animeId);
-      }
-    });
-  }
-
-  ngOnInit() {}
+        return of([]); // Fallback empty array
+      }),
+    );
 }

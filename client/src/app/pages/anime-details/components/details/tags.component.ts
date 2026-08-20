@@ -1,6 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { AsyncPipe } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { Component, computed, inject } from '@angular/core';
 import { AnimeDetails } from 'src/app/services/anime-details';
 
 @Component({
@@ -12,31 +10,21 @@ import { AnimeDetails } from 'src/app/services/anime-details';
       </div>
     </div>
     <div class="tags">
-      <!-- prettier-ignore -->
-      @for (tag of (tags$ | async); track $index) {
-        <span [id]="$index" class="tag no-hover">
+      @for (tag of tags(); track tag.id) {
+        <span [id]="tag.id" class="tag no-hover">
           {{ tag.name }}
         </span>
       }
     </div>
   </div>`,
-  imports: [AsyncPipe],
+  imports: [],
 })
-export class Tags implements OnInit {
-  private route = inject(ActivatedRoute);
+export class Tags {
   private AnimeDetailsService = inject(AnimeDetails);
 
-  tags$: any;
+  public tags = computed(
+    () => this.AnimeDetailsService.animeDetails()?.tags ?? [],
+  );
 
-  constructor() {
-    this.route.paramMap.subscribe((params) => {
-      const animeId = Number(params.get('id'));
-
-      if (animeId && !isNaN(animeId)) {
-        this.tags$ = this.AnimeDetailsService.GetAnimeTags(animeId);
-      }
-    });
-  }
-
-  ngOnInit() {}
+  constructor() {}
 }

@@ -3,6 +3,23 @@
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
+  "imports": {
+    "#models": "./src/models/*",
+    "#controllers": "./src/controllers/*",
+    "#routes": "./src/routes/*",
+    "#middlewares": "./src/middlewares/*",
+    "#*": [
+      "./src/*",
+      "./src/*.ts",
+      "./src/*.tsx",
+      "./src/*.js",
+      "./src/*.jsx",
+      "./src/*/index.ts",
+      "./src/*/index.tsx",
+      "./src/*/index.js",
+      "./src/*/index.jsx"
+    ]
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node dist/index.js",

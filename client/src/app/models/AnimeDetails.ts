@@ -46,6 +46,7 @@ export interface AnimeDetail {
     airingAt?: number;
     episode?: number;
   };
+  tags: AnimeTag[];
 }
 
 export interface AnimeTag {
@@ -57,11 +58,12 @@ export interface AnimeRecommendation {
   id: number;
   title: {
     english?: string;
-    romaji?: string;
+    romaji: string;
   };
   status: string;
   popularity: number;
   coverImage: {
+    large: string;
     extraLarge: string;
   };
   bannerImage: string;
@@ -70,6 +72,7 @@ export interface AnimeRecommendation {
     airingAt?: number;
     episode: number;
   } | null;
+  genres: string[];
 }
 
 export interface AnimeCharacter {
@@ -97,13 +100,14 @@ export interface AnimeCharacter {
 }
 
 export interface AnimeCharacterApiRes {
-  edges: [
-    {
-      node: { image: AnimeCharacter['image']; name: AnimeCharacter['name'] };
-      role: AnimeCharacter['role'];
-      voiceActors: AnimeCharacter['voiceActors'];
-    },
-  ];
+  // edges: [
+  //   {
+  //     node: { image: AnimeCharacter['image']; name: AnimeCharacter['name'] };
+  //     role: AnimeCharacter['role'];
+  //     voiceActors: AnimeCharacter['voiceActors'];
+  //   },
+  // ];
+  characters: AnimeCharacter[];
   pageInfo: {
     hasNextPage: boolean;
   };

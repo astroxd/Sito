@@ -10,7 +10,7 @@ import {
 } from '@ionic/angular/standalone';
 import { AnimeDetails } from 'src/app/services/anime-details';
 import { CharacterCardComponent } from './character-card/character-card.component';
-import { finalize, map } from 'rxjs';
+import { finalize, map, tap } from 'rxjs';
 import {
   AnimeCharacter,
   AnimeCharacterApiRes,
@@ -58,30 +58,32 @@ export class Characters implements OnInit {
   loadCharacters(event?: InfiniteScrollCustomEvent) {
     this.AnimeDetailsService.GetAnimeCharacters(this.animeId, this.page)
       .pipe(
+        tap((data) => console.log(data)),
         finalize(() => {
           if (event) {
             event.target.complete();
           }
         }),
-        map((res: AnimeCharacterApiRes) => {
-          return {
-            characters: res.edges.map(
-              ({ node: { image, name }, role, voiceActors }) => {
-                const character: AnimeCharacter = {
-                  image,
-                  name,
-                  role,
-                  voiceActors,
-                };
-                return character;
-              },
-            ),
-            pageInfo: res.pageInfo,
-          };
-        }),
+        //   map((res: AnimeCharacterApiRes) => {
+        //     return {
+        //       characters: res.edges.map(
+        //         ({ node: { image, name }, role, voiceActors }) => {
+        //           const character: AnimeCharacter = {
+        //             image,
+        //             name,
+        //             role,
+        //             voiceActors,
+        //           };
+        //           return character;
+        //         },
+        //       ),
+        //       pageInfo: res.pageInfo,
+        //     };
+        //   }),
       )
       .subscribe({
         next: (newCharactersInfo) => {
+          console.log(newCharactersInfo);
           this.characters.update((characters) => [
             ...characters,
             ...newCharactersInfo.characters,

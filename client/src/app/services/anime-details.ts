@@ -1,14 +1,15 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable, tap } from 'rxjs';
 import {
+  AnimeCharacterApiRes,
   AnimeDetail,
+  AnimeEpisodeApiRes,
   AnimeRecommendation,
   AnimeTag,
 } from '../models/AnimeDetails';
 import { APIService } from './apiservice';
 import { AuthService } from './auth-service';
-import { Anime } from '../models/Anime';
 
 @Injectable({
   providedIn: 'root',
@@ -19,8 +20,18 @@ export class AnimeDetails {
   private authService = inject(AuthService);
   private readonly url = 'https://graphql.anilist.co';
 
+  public animeDetails = signal<AnimeDetail | null>(null);
+
   GetAnimeDetails(animeId: number) {
-    return this.apiService.get<AnimeDetail>(`anime/details/${animeId}`);
+    this.apiService.get<AnimeDetail>(`anime/details/${animeId}`).subscribe({
+      next: (details) => {
+        this.animeDetails.set(details);
+      },
+      error: (err) => {
+        console.log(err);
+        this.animeDetails.set(null);
+      },
+    });
 
     const query = {
       query: `
@@ -71,6 +82,10 @@ export class AnimeDetails {
     `,
       variables: { id: animeId },
     };
+    return;
+
+    //TODO fix sync
+
     return this.http.post<any>(this.url, query).pipe(
       map(({ data: { Media } }) => Media),
       tap((media) => {
@@ -104,118 +119,21 @@ export class AnimeDetails {
     ) as Observable<AnimeDetail>;
   }
 
-  GetAnimeTags(animeId: number) {
-    const query = {
-      query: `
-        query($id: Int){
-            Media(id: $id){
-                tags{
-                    id
-                    name
-                }
-            }
-        }
-
-    `,
-      variables: { id: animeId },
-    };
-
-    return this.http.post<any>(this.url, query).pipe(
-      // tap(({ data }) => console.log(data)),
-      map(({ data: { Media } }) => Media.tags),
-    ) as Observable<AnimeTag>;
-  }
-
   GetAnimeRecommendations(animeId: number) {
-    const query = {
-      query: `
-        query($id: Int){
-            Media(id: $id){
-                recommendations(sort: RATING_DESC, perPage: 5) {
-                    edges {
-                          node {
-                            mediaRecommendation {
-                                  id
-                                title {
-                                    english
-                                    romaji
-                                 }
-                                coverImage {
-                                    extraLarge
-                                }
-                                bannerImage
-                                episodes
-                                popularity
-                                nextAiringEpisode{
-                                    episode
-                                }
-                                status
-                            }
-                          }
-                    }
-                }
-            }
-        }
-    `,
-      variables: { id: animeId },
-    };
-
-    return this.http.post<any>(this.url, query).pipe(
-      // tap(({ data }) => console.log(data)),
-      map(({ data: { Media } }) => Media.recommendations?.edges),
-    ) as Observable<AnimeRecommendation>;
+    return this.apiService.get<AnimeRecommendation[]>(
+      `anime/details/${animeId}/recommendations`,
+    );
   }
 
   GetAnimeCharacters(animeId: number, page = 1) {
-    const query = {
-      query: `
-        query($id: Int, $pageNumber: Int){
-				Media(id: $id){
-					characters(sort: [RELEVANCE, FAVOURITES_DESC], page: $pageNumber) {
-						pageInfo {
-							hasNextPage
-						}
-						edges{
-							node {
-							  name {
-								first
-								middle
-								last
-							  }
-							  image{
-								large
-							  }
-							}
-							role
-							voiceActors(language:JAPANESE) {
-							  name {
-								full
-							  }
-							  image{
-								large
-							  }
-							  languageV2
-							}
-
-						}
-					}
-				}
-			}
-
-    `,
-      variables: { id: animeId, pageNumber: page },
-    };
-
-    return this.http.post<any>(this.url, query).pipe(
-      // tap(({ data }) => console.log(data)),
-      map(({ data: { Media } }) => Media.characters),
+    return this.apiService.get<AnimeCharacterApiRes>(
+      `anime/details/${animeId}/characters/${page}`,
     );
   }
 
   GetAnimeEpisodes(MALAnimeId: number, page = 1) {
-    const query = `https://api.jikan.moe/v4/anime/${MALAnimeId}/videos/episodes?page=${page}`;
-
-    return this.http.get<any>(query);
-    // .pipe(tap((data) => console.log(data)));
+    return this.apiService.get<AnimeEpisodeApiRes>(
+      `anime/details/${MALAnimeId}/episodes/${page}`,
+    );
   }
 }

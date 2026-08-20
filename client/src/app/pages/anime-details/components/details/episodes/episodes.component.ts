@@ -1,6 +1,7 @@
 import {
   Component,
   computed,
+  effect,
   inject,
   OnInit,
   signal,
@@ -14,7 +15,7 @@ import {
   IonInfiniteScroll,
   IonInfiniteScrollContent,
 } from '@ionic/angular/standalone';
-import { finalize } from 'rxjs';
+import { finalize, tap } from 'rxjs';
 import { AnimeEpisode, AnimeEpisodeApiRes } from 'src/app/models/AnimeDetails';
 import { AnimeDetails } from 'src/app/services/anime-details';
 import { SideEpisodeCardComponent } from './side-episode-card/side-episode-card.component';
@@ -71,10 +72,12 @@ export class Episodes implements OnInit {
     this.isFullPage = this.router.url.endsWith('episodes');
     this.animeId = this.outletData().id;
 
-    this.AnimeDetailsService.GetAnimeDetails(this.animeId).subscribe((res) => {
-      this.malId = res.idMal ?? null;
+    effect(() => {
+      const details = this.AnimeDetailsService.animeDetails();
+
+      this.malId = details?.idMal ?? null;
       const episodesNumber =
-        res.nextAiringEpisode?.episode ?? res.episodes ?? null;
+        details?.nextAiringEpisode?.episode ?? details?.episodes ?? null;
 
       this.listsService.episodes.set(episodesNumber);
       if (this.malId) {
@@ -92,6 +95,7 @@ export class Episodes implements OnInit {
   loadEpisodes(event?: InfiniteScrollCustomEvent) {
     this.AnimeDetailsService.GetAnimeEpisodes(this.malId!, this.page)
       .pipe(
+        tap((data) => console.log(data)),
         finalize(() => {
           if (event) {
             event.target.complete();

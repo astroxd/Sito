@@ -1,5 +1,17 @@
+import dotenv from "dotenv";
+dotenv.config({
+  path: ".env",
+});
 import pino from "pino";
 import pinoHttp from "pino-http";
+
+/**
+ * Pino Log Levels (ascending order of priority):
+ * `[trace, debug, info, warn, error, fatal]`
+ *
+ * Configured level sets the minimum threshold; only logs equal to or higher
+ * priority than `process.env.LOG_LEVEL` (default: `"info"`) will be emitted.
+ */
 
 export const logger = pino({
   level: process.env.LOG_LEVEL || "info",
