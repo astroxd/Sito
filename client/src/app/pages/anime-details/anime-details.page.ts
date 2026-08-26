@@ -48,7 +48,6 @@ export class AnimeDetailsPage implements OnInit {
   private route = inject(ActivatedRoute);
   AnimeDetailsService = inject(AnimeDetails);
 
-  details$: any;
   animeId: number | null = null;
 
   constructor() {
@@ -56,7 +55,7 @@ export class AnimeDetailsPage implements OnInit {
       this.animeId = Number(params.get('id'));
 
       if (this.animeId && !isNaN(this.animeId)) {
-        this.details$ = this.AnimeDetailsService.GetAnimeDetails(this.animeId);
+        this.AnimeDetailsService.GetAnimeDetails(this.animeId);
         if (this.authService.user()) {
           this.listsService.getListedAnime(Number(this.animeId)).subscribe();
           this.sharedListsService

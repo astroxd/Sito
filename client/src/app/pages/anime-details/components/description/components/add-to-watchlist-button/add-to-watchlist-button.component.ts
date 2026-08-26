@@ -27,7 +27,7 @@ export class AddToWatchlistButtonComponent implements OnInit {
   private readonly AnimeStatusLabels = AnimeStatusLabels;
   readonly iterableAnimeStatusLabels = iterableAnimeStatusLabels;
 
-  animeDetails = input.required<AnimeDetail | undefined>();
+  animeDetails = input.required<AnimeDetail>();
   animeId = computed(() => this.animeDetails()?.id);
 
   animeStatus = this.listsService.animeStatus;

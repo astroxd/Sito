@@ -1,3 +1,4 @@
+import Anime from "#models/details.model.js";
 import {
   AnimeCharacter,
   AnimeCharacterRes,
@@ -12,7 +13,6 @@ import {
 } from "#types";
 import { fetchWithRetry, logger } from "@anime-hub/common";
 import { Request, Response } from "express";
-import { parse } from "node:path";
 
 const GRAPHQL_URL = process.env.GRAPHQL_URL || "https://graphql.anilist.co";
 
@@ -78,6 +78,15 @@ export const getAnimeDetails = async (req: Request, res: Response) => {
   const details = response.data.Media;
 
   logger.trace(details);
+
+  if (details) {
+    try {
+      await Anime.upsert(Anime.sanitize(details));
+      logger.info("Anime synced successfully");
+    } catch (error) {
+      logger.error(error);
+    }
+  }
 
   return res.status(200).json(details);
 };
@@ -204,31 +213,35 @@ export const getAnimeEpisodes = async (req: Request, res: Response) => {
   const query = `https://api.jikan.moe/v4/anime/${MALanimeId}/videos/episodes?page=${page}`;
 
   try {
-    const response = await fetchWithRetry(
-      query,
-      {},
-      {
-        retries: 3,
-        initialDelayMs: 1200,
-        backoffFactor: 2,
-      },
-    );
+    // const response = await fetchWithRetry(
+    //   query,
+    //   {},
+    //   {
+    //     retries: 0,
+    //     initialDelayMs: 1200,
+    //     backoffFactor: 2,
+    //   },
+    // );
+
+    const response = await fetch(query);
 
     if (!response.ok) {
       const errorData = await response.json();
-      return res.status(response.status).json({
+      return res.status(504).json({
         message: "Jikan API error after retries",
         details: errorData,
+        data: [],
       });
     }
 
     const parsedResponse = await response.json();
     return res.status(200).json(parsedResponse);
   } catch (error) {
-    logger.error(error, "Errore irreversibile nella chiamata a Jikan");
+    // logger.error(error, "Errore irreversibile nella chiamata a Jikan");
     return res.status(504).json({
       message:
         "Service Unavailable: Failed to connect to external anime provider",
+      data: [],
     });
   }
 };

@@ -173,3 +173,13 @@ export interface AnimeEpisodeResponse {
   };
   data: AnimeEpisode[];
 }
+
+export interface IAnime {
+  id: number;
+  idMal: number;
+  title: string | null;
+  cover: string;
+  episodes: number;
+  avgEpisodeDuration: number;
+  genres: string[];
+}

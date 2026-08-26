@@ -7,7 +7,7 @@ import {
   OnInit,
   signal,
 } from '@angular/core';
-import { IonRow, IonCol } from '@ionic/angular/standalone';
+import { IonRow, IonCol, IonSkeletonText } from '@ionic/angular/standalone';
 
 import { AnimeDetail } from 'src/app/models/AnimeDetails';
 import {
@@ -19,19 +19,29 @@ import { AddToWatchlistButtonComponent } from './components/add-to-watchlist-but
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faHeart, faEye } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from 'src/app/services/auth-service';
+import { AnimeDetails } from 'src/app/services/anime-details';
 
 @Component({
   selector: 'app-anime-description',
   standalone: true,
   templateUrl: './anime-description.component.html',
   styleUrls: ['./anime-description.component.scss'],
-  imports: [IonRow, IonCol, AddToWatchlistButtonComponent, FontAwesomeModule],
+  imports: [
+    IonRow,
+    IonCol,
+    AddToWatchlistButtonComponent,
+    FontAwesomeModule,
+    IonSkeletonText,
+  ],
 })
 export class AnimeDescription implements OnInit {
   public authService = inject(AuthService);
-  public details = input<AnimeDetail | null>(null);
+  private AnimeDetailsService = inject(AnimeDetails);
   faHeart = faHeart;
   faEye = faEye;
+
+  public details = this.AnimeDetailsService.animeDetails;
+  public isLoading = this.AnimeDetailsService.isLoading;
 
   public titles = computed<string>(() => {
     return Object.entries(this.details()?.title ?? [])

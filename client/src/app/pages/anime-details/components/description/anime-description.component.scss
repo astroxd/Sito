@@ -8,10 +8,15 @@
   margin-bottom: 40px;
 }
 
-.anime-details-img img {
+.anime-details-img img,
+.anime-details-img ion-skeleton-text {
   width: 100%;
   max-height: 440px;
   border-radius: 5px;
+}
+
+.anime-details-img ion-skeleton-text {
+  height: 350px;
 }
 
 .anime-details-img .comments {
@@ -30,7 +35,8 @@
 .anime-details-title {
   margin-bottom: 20px;
 }
-.anime-details-title h3 {
+.anime-details-title h3,
+.anime-details-title ion-skeleton-text {
   margin-bottom: 13px;
 }
 

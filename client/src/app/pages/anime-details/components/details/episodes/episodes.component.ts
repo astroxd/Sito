@@ -93,6 +93,8 @@ export class Episodes implements OnInit {
   ngOnInit() {}
 
   loadEpisodes(event?: InfiniteScrollCustomEvent) {
+    //TODO remove
+    return;
     this.AnimeDetailsService.GetAnimeEpisodes(this.malId!, this.page)
       .pipe(
         tap((data) => console.log(data)),

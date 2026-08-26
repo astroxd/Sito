@@ -96,8 +96,8 @@ export const ROUTES: ProxyRoute[] = [
     cache: {
       enabled: true,
       ttl: 60 * 60 * 24,
-      // onRes: useCache(),
-      // onReq: useCacheRead,
+      onRes: useCacheWrite({ path: "anime:details" }),
+      onReq: useCacheRead({ path: "anime:details" }),
     },
 
     proxy: {
